@@ -41,13 +41,14 @@ jobs:
       - name: Build Binary
         run: |
           mkdir -p dist
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/webhook-${{ matrix.goos }}-${{ matrix.goarch }} .
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/webhook-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.run_id }} .
 
       - name: Upload Binaries as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: binaries
+          name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.run_id }}
           path: dist/
+          if-no-files-found: ignore
 
   release:
     name: Publish Release
@@ -62,7 +63,8 @@ jobs:
       - name: Download Built Binaries
         uses: actions/download-artifact@v4
         with:
-          name: binaries
+          pattern: binaries-*
+          merge-multiple: true
           path: dist/
 
       - name: Publish Release Binaries
