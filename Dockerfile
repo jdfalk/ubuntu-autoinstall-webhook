@@ -1,7 +1,7 @@
-# --- Stage 1: Create Minimal Final Image ---
-    FROM alpine:latest
+# --- Stage 1: Minimal Image Using Official Go Alpine Base ---
+    FROM golang:1.24-alpine AS final
 
-    # Set build args for multi-arch
+    # Set build argument for multi-arch support
     ARG TARGETARCH
 
     # Set environment variables
