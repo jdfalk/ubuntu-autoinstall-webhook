@@ -15,6 +15,9 @@ var rootCmd = &cobra.Command{
 	Long:  "A webhook service for capturing Ubuntu Autoinstall reports",
 }
 
+// Config file flag
+var configFile string
+
 // Execute runs the root command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
@@ -25,14 +28,24 @@ func Execute() {
 
 // Init config (loads environment variables and config file)
 func init() {
+	// Register the --config flag before parsing commands
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Path to the config file")
+
+	// Initialize configuration after parsing CLI flags
 	cobra.OnInitialize(initConfig)
 }
 
 func initConfig() {
-	viper.SetConfigName("config") // Config file name (without extension)
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("/etc/webhook/") // Look in system-wide config dir
+	if configFile != "" {
+		// Use the specified config file from --config flag
+		viper.SetConfigFile(configFile)
+	} else {
+		// Default config lookup locations
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath(".")
+		viper.AddConfigPath("/etc/webhook/")
+	}
 
 	// Set default values
 	viper.SetDefault("port", "5000")
