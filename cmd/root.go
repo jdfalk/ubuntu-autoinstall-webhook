@@ -8,8 +8,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config file flag (now a global variable)
+// Global variables for flags
 var configFile string
+var logDir string
 
 // Root command
 var rootCmd = &cobra.Command{
@@ -26,10 +27,10 @@ func Execute() {
 	}
 }
 
-// Init function to set up config flag
+// Init function to set up global flags
 func init() {
-	// Register a universal --config flag (available on all subcommands)
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "c", "Path to the config file")
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Path to the config file")
+	rootCmd.PersistentFlags().StringVar(&logDir, "logDir", "", "Directory for log storage")
 
 	// Ensure config is loaded before executing any command
 	cobra.OnInitialize(initConfig)
@@ -38,14 +39,17 @@ func init() {
 // Load configuration
 func initConfig() {
 	if configFile != "" {
-		// Use the specified config file from --config flag
 		viper.SetConfigFile(configFile)
 	} else {
-		// Default config lookup locations
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(".")
 		viper.AddConfigPath("/etc/webhook/")
+	}
+
+	// Read logDir from CLI flag if set
+	if logDir != "" {
+		viper.Set("logDir", logDir)
 	}
 
 	// Set default values

@@ -3,10 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
+	"github.com/spf13/viper"
 )
 
 // File represents an optional file entry in the event payload
@@ -25,6 +30,7 @@ type Event struct {
 	Description string  `json:"description"`
 	Result      string  `json:"result,omitempty"` // Some events may have a "result"
 	Files       []File  `json:"files,omitempty"`  // Optional files attribute
+	SourceIP    string  `json:"source_ip"`        // IP of the client
 }
 
 // WebhookHandler processes incoming webhook events
@@ -34,6 +40,10 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Extract client IP
+	clientIP := getClientIP(r)
+
+	// Decode request body
 	var event Event
 	err := json.NewDecoder(r.Body).Decode(&event)
 	if err != nil {
@@ -43,21 +53,79 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Convert timestamp to human-readable format
 	timestamp := time.Unix(int64(event.Timestamp), 0).Format(time.RFC3339)
+	event.SourceIP = clientIP
 
-	// Log event metadata
+	// Log event to standard log
 	logEntry := fmt.Sprintf("%s - Event: %+v\n", timestamp, event)
 	logger.AppendToFile(logEntry)
 
-	// Process files if provided
-	if len(event.Files) > 0 {
-		for _, file := range event.Files {
-			fileLog := fmt.Sprintf("Received file: %s (Encoding: %s)", file.Path, file.Encoding)
-			logger.AppendToFile(fileLog)
-		}
-	}
+	// Log event per source IP in JSON format
+	logEventByIP(event)
 
 	// Respond
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, `{"status": "success", "message": "Event received"}`)
+}
+
+// Extract the real IP of the client, handling proxies if needed
+func getClientIP(r *http.Request) string {
+	// Check X-Forwarded-For header first
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
+		ips := strings.Split(xff, ",")
+		return strings.TrimSpace(ips[0]) // First IP in the list is the client
+	}
+
+	// Check X-Real-IP header
+	xRealIP := r.Header.Get("X-Real-IP")
+	if xRealIP != "" {
+		return xRealIP
+	}
+
+	// Default: get remote address
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return "unknown"
+	}
+	return ip
+}
+
+// Log the event per source IP in JSON format
+func logEventByIP(event Event) {
+	logDir := viper.GetString("logDir") // Use config or flag value
+
+	// Ensure logDir is set, fallback if empty
+	if logDir == "" {
+		logDir = "/var/log/autoinstall-webhook"
+	}
+
+	ipFilename := formatIPFilename(event.SourceIP)
+	logFilePath := filepath.Join(logDir, ipFilename)
+
+	// Ensure log directory exists
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		os.MkdirAll(logDir, 0755)
+	}
+
+	// Open or create the log file
+	file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("Error opening log file for %s: %v\n", event.SourceIP, err)
+		return
+	}
+	defer file.Close()
+
+	// Encode event as JSON and append to file
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(event)
+	if err != nil {
+		fmt.Printf("Error writing JSON log for %s: %v\n", event.SourceIP, err)
+	}
+}
+
+// Format the IP address into a valid filename
+func formatIPFilename(ip string) string {
+	safeIP := strings.ReplaceAll(ip, ".", "_")
+	return fmt.Sprintf("%s.json", safeIP)
 }
