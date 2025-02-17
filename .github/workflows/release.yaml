@@ -17,6 +17,11 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -25,6 +30,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '>=1.24'
+          cache: true
 
       - name: Install Dependencies
         run: go mod tidy
@@ -32,11 +38,10 @@ jobs:
       - name: Run Tests
         run: go test -v ./...
 
-      - name: Build Binaries
+      - name: Build Binary
         run: |
           mkdir -p dist
-          GOOS=linux GOARCH=amd64 go build -o dist/webhook-linux-amd64 .
-          GOOS=darwin GOARCH=amd64 go build -o dist/webhook-darwin-amd64 .
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/webhook-${{ matrix.goos }}-${{ matrix.goarch }} .
 
       - name: Upload Binaries as Artifacts
         uses: actions/upload-artifact@v4
@@ -49,6 +54,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -72,19 +78,14 @@ jobs:
       - name: Generate Attestation for Binaries
         run: |
           for file in dist/*; do
-            cosign attest --predicate $file --type spdx --output-file ${file}.attestation
+            cosign attest --predicate attestation.json --type spdx --yes $file
           done
 
-      - name: Upload Attestation Files
-        uses: actions/upload-artifact@v4
-        with:
-          name: attestations
-          path: dist/*.attestation
-
   docker:
-    name: Build, Push & Attest Docker Image
+    name: Build and Push Multi-Arch Docker Image
     needs: build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -92,18 +93,20 @@ jobs:
       - name: Log in to GitHub Container Registry (GHCR)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Build and Push Docker Image with Kaniko
+      - name: Build and Push Multi-Arch Docker Image with Kaniko
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
           export TAG="latest"
 
           docker run --rm \
+            --privileged \
             -v "$(pwd)":/workspace \
             -v /kaniko/.docker:/kaniko/.docker \
             gcr.io/kaniko-project/executor:latest \
             --context /workspace \
             --dockerfile Dockerfile \
-            --destination $IMAGE_NAME:$TAG
+            --destination $IMAGE_NAME:$TAG \
+            --platform=linux/amd64,linux/arm64
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
