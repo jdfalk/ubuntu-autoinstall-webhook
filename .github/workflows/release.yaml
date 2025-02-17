@@ -81,7 +81,7 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
           for file in dist/*; do
-            cosign attest --predicate attestation.json --type spdx --yes $file
+            cosign attest --predicate attestation.json --type custom --yes $file
           done
 
   docker:
