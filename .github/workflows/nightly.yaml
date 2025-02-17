@@ -69,11 +69,43 @@ jobs:
         with:
           cosign-release: "v2.0.1"
 
-      - name: Generate Attestation for Nightly Binaries
+      - name: Install Syft (for SBOM)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Generate SBOM for Binaries
+        run: |
+          mkdir -p sbom
+          for file in dist/*; do
+            syft $file -o spdx-json > sbom/$(basename $file).spdx.json
+          done
+
+      - name: Publish Release Binaries
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+
+      - name: Sign Binaries with Cosign
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
+          for file in dist/*; do
+            cosign sign --yes $file
+          done
+
+      - name: Attest Binaries with Provenance
         run: |
           for file in dist/*; do
-            cosign attest --predicate attestation.json --type spdx --yes $file
+            cosign attest --predicate provenance.json --type custom --yes $file
           done
+
+      - name: Attest Binaries with SBOM
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
+          for sbom in sbom/*; do
+            binary_name=$(basename $sbom .spdx.json)
+            cosign attest --predicate $sbom --type spdx --yes dist/$binary_name
+          done
+
 
   docker:
     name: Build and Push Multi-Arch Nightly Docker Image
@@ -154,5 +186,7 @@ jobs:
 
       - name: Generate Attestation for Nightly Docker Image
         run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly"
-          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME
+          export IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
+          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_DIGEST
