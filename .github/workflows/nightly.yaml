@@ -1,0 +1,114 @@
+name: Nightly Build and Publish
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Runs every night at midnight UTC
+  workflow_dispatch:  # Allows manual triggering
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write  # Required for Sigstore Cosign
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
+
+      - name: Install Dependencies
+        run: go mod tidy
+
+      - name: Run Tests
+        run: go test -v ./...
+
+      - name: Build Nightly Binaries
+        run: |
+          mkdir -p dist
+          GOOS=linux GOARCH=amd64 go build -o dist/webhook-linux-nightly .
+          GOOS=darwin GOARCH=amd64 go build -o dist/webhook-darwin-nightly .
+
+      - name: Upload Binaries as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-binaries
+          path: dist/
+
+  release:
+    name: Publish Nightly Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Built Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: nightly-binaries
+          path: dist/
+
+      - name: Publish Nightly Binaries
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: nightly
+          name: "Nightly Build"
+          files: dist/*
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.0.1"
+
+      - name: Generate Attestation for Nightly Binaries
+        run: |
+          for file in dist/*; do
+            cosign attest --predicate $file --type spdx --output-file ${file}.attestation
+          done
+
+      - name: Upload Attestation Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-attestations
+          path: dist/*.attestation
+
+  docker:
+    name: Build and Push Nightly Docker Image
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: Build and Push Nightly Docker Image with Kaniko
+        run: |
+          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
+          export TAG="nightly"
+
+          docker run --rm \
+            -v "$(pwd)":/workspace \
+            -v /kaniko/.docker:/kaniko/.docker \
+            gcr.io/kaniko-project/executor:latest \
+            --context /workspace \
+            --dockerfile Dockerfile \
+            --destination $IMAGE_NAME:$TAG
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.0.1"
+
+      - name: Generate Attestation for Nightly Docker Image
+        run: |
+          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly"
+          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME
