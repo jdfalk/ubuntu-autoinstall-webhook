@@ -79,6 +79,9 @@ jobs:
     name: Build and Push Multi-Arch Nightly Docker Image
     needs: release
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
 
     steps:
       - name: Checkout Repository
@@ -87,12 +90,19 @@ jobs:
       - name: Log in to GitHub Container Registry (GHCR)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Build and Push Multi-Arch Nightly Docker Image with Kaniko
+      - name: Download Built Binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binaries-*
+          merge-multiple: true
+          path: dist/
+
+      - name: Build and Push Nightly Docker Image with Kaniko
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
           export DATE_TAG=$(date +'%Y%m%d-%H%M%S')
-          export TAG="nightly"
-          export FULL_TAG="$IMAGE_NAME:$TAG-$DATE_TAG"
+          export ARCH="${{ matrix.arch }}"
+          export FULL_TAG="$IMAGE_NAME:nightly-$ARCH"
 
           docker run --rm \
             --privileged \
@@ -101,9 +111,29 @@ jobs:
             gcr.io/kaniko-project/executor:latest \
             --context /workspace \
             --dockerfile Dockerfile \
-            --destination $FULL_TAG \
-            --destination $IMAGE_NAME:$TAG \
-            --platform=linux/amd64,linux/arm64
+            --custom-platform=linux/$ARCH \
+            --build-arg TARGETARCH=$ARCH \
+            --destination $FULL_TAG
+
+  manifest:
+    name: Create and Push Nightly Docker Manifest
+    needs: docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to GitHub Container Registry (GHCR)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: Create and Push Multi-Arch Manifest for Nightly
+        run: |
+          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
+          export TAG="nightly"
+
+          docker manifest create $IMAGE_NAME:$TAG \
+            --amend $IMAGE_NAME:$TAG-amd64 \
+            --amend $IMAGE_NAME:$TAG-arm64
+
+          docker manifest push $IMAGE_NAME:$TAG
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
@@ -112,7 +142,5 @@ jobs:
 
       - name: Generate Attestation for Nightly Docker Image
         run: |
-          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
-          export DATE_TAG=$(date +'%Y%m%d-%H%M%S')
-          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME:nightly-$DATE_TAG
-          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME:nightly
+          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly"
+          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME
