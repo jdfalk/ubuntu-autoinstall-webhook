@@ -79,6 +79,7 @@ jobs:
 
       - name: Generate Attestation for Binaries
         run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
           for file in dist/*; do
             cosign attest --predicate attestation.json --type spdx --yes $file
           done
