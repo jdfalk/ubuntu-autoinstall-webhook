@@ -97,14 +97,14 @@ jobs:
 
       - name: Log in to GitHub Container Registry (GHCR)
         run: |
-          mkdir -p /kaniko/.docker
+          mkdir -p $(pwd)/kaniko/.docker
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-          cp ~/.docker/config.json /kaniko/.docker/config.json
+          cp ~/.docker/config.json $(pwd)/kaniko/.docker/config.json
 
       - name: Validate Docker Login Configuration
         run: |
-          if [ ! -f /kaniko/.docker/config.json ]; then
-            echo "❌ Docker config.json file is missing in /kaniko/.docker!"
+          if [ ! -f $(pwd)/kaniko/.docker/config.json ]; then
+            echo "❌ Docker config.json file is missing in $(pwd)/kaniko/.docker!"
             exit 1
           fi
           echo "✅ Docker login validated. config.json is correctly placed in /kaniko/.docker."
@@ -117,7 +117,7 @@ jobs:
 
           docker run --rm \
             --privileged \
-            -v /kaniko/.docker:/kaniko/.docker \
+            -v $(pwd)/kaniko/.docker:/kaniko/.docker \
             -v "$(pwd)":/workspace \
             -e DOCKER_CONFIG=/kaniko/.docker \
             gcr.io/kaniko-project/executor:latest \
