@@ -87,6 +87,9 @@ jobs:
     name: Build and Push Multi-Arch Docker Image
     needs: build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
 
     steps:
       - name: Checkout Repository
@@ -95,10 +98,11 @@ jobs:
       - name: Log in to GitHub Container Registry (GHCR)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Build and Push Multi-Arch Docker Image with Kaniko
+      - name: Build and Push Docker Image with Kaniko
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
           export TAG="latest"
+          export ARCH="${{ matrix.arch }}"
 
           docker run --rm \
             --privileged \
@@ -107,8 +111,28 @@ jobs:
             gcr.io/kaniko-project/executor:latest \
             --context /workspace \
             --dockerfile Dockerfile \
-            --destination $IMAGE_NAME:$TAG \
-            --platform=linux/amd64,linux/arm64
+            --custom-platform=linux/$ARCH \
+            --destination $IMAGE_NAME:$TAG-$ARCH
+
+  manifest:
+    name: Create and Push Docker Manifest
+    needs: docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to GitHub Container Registry (GHCR)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: Create and Push Multi-Arch Manifest
+        run: |
+          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
+          export TAG="latest"
+
+          docker manifest create $IMAGE_NAME:$TAG \
+            --amend $IMAGE_NAME:$TAG-amd64 \
+            --amend $IMAGE_NAME:$TAG-arm64
+
+          docker manifest push $IMAGE_NAME:$TAG
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
