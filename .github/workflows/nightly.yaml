@@ -38,14 +38,15 @@ jobs:
       - name: Build Nightly Binaries
         run: |
           mkdir -p dist
-          DATE_TAG=$(date +'%Y%m%d')
+          DATE_TAG=$(date +'%Y%m%d-%H%M%S')
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/webhook-nightly-${{ matrix.goos }}-${{ matrix.goarch }}-$DATE_TAG .
 
       - name: Upload Binaries as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nightly-binaries
+          name: nightly-binaries-${{ matrix.goos }}-${{ matrix.goarch }}-${{ github.run_id }}
           path: dist/
+          if-no-files-found: ignore
 
   release:
     name: Publish Nightly Binaries
@@ -59,7 +60,8 @@ jobs:
       - name: Download Built Binaries
         uses: actions/download-artifact@v4
         with:
-          name: nightly-binaries
+          pattern: nightly-binaries-*
+          merge-multiple: true
           path: dist/
 
       - name: Install Cosign
@@ -88,7 +90,7 @@ jobs:
       - name: Build and Push Multi-Arch Nightly Docker Image with Kaniko
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
-          export DATE_TAG=$(date +'%Y%m%d')
+          export DATE_TAG=$(date +'%Y%m%d-%H%M%S')
           export TAG="nightly"
           export FULL_TAG="$IMAGE_NAME:$TAG-$DATE_TAG"
 
@@ -111,6 +113,6 @@ jobs:
       - name: Generate Attestation for Nightly Docker Image
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
-          export DATE_TAG=$(date +'%Y%m%d')
+          export DATE_TAG=$(date +'%Y%m%d-%H%M%S')
           cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME:nightly-$DATE_TAG
           cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME:nightly
