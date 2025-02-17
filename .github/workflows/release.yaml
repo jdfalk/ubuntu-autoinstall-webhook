@@ -1,0 +1,116 @@
+name: Build, Release, and Attest
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write  # Required for Sigstore Cosign
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
+
+      - name: Install Dependencies
+        run: go mod tidy
+
+      - name: Run Tests
+        run: go test -v ./...
+
+      - name: Build Binaries
+        run: |
+          mkdir -p dist
+          GOOS=linux GOARCH=amd64 go build -o dist/webhook-linux-amd64 .
+          GOOS=darwin GOARCH=amd64 go build -o dist/webhook-darwin-amd64 .
+
+      - name: Upload Binaries as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+
+  release:
+    name: Publish Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Built Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+
+      - name: Publish Release Binaries
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.0.1"
+
+      - name: Generate Attestation for Binaries
+        run: |
+          for file in dist/*; do
+            cosign attest --predicate $file --type spdx --output-file ${file}.attestation
+          done
+
+      - name: Upload Attestation Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: attestations
+          path: dist/*.attestation
+
+  docker:
+    name: Build, Push & Attest Docker Image
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: Build and Push Docker Image with Kaniko
+        run: |
+          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
+          export TAG="latest"
+
+          docker run --rm \
+            -v "$(pwd)":/workspace \
+            -v /kaniko/.docker:/kaniko/.docker \
+            gcr.io/kaniko-project/executor:latest \
+            --context /workspace \
+            --dockerfile Dockerfile \
+            --destination $IMAGE_NAME:$TAG
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.0.1"
+
+      - name: Generate Attestation for Docker Image
+        run: |
+          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:latest"
+          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME
