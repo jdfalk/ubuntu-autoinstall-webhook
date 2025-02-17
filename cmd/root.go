@@ -8,15 +8,15 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Config file flag (now a global variable)
+var configFile string
+
 // Root command
 var rootCmd = &cobra.Command{
 	Use:   "webhook",
 	Short: "Ubuntu Autoinstall Webhook CLI",
 	Long:  "A webhook service for capturing Ubuntu Autoinstall reports",
 }
-
-// Config file flag
-var configFile string
 
 // Execute runs the root command
 func Execute() {
@@ -26,15 +26,16 @@ func Execute() {
 	}
 }
 
-// Init config (loads environment variables and config file)
+// Init function to set up config flag
 func init() {
-	// Register the --config flag before parsing commands
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Path to the config file")
+	// Register a universal --config flag (available on all subcommands)
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "c", "Path to the config file")
 
-	// Initialize configuration after parsing CLI flags
+	// Ensure config is loaded before executing any command
 	cobra.OnInitialize(initConfig)
 }
 
+// Load configuration
 func initConfig() {
 	if configFile != "" {
 		// Use the specified config file from --config flag
