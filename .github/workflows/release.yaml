@@ -85,7 +85,7 @@ jobs:
 
   docker:
     name: Build and Push Multi-Arch Docker Image
-    needs: build
+    needs: release
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -107,7 +107,14 @@ jobs:
             echo "❌ Docker config.json file is missing in $(pwd)/kaniko/.docker!"
             exit 1
           fi
-          echo "✅ Docker login validated. config.json is correctly placed in /kaniko/.docker."
+          echo "✅ Docker login validated. config.json is correctly placed in $(pwd)/kaniko/.docker."
+
+      - name: Download Built Binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binaries-*
+          merge-multiple: true
+          path: dist/
 
       - name: Build and Push Docker Image with Kaniko
         run: |
@@ -123,8 +130,8 @@ jobs:
             gcr.io/kaniko-project/executor:latest \
             --context /workspace \
             --dockerfile Dockerfile \
-            --build-arg TARGETARCH=$ARCH \
             --custom-platform=linux/$ARCH \
+            --build-arg TARGETARCH=$ARCH \
             --destination $FULL_TAG
 
   manifest:
@@ -137,7 +144,7 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Create and Push Multi-Arch Docker Manifest
+      - name: Create and Push Multi-Arch Manifest
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
           export TAG="latest"
