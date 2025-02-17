@@ -163,4 +163,6 @@ jobs:
       - name: Generate Attestation for Docker Image
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:latest"
-          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_NAME
+          export IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
+          cosign attest --predicate attestation.json --type spdx --yes $IMAGE_DIGEST
