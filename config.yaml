@@ -1,0 +1,3 @@
+port: "5000"
+logDir: "/var/log/autoinstall-webhook"
+logFile: "autoinstall_report.log"
