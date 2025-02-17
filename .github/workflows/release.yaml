@@ -96,31 +96,36 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Log in to GitHub Container Registry (GHCR)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+        run: |
+          mkdir -p /kaniko/.docker
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+          cp ~/.docker/config.json /kaniko/.docker/config.json
 
-      - name: Download Built Binaries
-        uses: actions/download-artifact@v4
-        with:
-          pattern: binaries-*
-          merge-multiple: true
-          path: dist/
+      - name: Validate Docker Login Configuration
+        run: |
+          if [ ! -f /kaniko/.docker/config.json ]; then
+            echo "❌ Docker config.json file is missing in /kaniko/.docker!"
+            exit 1
+          fi
+          echo "✅ Docker login validated. config.json is correctly placed in /kaniko/.docker."
 
       - name: Build and Push Docker Image with Kaniko
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
-          export TAG="latest"
           export ARCH="${{ matrix.arch }}"
+          export FULL_TAG="$IMAGE_NAME:latest-$ARCH"
 
           docker run --rm \
             --privileged \
-            -v "$(pwd)":/workspace \
             -v /kaniko/.docker:/kaniko/.docker \
+            -v "$(pwd)":/workspace \
+            -e DOCKER_CONFIG=/kaniko/.docker \
             gcr.io/kaniko-project/executor:latest \
             --context /workspace \
             --dockerfile Dockerfile \
             --build-arg TARGETARCH=$ARCH \
             --custom-platform=linux/$ARCH \
-            --destination $IMAGE_NAME:$TAG-$ARCH
+            --destination $FULL_TAG
 
   manifest:
     name: Create and Push Docker Manifest
@@ -129,9 +134,10 @@ jobs:
 
     steps:
       - name: Log in to GitHub Container Registry (GHCR)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Create and Push Multi-Arch Manifest
+      - name: Create and Push Multi-Arch Docker Manifest
         run: |
           export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
           export TAG="latest"
