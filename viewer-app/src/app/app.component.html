@@ -1,0 +1,39 @@
+<div class="container">
+  <h2>Reported Systems</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>IP Address</th>
+        <th>Last Seen</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let system of systems" (click)="navigateToLogs(system.ip_address)">
+        <td>{{ system.ip_address }}</td>
+        <td>{{ system.last_seen | date:'short' }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="logs.length">
+    <h3>Logs for {{ selectedIp }}</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th (click)="sort('timestamp')">Timestamp</th>
+          <th (click)="sort('event_type')">Event Type</th>
+          <th (click)="sort('name')">Name</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs">
+          <td>{{ log.timestamp | date:'short' }}</td>
+          <td>{{ log.event_type }}</td>
+          <td>{{ log.name }}</td>
+          <td>{{ log.description }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
