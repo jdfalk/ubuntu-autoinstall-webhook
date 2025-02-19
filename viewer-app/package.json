@@ -4,10 +4,10 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:viewer-app": "node dist/viewer-app/server/server.mjs"
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {

@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DatePipe, CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-viewer',
+  standalone: true,
+  imports: [CommonModule],  // ✅ Added CommonModule for *ngIf, *ngFor, and DatePipe
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  providers: [DatePipe]  // ✅ Ensure DatePipe is available
 })
 export class AppComponent implements OnInit {
   systems: any[] = [];
@@ -14,7 +18,12 @@ export class AppComponent implements OnInit {
   sortField: string = '';
   ascending: boolean = true;
 
-  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private route: ActivatedRoute,
+    private router: Router,
+    private datePipe: DatePipe  // ✅ Inject DatePipe
+  ) {}
 
   ngOnInit() {
     this.http.get('/api/viewer').subscribe((data: any) => this.systems = data);
