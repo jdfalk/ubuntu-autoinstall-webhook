@@ -1,17 +1,18 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
+
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/assets"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/assets"
 )
 
-
 func StartServer(port string) error {
-
-	a :=&assets.Assets
+	a := &assets.Assets
 	fileServer := http.FileServer(http.FS(a))
 
 	// Serve Angular app
@@ -24,17 +25,22 @@ func StartServer(port string) error {
 
 	// Serve index.html for deep linking
 	http.HandleFunc("/viewer", func(w http.ResponseWriter, r *http.Request) {
-		indexFile, err := a.Open("index.html")
+		// Get file info using fs.Stat
+		fileInfo, err := fs.Stat(a, "index.html")
 		if err != nil {
 			http.Error(w, "index.html not found", http.StatusNotFound)
 			return
 		}
-		fileInfo, err := indexFile.Stat()
+
+		// Read file into memory
+		data, err := a.ReadFile("index.html")
 		if err != nil {
-			http.Error(w, "could not get file info", http.StatusInternalServerError)
+			http.Error(w, "could not read index.html", http.StatusInternalServerError)
 			return
 		}
-		http.ServeContent(w, r, "index.html", fileInfo.ModTime(), indexFile)
+
+		// Serve content using an in-memory reader
+		http.ServeContent(w, r, "index.html", fileInfo.ModTime(), bytes.NewReader(data))
 	})
 
 	addr := fmt.Sprintf("0.0.0.0:%s", port)
