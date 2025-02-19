@@ -18,7 +18,7 @@ type LogEntry struct {
 	EventType   string  `json:"event_type"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
-	Level       string  `json:"level"`
+	Level       string  `json:"level,omitempty"`
 }
 
 type SystemReport struct {
@@ -43,8 +43,16 @@ func GetReportedSystems(logDir string) ([]SystemReport, error) {
 			}
 
 			var logs []LogEntry
+
+			// Try parsing as array
 			if err := json.Unmarshal(data, &logs); err != nil {
-				continue
+				// If that fails, try parsing as a single object
+				var singleLog LogEntry
+				if err := json.Unmarshal(data, &singleLog); err == nil {
+					logs = append(logs, singleLog)
+				} else {
+					continue
+				}
 			}
 
 			if len(logs) > 0 {
@@ -63,7 +71,6 @@ func GetReportedSystems(logDir string) ([]SystemReport, error) {
 
 func ViewerHandler(w http.ResponseWriter, r *http.Request) {
 	logDir := viper.GetString("logDir") // Use config or flag value
-	// Ensure logDir is set, fallback if empty
 	if logDir == "" {
 		logDir = "/var/log/autoinstall-webhook"
 	}
@@ -92,9 +99,17 @@ func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var logs []LogEntry
+
+	// Try parsing as an array
 	if err := json.Unmarshal(data, &logs); err != nil {
-		http.Error(w, "Failed to parse log file", http.StatusInternalServerError)
-		return
+		// If it fails, try parsing as a single object
+		var singleLog LogEntry
+		if err := json.Unmarshal(data, &singleLog); err == nil {
+			logs = append(logs, singleLog)
+		} else {
+			http.Error(w, "Failed to parse log file", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	sort.Slice(logs, func(i, j int) bool {
