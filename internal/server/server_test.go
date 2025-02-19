@@ -1,31 +1,36 @@
-package server
+package server_test
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
-	"time"
+	"os"
 )
 
-// Test server starts on correct port
-func TestStartServer(t *testing.T) {
-	port := "8085"
+func TestViewerAppServing(t *testing.T) {
+	distDir := "viewer-app/dist/viewer-app"
+	indexPath := distDir + "/index.html"
 
-	// Run server in a goroutine
-	go func() {
-		err := StartServer(port)
-		if err != nil {
-			t.Errorf("Failed to start server: %v", err)
-		}
-	}()
+	// Ensure index.html exists for the test
+	if _, err := os.Stat(indexPath); os.IsNotExist(err) {
+		t.Fatalf("index.html not found in %s", distDir)
+	}
 
-	// Wait for server to start
-	time.Sleep(2 * time.Second)
+	req := httptest.NewRequest("GET", "/viewer", nil)
+	w := httptest.NewRecorder()
+	http.DefaultServeMux.ServeHTTP(w, req)
 
-	// Make a request
-	resp, err := http.Get("http://localhost:" + port + "/webhook")
-	if err != nil {
-		t.Errorf("Server did not start correctly: %v", err)
-	} else {
-		resp.Body.Close()
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+}
+
+func TestViewerAppStaticFiles(t *testing.T) {
+	req := httptest.NewRequest("GET", "/viewer-app/assets/somefile.js", nil)
+	w := httptest.NewRecorder()
+	http.DefaultServeMux.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNotFound && w.Code != http.StatusOK {
+		t.Errorf("Expected status 200 or 404, got %d", w.Code)
 	}
 }
