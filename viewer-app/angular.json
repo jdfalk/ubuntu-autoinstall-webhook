@@ -16,6 +16,7 @@
             "outputPath": "dist/viewer-app",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "baseHref": "/viewer-app/",
             "polyfills": [
               "zone.js"
             ],

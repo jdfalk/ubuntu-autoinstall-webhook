@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type LogEntry struct {
@@ -60,7 +62,11 @@ func GetReportedSystems(logDir string) ([]SystemReport, error) {
 }
 
 func ViewerHandler(w http.ResponseWriter, r *http.Request) {
-	logDir := "./logs"
+	logDir := viper.GetString("logDir") // Use config or flag value
+	// Ensure logDir is set, fallback if empty
+	if logDir == "" {
+		logDir = "/var/log/autoinstall-webhook"
+	}
 	reports, err := GetReportedSystems(logDir)
 	if err != nil {
 		http.Error(w, "Failed to retrieve systems", http.StatusInternalServerError)
