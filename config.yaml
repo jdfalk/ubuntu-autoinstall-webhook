@@ -1,3 +1,10 @@
 port: "25000"
 logDir: "/opt/custom-logs"
 logFile: "autoinstall_report.log"
+database:
+  host: "cockroachdb"
+  port: 26257
+  user: "admin"
+  password: "securepassword"
+  dbname: "autoinstall"
+  sslmode: "disable"
