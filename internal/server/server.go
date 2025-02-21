@@ -69,6 +69,11 @@ func StartServer(port string) error {
 
 	// Serve API routes
 	http.HandleFunc("/api/webhook", handlers.WebhookHandler)
+
+
+    // Register new API routes for hardware info and cloud-init updates
+    http.HandleFunc("/api/hardware-info", handlers.HardwareInfoHandler)
+    http.HandleFunc("/api/cloud-init", handlers.CloudInitUpdateHandler)
 	http.HandleFunc("/api/viewer", handlers.ViewerHandler)
 	http.HandleFunc("/api/viewer/", handlers.ViewerDetailHandler)
 
