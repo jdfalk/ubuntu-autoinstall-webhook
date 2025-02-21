@@ -11,3 +11,7 @@ CREATE INDEX IF NOT EXISTS idx_cloud_init_network_mac ON cloud_init_network(mac_
 
 
 -- Add more indexes as needed
+CREATE INDEX IF NOT EXISTS idx_network_interfaces_driver ON network_interfaces(driver);
+CREATE INDEX IF NOT EXISTS idx_cloud_init_history_mac ON cloud_init_history(mac_address);
+
+

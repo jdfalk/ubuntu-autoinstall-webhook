@@ -157,8 +157,10 @@ func TestWebhookHandler_InvalidJSON(t *testing.T) {
 }
 
 func TestWebhookHandler_StatusUpdate(t *testing.T) {
+	// Setup database expectation for client_logs insert.
+	sqlMock.ExpectExec("INSERT INTO client_logs").WillReturnResult(sqlmock.NewResult(1, 1))
 	// Setup database expectation for client_status update.
-	sqlMock.ExpectExec("INSERT INTO client_status").WillReturnResult(sqlmock.NewResult(1, 1))
+	sqlMock.ExpectExec(`INSERT INTO client_status \(client_id, status, progress, message, updated_at\) VALUES \(\(SELECT id FROM client_identification WHERE id = \$1\), \$2, \$3, \$4, NOW\(\)\) ON CONFLICT \(client_id\) DO UPDATE SET status = \$2, progress = \$3, message = \$4, updated_at = NOW\(\)`).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	// Override the package-level FileLogger with our mock for status event.
 	mockLogger := new(MockLogWriter)

@@ -100,3 +100,12 @@ CREATE TABLE IF NOT EXISTS cloud_init_network (
     network_config TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT current_timestamp
 );
+
+-- Table: cloud_init_history
+CREATE TABLE IF NOT EXISTS cloud_init_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID REFERENCES client_identification(id) ON DELETE CASCADE,
+    mac_address TEXT NOT NULL,
+    user_data TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT current_timestamp
+);
