@@ -27,3 +27,5 @@ go.work.sum
 ubuntu-autoinstall-webhook-linux
 ubuntu-autoinstall-webhook-mac
 ubuntu-autoinstall-webhook
+
+!*.sql
