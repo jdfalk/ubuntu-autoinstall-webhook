@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// AppendToFile logs data to a file
-func AppendToFile(entry string) {
+// log.Printf logs data to a file
+func log.Printf(entry string) {
 	logDir := viper.GetString("logDir")
 	logFile := filepath.Join(logDir, viper.GetString("logFile"))
 
