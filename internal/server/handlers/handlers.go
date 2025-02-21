@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server"
 	"github.com/spf13/viper"
 )
 
@@ -176,4 +176,66 @@ func saveClientStatus(event Event) {
 func formatIPFilename(ip string) string {
 	safeIP := strings.ReplaceAll(ip, ".", "_")
 	return fmt.Sprintf("%s.json", safeIP)
+}
+
+
+// HardwareInfoHandler processes client hardware submissions
+func HardwareInfoHandler(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		ClientID      string `json:"client_id"`
+		MacAddress    string `json:"mac_address"`
+		InterfaceName string `json:"interface_name"`
+		Chipset       string `json:"chipset"`
+		Driver        string `json:"driver"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	err := db.SaveNetworkInterface(payload.ClientID, payload.MacAddress, payload.InterfaceName, payload.Chipset, payload.Driver)
+	if err != nil {
+		http.Error(w, "Failed to save network interface", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Hardware info saved successfully"))
+}
+
+// CloudInitUpdateHandler processes cloud-init updates
+func CloudInitUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		ClientID   string `json:"client_id"`
+		MacAddress string `json:"mac_address"`
+		UserData   string `json:"user_data"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	err := db.SaveCloudInitVersion(payload.ClientID, payload.MacAddress, payload.UserData)
+	if err != nil {
+		http.Error(w, "Failed to save cloud-init configuration", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Cloud-init data updated successfully"))
+}
+
+
+// UpdateIPXEOnProgress updates the iPXE file when a client reaches 25% completion
+func UpdateIPXEOnProgress(clientID string, progress int, macAddress string) {
+	if progress >= 25 {
+		err := server.UpdateIPXEFile(macAddress)
+		if err != nil {
+			logger.AppendToFile(fmt.Sprintf("Failed to update iPXE for %s: %v", macAddress, err))
+		} else {
+			logger.AppendToFile(fmt.Sprintf("Updated iPXE file for MAC: %s", macAddress))
+		}
+	}
 }

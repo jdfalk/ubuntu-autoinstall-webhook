@@ -8,3 +8,11 @@ database:
   password: "securepassword"
   dbname: "autoinstall"
   sslmode: "disable"
+
+
+# iPXE Settings
+ipxe_folder: "/var/www/html/ipxe"
+boot_customization_folder: "/var/www/html/ipxe/boot"
+
+# Cloud-Init Settings
+cloud_init_folder: "/var/www/html/cloud-init/"

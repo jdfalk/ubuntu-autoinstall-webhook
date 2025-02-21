@@ -117,3 +117,70 @@ func RunMigrations() error {
 	log.Println("Database migrations applied successfully.")
 	return nil
 }
+
+
+// SaveNetworkInterface inserts or updates a network interface in the database.
+func SaveNetworkInterface(clientID, macAddress, interfaceName, chipset, driver string) error {
+	query := `
+		INSERT INTO network_interfaces (client_id, mac_address, interface_name)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (mac_address) DO UPDATE SET interface_name = EXCLUDED.interface_name
+		RETURNING id;
+	`
+	var networkID string
+	err := DB.QueryRow(query, clientID, macAddress, interfaceName).Scan(&networkID)
+	if err != nil {
+		return fmt.Errorf("error inserting network interface: %w", err)
+	}
+
+	// Insert chipset and driver info
+	query = `
+		INSERT INTO network_chipsets (network_interface_id, chipset)
+		VALUES ($1, $2)
+		ON CONFLICT (network_interface_id) DO UPDATE SET chipset = EXCLUDED.chipset;
+	`
+	_, err = DB.Exec(query, networkID, chipset)
+	if err != nil {
+		return fmt.Errorf("error inserting chipset: %w", err)
+	}
+
+	query = `
+		UPDATE network_interfaces SET driver = $1 WHERE id = $2;
+	`
+	_, err = DB.Exec(query, driver, networkID)
+	if err != nil {
+		return fmt.Errorf("error updating network driver: %w", err)
+	}
+
+	return nil
+}
+
+// SaveCloudInitVersion stores a new cloud-init configuration and maintains only the last five versions.
+func SaveCloudInitVersion(clientID, macAddress, userData string) error {
+	query := `
+		INSERT INTO cloud_init_history (client_id, mac_address, user_data)
+		VALUES ($1, $2, $3);
+	`
+	_, err := DB.Exec(query, clientID, macAddress, userData)
+	if err != nil {
+		return fmt.Errorf("error inserting cloud-init history: %w", err)
+	}
+
+	// Ensure only the last five versions are kept
+	query = `
+		DELETE FROM cloud_init_history
+		WHERE client_id = $1 AND mac_address = $2
+		AND id NOT IN (
+			SELECT id FROM cloud_init_history
+			WHERE client_id = $1 AND mac_address = $2
+			ORDER BY created_at DESC
+			LIMIT 5
+		);
+	`
+	_, err = DB.Exec(query, clientID, macAddress)
+	if err != nil {
+		return fmt.Errorf("error pruning old cloud-init versions: %w", err)
+	}
+
+	return nil
+}
