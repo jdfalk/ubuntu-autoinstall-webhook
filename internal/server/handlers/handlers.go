@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"ubuntu-autoinstall-webhook/internal/ipxe"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -109,7 +110,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Log event to standard log.
 	logEntry := fmt.Sprintf("%s - Event: %+v\n", timestamp, event)
-	logger.AppendToFile(logEntry)
+	logger.logger.AppendToFile(logEntry)
 
 	// Log event per source IP in JSON format using FileLogger.
 	if err := FileLogger.Write(event); err != nil {
@@ -156,7 +157,7 @@ func saveClientLogToDB(event Event) {
 	_, err := db.DB.Exec(query, event.SourceIP, time.Unix(int64(event.Timestamp), 0), event.Origin,
 		event.Description, event.Name, event.Result, event.EventType, string(filesJSON))
 	if err != nil {
-		fmt.Printf("Error saving client log: %v\n", err)
+		logger.AppendToFile("Error saving client log: %v\n", err)
 	}
 }
 
@@ -168,7 +169,7 @@ func saveClientStatus(event Event) {
 		SET status = $2, progress = $3, message = $4, updated_at = NOW();`
 	_, err := db.DB.Exec(query, event.SourceIP, event.Status, event.Progress, event.Message)
 	if err != nil {
-		fmt.Printf("Error saving client status: %v\n", err)
+		logger.AppendToFile("Error saving client status: %v\n", err)
 	}
 }
 
@@ -231,11 +232,11 @@ func CloudInitUpdateHandler(w http.ResponseWriter, r *http.Request) {
 // UpdateIPXEOnProgress updates the iPXE file when a client reaches 25% completion
 func UpdateIPXEOnProgress(clientID string, progress int, macAddress string) {
 	if progress >= 25 {
-		err := server.UpdateIPXEFile(macAddress)
+		err := ipxe.UpdateIPXEFile(macAddress)
 		if err != nil {
-			logger.AppendToFile(fmt.Sprintf("Failed to update iPXE for %s: %v", macAddress, err))
+			logger.logger.AppendToFile(fmt.Sprintf("Failed to update iPXE for %s: %v", macAddress, err))
 		} else {
-			logger.AppendToFile(fmt.Sprintf("Updated iPXE file for MAC: %s", macAddress))
+			logger.logger.AppendToFile(fmt.Sprintf("Updated iPXE file for MAC: %s", macAddress))
 		}
 	}
 }
