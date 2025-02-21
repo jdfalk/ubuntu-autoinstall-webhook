@@ -1,6 +1,7 @@
 package db
 
 import (
+	_ "embed"
 	"database/sql"
 	"fmt"
 	"log"
@@ -44,7 +45,11 @@ func InitDB() error {
 	log.Println("Connected to CockroachDB successfully!")
 
 	// Run migrations
-	if err = RunMigrations(); err != nil {
+// Use embedded SQL files for migrations
+var (
+	//go:embed migrations/*.sql
+	migrationFiles embed.FS
+)
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
@@ -59,8 +64,16 @@ func CloseDB() {
 	}
 }
 
-// RunMigrations executes schema migrations from the migrations directory
-func RunMigrations() error {
+// Use embedded SQL files for migrations
+var (
+	//go:embed migrations/*.sql
+	migrationFiles embed.FS
+)
+// Use embedded SQL files for migrations
+var (
+	//go:embed migrations/*.sql
+	migrationFiles embed.FS
+)
 	migrationsDir := "internal/db/migrations"
 	files, err := os.ReadDir(migrationsDir)
 	if err != nil {
