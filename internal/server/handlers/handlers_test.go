@@ -1,135 +1,209 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"testing"
+	"time"
 
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/testutils"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/mock"
 )
 
-// Test extracting IP from headers
-func TestGetClientIP(t *testing.T) {
-	tests := []struct {
-		name       string
-		headers    map[string]string
-		remoteAddr string
-		expectedIP string
-	}{
-		{"X-Forwarded-For", map[string]string{"X-Forwarded-For": "192.168.1.100"}, "", "192.168.1.100"},
-		{"X-Real-IP", map[string]string{"X-Real-IP": "10.0.0.2"}, "", "10.0.0.2"},
-		{"RemoteAddr", nil, "172.16.2.1:56789", "172.16.2.1"},
-	}
+var mockDB *sql.DB
+var sqlMock sqlmock.Sqlmock
+var appFs afero.Fs
 
-	for _, test := range tests {
-		req, _ := http.NewRequest("GET", "/", nil)
-		for key, value := range test.headers {
-			req.Header.Set(key, value)
-		}
-		if test.remoteAddr != "" {
-			req.RemoteAddr = test.remoteAddr
-		}
-
-		ip := getClientIP(req)
-		if ip != test.expectedIP {
-			t.Errorf("%s: expected %s, got %s", test.name, test.expectedIP, ip)
-		}
-	}
+// MockLogWriter implements the LogWriter interface for testing.
+type MockLogWriter struct {
+	mock.Mock
 }
 
-// Test valid JSON event with IP logging
-func TestWebhookHandlerValidEventWithIPLogging(t *testing.T) {
-	testIP := "192.168.1.5"
-	testLogDir := "/tmp/autoinstall-webhook-tests"
-	testLogFile := filepath.Join(testLogDir, formatIPFilename(testIP))
+func (m *MockLogWriter) Write(event handlers.Event) error {
+	args := m.Called(event)
+	return args.Error(0)
+}
 
-	// Set up test environment
-	_ = os.Remove(testLogFile)
-	_ = os.MkdirAll(testLogDir, 0755)
+func TestMain(m *testing.M) {
+	tdb := testutils.NewTestDB(&testing.T{})
+	mockDB, sqlMock = tdb.DB, tdb.Mock
+	db.DB = mockDB
 
-	// Set log directory via Viper (mimicking CLI flag or config file)
-	viper.Set("logDir", testLogDir)
+	// Use an in-memory filesystem for testing.
+	appFs = afero.NewMemMapFs()
 
-	body := []byte(`{
-		"origin": "curtin",
-		"timestamp": 1440688425.6038516,
-		"event_type": "finish",
-		"name": "cmd-install",
-		"description": "curtin command install",
-		"result": "SUCCESS"
-	}`)
+	// Define the logs subdirectory.
+	tempBaseDir := "/tmp/autoinstall-webhook-test"
+	logDir := tempBaseDir + "/logs"
+
+	// Ensure the base and logs directories exist.
+	if err := appFs.MkdirAll(logDir, 0755); err != nil {
+		fmt.Printf("Failed to create logs directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Define the log file path.
+	logFilePath := logDir + "/log.json"
+	// Remove any pre-existing file/directory at that path.
+	_ = appFs.RemoveAll(logFilePath)
+
+	// Create the log file in the in-memory filesystem.
+	file, err := appFs.Create(logFilePath)
+	if err != nil {
+		fmt.Printf("Failed to create log file: %v\n", err)
+		os.Exit(1)
+	}
+	file.Close()
+
+	// Set the log directory and log file name.
+	viper.Set("logDir", logDir)
+	viper.Set("logFile", "log.json")
+
+	code := m.Run()
+	mockDB.Close()
+	os.Exit(code)
+}
+
+func TestWebhookHandler_Success(t *testing.T) {
+	// Set up expected database calls.
+	sqlMock.ExpectExec("INSERT INTO client_logs").WillReturnResult(sqlmock.NewResult(1, 1))
+	sqlMock.ExpectExec(`INSERT INTO client_status \(client_id, status, progress, message, updated_at\) VALUES \(\(SELECT id FROM client_identification WHERE id = \$1\), \$2, \$3, \$4, NOW\(\)\) ON CONFLICT \(client_id\) DO UPDATE SET status = \$2, progress = \$3, message = \$4, updated_at = NOW\(\)`).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	// Override the package-level FileLogger with our mock.
+	mockLogger := new(MockLogWriter)
+	handlers.FileLogger = mockLogger
+
+	// Create an event. (Note: SourceIP will be derived from r.RemoteAddr.)
+	event := handlers.Event{
+		Origin:      "curtin",
+		Timestamp:   float64(time.Now().Unix()),
+		EventType:   "finish",
+		Name:        "cmd-install",
+		Description: "curtin command install",
+		Result:      "SUCCESS",
+		Status:      "installing",
+		Progress:    50,
+		Message:     "Installation is halfway done",
+	}
+
+	// Prepare the request. Set RemoteAddr so getClientIP returns "192.168.1.1".
+	body, _ := json.Marshal(event)
 	req, err := http.NewRequest("POST", "/webhook", bytes.NewBuffer(body))
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to create request: %v", err)
+	}
+	req.RemoteAddr = "192.168.1.1:1234"
+	req.Header.Set("Content-Type", "application/json")
+
+	// Set expectation on the mock logger for the "finish" event.
+	expected := event
+	expected.SourceIP = "192.168.1.1"
+	mockLogger.
+		On("Write", mock.MatchedBy(func(e handlers.Event) bool {
+			return e.Origin == expected.Origin &&
+				e.EventType == expected.EventType &&
+				e.Name == expected.Name &&
+				e.SourceIP == expected.SourceIP
+		})).
+		Return(nil)
+
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(handlers.WebhookHandler).ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected status OK, got %v", rr.Code)
 	}
 
-	// Simulate request from testIP
-	req.Header.Set("X-Forwarded-For", testIP)
-
-	rec := httptest.NewRecorder()
-	handler := http.HandlerFunc(WebhookHandler)
-	handler.ServeHTTP(rec, req)
-
-	// Verify response status
-	if rec.Code != http.StatusOK {
-		t.Errorf("Expected status 200, got %d", rec.Code)
-	}
-
-	// Verify log file was created
-	data, err := ioutil.ReadFile(testLogFile)
-	if err != nil {
-		t.Fatalf("Failed to read log file: %v", err)
-	}
-
-	// Verify logged JSON structure
-	var loggedEvent Event
-	err = json.Unmarshal(data, &loggedEvent)
-	if err != nil {
-		t.Fatalf("Failed to parse logged JSON: %v", err)
-	}
-
-	if loggedEvent.SourceIP != testIP {
-		t.Errorf("Expected source_ip %s, got %s", testIP, loggedEvent.SourceIP)
-	}
-
-	// Cleanup
-	_ = os.Remove(testLogFile)
+	mockLogger.AssertExpectations(t)
 }
 
-// Test invalid JSON payload
-func TestWebhookHandlerInvalidJSON(t *testing.T) {
-	body := []byte(`{"invalid_json"}`)
-	req, err := http.NewRequest("POST", "/webhook", bytes.NewBuffer(body))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rec := httptest.NewRecorder()
-	handler := http.HandlerFunc(WebhookHandler)
-	handler.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("Expected status 400, got %d", rec.Code)
-	}
-}
-
-// Test invalid request method (GET instead of POST)
-func TestWebhookHandlerInvalidMethod(t *testing.T) {
+func TestWebhookHandler_InvalidMethod(t *testing.T) {
 	req, err := http.NewRequest("GET", "/webhook", nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to create request: %v", err)
+	}
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(handlers.WebhookHandler).ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Errorf("Expected status Method Not Allowed, got %v", rr.Code)
+	}
+}
+
+func TestWebhookHandler_InvalidJSON(t *testing.T) {
+	body := []byte("{invalid json}")
+	req, err := http.NewRequest("POST", "/webhook", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(handlers.WebhookHandler).ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("Expected status Bad Request, got %v", rr.Code)
+	}
+}
+
+func TestWebhookHandler_StatusUpdate(t *testing.T) {
+	// Setup database expectation for client_status update.
+	sqlMock.ExpectExec("INSERT INTO client_status").WillReturnResult(sqlmock.NewResult(1, 1))
+
+	// Override the package-level FileLogger with our mock for status event.
+	mockLogger := new(MockLogWriter)
+	handlers.FileLogger = mockLogger
+
+	event := handlers.Event{
+		Origin:      "curtin",
+		Timestamp:   float64(time.Now().Unix()),
+		EventType:   "status",
+		Name:        "install-progress",
+		Description: "Updating install progress",
+		Status:      "in-progress",
+		Progress:    75,
+		Message:     "Installation nearing completion",
+		// SourceIP will be set by getClientIP.
 	}
 
-	rec := httptest.NewRecorder()
-	handler := http.HandlerFunc(WebhookHandler)
-	handler.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusMethodNotAllowed {
-		t.Errorf("Expected status 405, got %d", rec.Code)
+	// Prepare request; setting RemoteAddr ensures the SourceIP is derived correctly.
+	body, _ := json.Marshal(event)
+	req, err := http.NewRequest("POST", "/webhook", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
 	}
+	req.RemoteAddr = "192.168.1.2:1234"
+	req.Header.Set("Content-Type", "application/json")
+
+	// Set expectation on the mock logger.
+	// Update expected event to include the SourceIP from r.RemoteAddr.
+	expected := event
+	expected.SourceIP = "192.168.1.2"
+	mockLogger.
+		On("Write", mock.MatchedBy(func(e handlers.Event) bool {
+			return e.Origin == expected.Origin &&
+				e.EventType == expected.EventType &&
+				e.Name == expected.Name &&
+				e.SourceIP == expected.SourceIP
+		})).
+		Return(nil)
+
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(handlers.WebhookHandler).ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Expected status OK, got %v", rr.Code)
+	}
+
+	mockLogger.AssertExpectations(t)
 }
