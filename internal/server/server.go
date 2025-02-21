@@ -50,7 +50,7 @@ func StartServer(port string) error {
 			}
 		}
 
-		// File does not exist, serve index.html for deep linking
+		// If file does not exist, serve index.html for deep linking
 		data, err := fs.ReadFile(a, "index.html")
 		if err != nil {
 			http.Error(w, "index.html not found", http.StatusNotFound)
@@ -63,6 +63,7 @@ func StartServer(port string) error {
 			return
 		}
 
+		w.Header().Set("Content-Type", "text/html")
 		http.ServeContent(w, r, "index.html", fileInfo.ModTime(), bytes.NewReader(data))
 	}))
 
