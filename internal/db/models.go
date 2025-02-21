@@ -102,3 +102,13 @@ type CloudInitNetworkConfig struct {
 	NetworkConfig string   `json:"network_config"`
 	CreatedAt    time.Time `json:"created_at"`
 }
+
+
+// CloudInitHistory stores the last five cloud-init configurations per client
+type CloudInitHistory struct {
+    ID         string    `json:"id"`
+    ClientID   string    `json:"client_id"`
+    MacAddress string    `json:"mac_address"`
+    UserData   string    `json:"user_data"`
+    CreatedAt  time.Time `json:"created_at"`
+}
