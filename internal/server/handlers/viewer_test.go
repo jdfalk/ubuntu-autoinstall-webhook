@@ -1,6 +1,8 @@
 package handlers_test
 
 import (
+	"ubuntu-autoinstall-webhook/internal/testutils"
+	"ubuntu-autoinstall-webhook/internal/testutils"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -8,16 +10,15 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/testutils"
 )
 
 func TestViewerHandler(t *testing.T) {
 	tdb := testutils.NewTestDB(t)
-	mockDB, mock := tdb.DB, tdb.Mock
+	mockDB, mock := ttestutils.NewTestDB(t).DB, ttestutils.NewTestDB(t).Mock
 	defer mockDB.Close()
-	db.DB = mockDB
+	testutils.NewTestDB(t).DB = mockDB
 
 	// Expect the distinct query to retrieve client_id and last_seen timestamp.
 	mock.ExpectQuery(`SELECT DISTINCT client_id, MAX\(timestamp\) FROM client_logs GROUP BY client_id`).
@@ -39,9 +40,9 @@ func TestViewerHandler(t *testing.T) {
 
 func TestViewerDetailHandler(t *testing.T) {
 	tdb := testutils.NewTestDB(t)
-	mockDB, mock := tdb.DB, tdb.Mock
+	mockDB, mock := ttestutils.NewTestDB(t).DB, ttestutils.NewTestDB(t).Mock
 	defer mockDB.Close()
-	db.DB = mockDB
+	testutils.NewTestDB(t).DB = mockDB
 
 	// Expect the detail query to return log entry columns.
 	mock.ExpectQuery(`SELECT timestamp, origin, event_type, name, description, level FROM client_logs WHERE client_id = \$1 ORDER BY timestamp DESC`).
