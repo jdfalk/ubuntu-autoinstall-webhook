@@ -3,81 +3,69 @@ package server
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/fs"
 	"log"
 	"mime"
 	"net/http"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/assets"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
 )
 
-func StartServer(port string) error {
-	a := assets.AssetsFS
-
-	// Check if index.html exists
-	entries, err := fs.ReadDir(a, ".")
-	if err != nil {
-		log.Printf("Error reading directory: %v", err)
-		return fmt.Errorf("error reading directory: %v", err)
-	}
-
-	for _, entry := range entries {
-		log.Printf("Found file: %s", entry.Name())
-	}
-
-	_, err = fs.Stat(a, "index.html")
-	if err != nil {
-		log.Printf("index.html not found: %v", err)
-		return fmt.Errorf("index.html not found: %v", err)
-	}
-
-	// Serve Angular app and handle deep linking
+// RegisterRoutes registers all HTTP routes (for serving the Angular app and API endpoints)
+// into the default HTTP mux.
+func RegisterRoutes() {
+	// Serve Angular app (with deep linking support).
 	http.Handle("/viewer-app/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Trim the /viewer-app/ prefix from the requested path.
 		filePath := strings.TrimPrefix(r.URL.Path, "/viewer-app/")
-		file, err := a.Open(filePath)
+		// Try to read the requested file from the embedded assets.
+		data, err := fs.ReadFile(assets.AssetsFS, filePath)
 		if err == nil {
-			defer file.Close()
-			fileInfo, err := file.Stat()
-			if err == nil {
-				data, _ := io.ReadAll(file)
-				w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(filePath)))
-				http.ServeContent(w, r, filePath, fileInfo.ModTime(), bytes.NewReader(data))
-				return
-			}
-		}
-
-		// If file does not exist, serve index.html for deep linking
-		data, err := fs.ReadFile(a, "index.html")
-		if err != nil {
-			http.Error(w, "index.html not found", http.StatusNotFound)
+			w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(filePath)))
+			http.ServeContent(w, r, filePath, fileInfoModTime(filePath), bytes.NewReader(data))
 			return
 		}
 
-		fileInfo, err := fs.Stat(a, "index.html")
+		// If file does not exist, serve index.html for deep linking.
+		indexData, err := fs.ReadFile(assets.AssetsFS, "index.html")
 		if err != nil {
-			http.Error(w, "could not get file info", http.StatusInternalServerError)
+			log.Printf("Error reading index.html: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-
 		w.Header().Set("Content-Type", "text/html")
-		http.ServeContent(w, r, "index.html", fileInfo.ModTime(), bytes.NewReader(data))
+		http.ServeContent(w, r, "index.html", fileInfoModTime("index.html"), bytes.NewReader(indexData))
 	}))
 
-	// Serve API routes
+	// Register API routes.
 	http.HandleFunc("/api/webhook", handlers.WebhookHandler)
-
-
-    // Register new API routes for hardware info and cloud-init updates
-    http.HandleFunc("/api/hardware-info", handlers.HardwareInfoHandler)
-    http.HandleFunc("/api/cloud-init", handlers.CloudInitUpdateHandler)
+	http.HandleFunc("/api/hardware-info", handlers.HardwareInfoHandler)
+	http.HandleFunc("/api/cloud-init", handlers.CloudInitUpdateHandler)
 	http.HandleFunc("/api/viewer", handlers.ViewerHandler)
 	http.HandleFunc("/api/viewer/", handlers.ViewerDetailHandler)
+}
 
+// StartServer configures HTTP handlers then starts the HTTP server on the specified port.
+func StartServer(port string) error {
+	RegisterRoutes()
 	addr := fmt.Sprintf("0.0.0.0:%s", port)
 	log.Printf("Starting webhook server on %s\n", addr)
 	return http.ListenAndServe(addr, nil)
+}
+
+// fileInfoModTime returns the modification time for a given file in the embedded assets.
+// If an error occurs, it returns the current time.
+func fileInfoModTime(filePath string) time.Time {
+	file, err := assets.AssetsFS.Open(filePath)
+	if err == nil {
+		info, err := file.Stat()
+		if err == nil {
+			return info.ModTime()
+		}
+	}
+	return time.Now()
 }
