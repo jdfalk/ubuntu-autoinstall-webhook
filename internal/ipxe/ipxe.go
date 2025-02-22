@@ -2,7 +2,6 @@ package ipxe
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -35,7 +34,7 @@ func UpdateIPXEFile(macAddress string) error {
 
 	// Update the iPXE file to instruct normal boot
 	newContent := "#!ipxe\nexit\n"
-	err := ioutil.WriteFile(ipxeFilePath, []byte(newContent), 0644)
+	err := os.WriteFile(ipxeFilePath, []byte(newContent), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to update iPXE file: %w", err)
 	}

@@ -157,7 +157,7 @@ func saveClientLogToDB(event Event) {
 	_, err := db.DB.Exec(query, event.SourceIP, time.Unix(int64(event.Timestamp), 0), event.Origin,
 		event.Description, event.Name, event.Result, event.EventType, string(filesJSON))
 	if err != nil {
-		logger.AppendToFile("Error saving client log: %v\n", err)
+		logger.ClientErrorf("Error saving client log: %v\n", err)
 	}
 }
 
@@ -169,7 +169,7 @@ func saveClientStatus(event Event) {
 		SET status = $2, progress = $3, message = $4, updated_at = NOW();`
 	_, err := db.DB.Exec(query, event.SourceIP, event.Status, event.Progress, event.Message)
 	if err != nil {
-		logger.Errorf("Error saving client status: %v\n", err)
+		logger.ClientErrorf("Error saving client status: %v\n", err)
 	}
 }
 
