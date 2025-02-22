@@ -58,7 +58,7 @@ func TestAppendToSQL(t *testing.T) {
 		WithArgs(sqlmock.AnyArg(), "INFO", "Test SQL log").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	AppendToSQL("INFO", "Test SQL log")
+	AppendToSystemSQL("INFO", "Test SQL log")
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("SQL expectations were not met: %v", err)
@@ -81,7 +81,7 @@ func TestLog(t *testing.T) {
 		WithArgs(sqlmock.AnyArg(), "INFO", "Test log message").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	Log("INFO", "Test log message")
+	LogSystem("INFO", "Test log message")
 
 	// Verify file contains the log entry.
 	content := readFileContent(t, logFile)
@@ -94,6 +94,7 @@ func TestLog(t *testing.T) {
 	}
 }
 
+// TestDebug validates the backwards compatible Debug function that now calls LogSystem.
 func TestDebug(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_debug.log")
 	sqlDB, mock, err := sqlmock.New()
@@ -119,6 +120,7 @@ func TestDebug(t *testing.T) {
 	}
 }
 
+// TestInfo validates the backwards compatible Info function that now calls LogSystem.
 func TestInfo(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_info.log")
 	sqlDB, mock, err := sqlmock.New()
@@ -144,6 +146,7 @@ func TestInfo(t *testing.T) {
 	}
 }
 
+// TestWarning validates the backwards compatible Warning function that now calls LogSystem.
 func TestWarning(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_warning.log")
 	sqlDB, mock, err := sqlmock.New()
@@ -169,6 +172,7 @@ func TestWarning(t *testing.T) {
 	}
 }
 
+// TestError validates the backwards compatible Error function that now calls LogSystem.
 func TestError(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_error.log")
 	sqlDB, mock, err := sqlmock.New()
