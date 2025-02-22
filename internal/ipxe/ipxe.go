@@ -1,10 +1,11 @@
-package server
+package ipxe
 
 import (
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -40,4 +41,12 @@ func UpdateIPXEFile(macAddress string) error {
 	}
 
 	return nil
+}
+
+// IPXEHistory stores the last five IPXE configuration versions per client.
+type IPXEHistory struct {
+	ID        string    `json:"id"`
+	ClientID  string    `json:"client_id"`
+	Config    string    `json:"config"`
+	CreatedAt time.Time `json:"created_at"`
 }
