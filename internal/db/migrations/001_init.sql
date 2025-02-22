@@ -109,3 +109,11 @@ CREATE TABLE IF NOT EXISTS cloud_init_history (
     user_data TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT current_timestamp
 );
+
+-- Table: ipxe_history
+CREATE TABLE IF NOT EXISTS ipxe_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID REFERENCES client_identification(id) ON DELETE CASCADE,
+    config TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT current_timestamp
+);

@@ -1,20 +1,23 @@
 package db
 
 import (
-	_ "embed"
 	"database/sql"
+	"embed"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
+	"strings"
 	"time"
-	_ "github.com/lib/pq" // PostgreSQL driver for CockroachDB
+
+	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 )
 
 var DB *sql.DB
 
-// InitDB initializes the CockroachDB connection with connection pooling
+//go:embed migrations/*.sql
+var migrationFiles embed.FS
+
+// InitDB initializes the database connection and runs migrations
 func InitDB() error {
 	dsn := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%d/%s?sslmode=%s",
@@ -32,55 +35,30 @@ func InitDB() error {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// Set connection pooling settings
 	DB.SetMaxOpenConns(viper.GetInt("database.max_open_conns"))
 	DB.SetMaxIdleConns(viper.GetInt("database.max_idle_conns"))
 	DB.SetConnMaxLifetime(time.Duration(viper.GetInt("database.conn_max_lifetime")) * time.Second)
 
-	// Verify the connection
 	if err = DB.Ping(); err != nil {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	log.Println("Connected to CockroachDB successfully!")
 
-	// Run migrations
-// Use embedded SQL files for migrations
-var (
-	//go:embed migrations/*.sql
-	migrationFiles embed.FS
-)
+	if err := runMigrations(); err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	return nil
 }
 
-// CloseDB closes the database connection
-func CloseDB() {
-	if DB != nil {
-		DB.Close()
-		log.Println("Database connection closed.")
-	}
-}
-
-// Use embedded SQL files for migrations
-var (
-	//go:embed migrations/*.sql
-	migrationFiles embed.FS
-)
-// Use embedded SQL files for migrations
-var (
-	//go:embed migrations/*.sql
-	migrationFiles embed.FS
-)
-	migrationsDir := "internal/db/migrations"
-	files, err := os.ReadDir(migrationsDir)
+// runMigrations executes all embedded SQL migration files
+func runMigrations() error {
+	files, err := migrationFiles.ReadDir("migrations")
 	if err != nil {
-		return fmt.Errorf("failed to read migrations directory: %w", err)
+		return fmt.Errorf("failed to read embedded migrations: %w", err)
 	}
 
-	// Ensure the migrations table exists
 	_, err = DB.Exec(`CREATE TABLE IF NOT EXISTS migrations (
 		id SERIAL PRIMARY KEY,
 		name TEXT UNIQUE NOT NULL,
@@ -91,10 +69,9 @@ var (
 	}
 
 	for _, file := range files {
-		if filepath.Ext(file.Name()) == ".sql" {
+		if strings.HasSuffix(file.Name(), ".sql") {
 			migrationName := file.Name()
 
-			// Check if migration has already been applied
 			var count int
 			err := DB.QueryRow("SELECT COUNT(*) FROM migrations WHERE name = $1", migrationName).Scan(&count)
 			if err != nil {
@@ -106,8 +83,7 @@ var (
 				continue
 			}
 
-			// Read and execute migration
-			data, err := os.ReadFile(filepath.Join(migrationsDir, migrationName))
+			data, err := migrationFiles.ReadFile("migrations/" + migrationName)
 			if err != nil {
 				return fmt.Errorf("failed to read migration file %s: %w", migrationName, err)
 			}
@@ -117,7 +93,6 @@ var (
 				return fmt.Errorf("failed to execute migration %s: %w", migrationName, err)
 			}
 
-			// Record migration
 			_, err = DB.Exec("INSERT INTO migrations (name) VALUES ($1)", migrationName)
 			if err != nil {
 				return fmt.Errorf("failed to record migration %s: %w", migrationName, err)
@@ -130,7 +105,6 @@ var (
 	log.Println("Database migrations applied successfully.")
 	return nil
 }
-
 
 // SaveNetworkInterface inserts or updates a network interface in the database.
 func SaveNetworkInterface(clientID, macAddress, interfaceName, chipset, driver string) error {
@@ -146,7 +120,6 @@ func SaveNetworkInterface(clientID, macAddress, interfaceName, chipset, driver s
 		return fmt.Errorf("error inserting network interface: %w", err)
 	}
 
-	// Insert chipset and driver info
 	query = `
 		INSERT INTO network_chipsets (network_interface_id, chipset)
 		VALUES ($1, $2)
@@ -179,7 +152,6 @@ func SaveCloudInitVersion(clientID, macAddress, userData string) error {
 		return fmt.Errorf("error inserting cloud-init history: %w", err)
 	}
 
-	// Ensure only the last five versions are kept
 	query = `
 		DELETE FROM cloud_init_history
 		WHERE client_id = $1 AND mac_address = $2
@@ -193,6 +165,37 @@ func SaveCloudInitVersion(clientID, macAddress, userData string) error {
 	_, err = DB.Exec(query, clientID, macAddress)
 	if err != nil {
 		return fmt.Errorf("error pruning old cloud-init versions: %w", err)
+	}
+
+	return nil
+}
+
+// SaveIPXEConfigVersion stores a new version of the IPXE configuration for a client,
+// and ensures that only the last five versions are kept.
+func SaveIPXEConfigVersion(clientID, config string) error {
+	query := `
+		INSERT INTO ipxe_history (client_id, config)
+		VALUES ($1, $2);
+	`
+	_, err := DB.Exec(query, clientID, config)
+	if err != nil {
+		return fmt.Errorf("error inserting IPXE history: %w", err)
+	}
+
+	// Prune old versions, keeping only the most recent five.
+	query = `
+		DELETE FROM ipxe_history
+		WHERE client_id = $1
+		AND id NOT IN (
+			SELECT id FROM ipxe_history
+			WHERE client_id = $1
+			ORDER BY created_at DESC
+			LIMIT 5
+		);
+	`
+	_, err = DB.Exec(query, clientID)
+	if err != nil {
+		return fmt.Errorf("error pruning old IPXE history versions: %w", err)
 	}
 
 	return nil

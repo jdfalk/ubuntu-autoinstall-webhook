@@ -18,3 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_network_interfaces_driver ON network_interfaces(d
 
 -- Index for retrieving cloud-init history by MAC address
 CREATE INDEX IF NOT EXISTS idx_cloud_init_history_mac ON cloud_init_history(mac_address);
+
+
+-- Index for IPXE history to speed up retrieval by client_id.
+CREATE INDEX IF NOT EXISTS idx_ipxe_history_client_id ON ipxe_history(client_id);
