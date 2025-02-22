@@ -1,0 +1,114 @@
+{
+    "tables": {
+      "client_identification": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "smbios_uuid": "UUID UNIQUE",
+          "motherboard_serial": "TEXT",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "network_interfaces": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "mac_address": "TEXT UNIQUE NOT NULL",
+          "interface_name": "TEXT",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "network_chipsets": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "network_interface_id": "UUID REFERENCES network_interfaces(id) ON DELETE CASCADE",
+          "chipset": "TEXT NOT NULL",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "hardware_info": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "lshw_output": "TEXT",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "client_logs": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "timestamp": "TIMESTAMP DEFAULT current_timestamp",
+          "origin": "TEXT",
+          "description": "TEXT",
+          "name": "TEXT",
+          "result": "TEXT",
+          "event_type": "TEXT",
+          "files": "JSONB",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "client_status": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "status": "TEXT NOT NULL",
+          "progress": "INT CHECK (progress BETWEEN 0 AND 100)",
+          "message": "TEXT",
+          "updated_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "webhook_logs": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "timestamp": "TIMESTAMP DEFAULT current_timestamp",
+          "request_data": "JSONB",
+          "response_data": "JSONB"
+        }
+      },
+      "ipxe_configurations": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "identifier": "TEXT UNIQUE NOT NULL",
+          "config": "TEXT NOT NULL",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "cloud_init_userdata": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "mac_address": "TEXT UNIQUE NOT NULL",
+          "user_data": "TEXT NOT NULL",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "cloud_init_metadata": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "mac_address": "TEXT UNIQUE NOT NULL",
+          "meta_data": "TEXT NOT NULL",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "cloud_init_network": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "mac_address": "TEXT UNIQUE NOT NULL",
+          "network_config": "TEXT NOT NULL",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      },
+      "cloud_init_history": {
+        "columns": {
+          "id": "UUID PRIMARY KEY",
+          "client_id": "UUID REFERENCES client_identification(id) ON DELETE CASCADE",
+          "mac_address": "TEXT NOT NULL",
+          "user_data": "TEXT NOT NULL",
+          "created_at": "TIMESTAMP DEFAULT current_timestamp"
+        }
+      }
+    }
+  }
