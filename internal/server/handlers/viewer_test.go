@@ -1,8 +1,6 @@
 package handlers_test
 
 import (
-	"ubuntu-autoinstall-webhook/internal/testutils"
-	"ubuntu-autoinstall-webhook/internal/testutils"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -16,7 +14,7 @@ import (
 
 func TestViewerHandler(t *testing.T) {
 	tdb := testutils.NewTestDB(t)
-	mockDB, mock := ttestutils.NewTestDB(t).DB, ttestutils.NewTestDB(t).Mock
+	mockDB, mock := testutils.NewTestDB(t).DB, testutils.NewTestDB(t).Mock
 	defer mockDB.Close()
 	testutils.NewTestDB(t).DB = mockDB
 
@@ -40,7 +38,7 @@ func TestViewerHandler(t *testing.T) {
 
 func TestViewerDetailHandler(t *testing.T) {
 	tdb := testutils.NewTestDB(t)
-	mockDB, mock := ttestutils.NewTestDB(t).DB, ttestutils.NewTestDB(t).Mock
+	mockDB, mock := testutils.NewTestDB(t).DB, testutils.NewTestDB(t).Mock
 	defer mockDB.Close()
 	testutils.NewTestDB(t).DB = mockDB
 
