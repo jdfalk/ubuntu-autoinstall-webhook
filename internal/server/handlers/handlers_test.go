@@ -1,7 +1,6 @@
 package handlers_test
 
 import (
-
 	"bytes"
 	"database/sql"
 	"encoding/json"
@@ -11,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/testutils"
-
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/testutils"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/mock"
@@ -36,8 +35,11 @@ func (m *MockLogWriter) Write(event handlers.Event) error {
 }
 
 func TestMain(m *testing.M) {
+	// Create a test DB using our helper.
 	tdb := testutils.NewTestDB(&testing.T{})
 	mockDB, sqlMock = tdb.DB, tdb.Mock
+	// *** FIX: assign the global DB variable used in production code ***
+	db.DB = mockDB
 
 	// Use an in-memory filesystem for testing.
 	appFs = afero.NewMemMapFs()
