@@ -1,12 +1,10 @@
 package handlers_test
 
 import (
-	"ubuntu-autoinstall-webhook/internal/testutils"
-	"ubuntu-autoinstall-webhook/internal/testutils"
+
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,6 +15,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/mock"
@@ -38,8 +37,7 @@ func (m *MockLogWriter) Write(event handlers.Event) error {
 
 func TestMain(m *testing.M) {
 	tdb := testutils.NewTestDB(&testing.T{})
-	mockDB, sqlMock = ttestutils.NewTestDB(t).DB, ttestutils.NewTestDB(t).Mock
-	testutils.NewTestDB(t).DB = mockDB
+	mockDB, sqlMock = tdb.DB, tdb.Mock
 
 	// Use an in-memory filesystem for testing.
 	appFs = afero.NewMemMapFs()
@@ -50,7 +48,7 @@ func TestMain(m *testing.M) {
 
 	// Ensure the base and logs directories exist.
 	if err := appFs.MkdirAll(logDir, 0755); err != nil {
-		logger.AppendToFile("Failed to create logs directory: %v\n", err)
+		logger.Error("Failed to create logs directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -62,7 +60,7 @@ func TestMain(m *testing.M) {
 	// Create the log file in the in-memory filesystem.
 	file, err := appFs.Create(logFilePath)
 	if err != nil {
-		logger.AppendToFile("Failed to create log file: %v\n", err)
+		logger.Error("Failed to create log file: %v\n", err)
 		os.Exit(1)
 	}
 	file.Close()

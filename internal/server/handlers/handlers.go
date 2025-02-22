@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"ubuntu-autoinstall-webhook/internal/ipxe"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -11,8 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/ipxe"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
+
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server"
 	"github.com/spf13/viper"
 )
 
@@ -110,7 +111,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Log event to standard log.
 	logEntry := fmt.Sprintf("%s - Event: %+v\n", timestamp, event)
-	logger.logger.AppendToFile(logEntry)
+	logger.Info(logEntry)
 
 	// Log event per source IP in JSON format using FileLogger.
 	if err := FileLogger.Write(event); err != nil {
@@ -179,7 +180,6 @@ func formatIPFilename(ip string) string {
 	return fmt.Sprintf("%s.json", safeIP)
 }
 
-
 // HardwareInfoHandler processes client hardware submissions
 func HardwareInfoHandler(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
@@ -228,15 +228,14 @@ func CloudInitUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Cloud-init data updated successfully"))
 }
 
-
 // UpdateIPXEOnProgress updates the iPXE file when a client reaches 25% completion
 func UpdateIPXEOnProgress(clientID string, progress int, macAddress string) {
 	if progress >= 25 {
 		err := ipxe.UpdateIPXEFile(macAddress)
 		if err != nil {
-			logger.logger.AppendToFile(fmt.Sprintf("Failed to update iPXE for %s: %v", macAddress, err))
+			logger.Errorf("Failed to update iPXE for %s: %v", macAddress, err)
 		} else {
-			logger.logger.AppendToFile(fmt.Sprintf("Updated iPXE file for MAC: %s", macAddress))
+			logger.Infof("Updated iPXE file for MAC: %s", macAddress)
 		}
 	}
 }
