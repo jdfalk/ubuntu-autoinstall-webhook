@@ -110,8 +110,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	timestamp := time.Unix(int64(event.Timestamp), 0).Format(time.RFC3339)
 
 	// Log event to standard log.
-	logEntry := fmt.Sprintf("%s - Event: %+v\n", timestamp, event)
-	logger.Info(logEntry)
+	logger.Infof("%s - Event: %+v\n", timestamp, event)
 
 	// Log event per source IP in JSON format using FileLogger.
 	if err := FileLogger.Write(event); err != nil {
@@ -170,7 +169,7 @@ func saveClientStatus(event Event) {
 		SET status = $2, progress = $3, message = $4, updated_at = NOW();`
 	_, err := db.DB.Exec(query, event.SourceIP, event.Status, event.Progress, event.Message)
 	if err != nil {
-		logger.AppendToFile("Error saving client status: %v\n", err)
+		logger.Errorf("Error saving client status: %v\n", err)
 	}
 }
 
