@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -15,7 +15,8 @@ var serveCmd = &cobra.Command{
 	Short: "Start the webhook server",
 	Run: func(cmd *cobra.Command, args []string) {
 		port := viper.GetString("port")
-		logger.AppendToFile("Webhook server running on port %s\n", port)
+		// Log both to the file and the SQL database.
+		logger.Info("Webhook server running on port %s", port)
 		log.Fatal(server.StartServer(port))
 	},
 }
