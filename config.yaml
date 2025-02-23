@@ -22,3 +22,47 @@ boot_customization_folder: "/var/www/html/ipxe/boot"
 
 # Cloud-Init Settings
 cloud_init_folder: "/var/www/html/cloud-init/"
+
+# Missing configuration options (added automatically)
+#   host: "cockroachdb"
+#   port: 26257
+#   user: "admin"
+#   password: "securepassword"
+#   dbname: "autoinstall"
+#   sslmode: "disable"
+#   max_open_conns: 100
+#   max_idle_conns: 10
+#   conn_max_lifetime: 3600
+
+# Missing configuration options (added automatically)
+#   host: "cockroachdb"
+#   port: 26257
+#   user: "admin"
+#   password: "securepassword"
+#   dbname: "autoinstall"
+#   sslmode: "disable"
+#   max_open_conns: 100
+#   max_idle_conns: 10
+#   conn_max_lifetime: 3600
+
+# Missing configuration options (added automatically)
+#   host: "cockroachdb"
+#   port: 26257
+#   user: "admin"
+#   password: "securepassword"
+#   dbname: "autoinstall"
+#   sslmode: "disable"
+#   max_open_conns: 100
+#   max_idle_conns: 10
+#   conn_max_lifetime: 3600
+
+# Missing configuration options (added automatically)
+#   host: "cockroachdb"
+#   port: 26257
+#   user: "admin"
+#   password: "securepassword"
+#   dbname: "autoinstall"
+#   sslmode: "disable"
+#   max_open_conns: 100
+#   max_idle_conns: 10
+#   conn_max_lifetime: 3600
