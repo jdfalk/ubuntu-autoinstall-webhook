@@ -80,7 +80,10 @@ func initConfig() {
 	ensureConfigFile()
 
 	// Validate paths
-	validatePaths(OsFs{})
+	if err := validatePaths(OsFs{}); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	// Enable ENV variables (WEBHOOK_PORT, WEBHOOK_LOGDIR, etc.)
 	viper.AutomaticEnv()
@@ -146,7 +149,7 @@ func ensureConfigFile() {
 }
 
 // validatePaths validates the paths for logDir and other directories
-func validatePaths(fs FileSystem) {
+func validatePaths(fs FileSystem) error {
 	paths := []string{
 		viper.GetString("logDir"),
 		viper.GetString("ipxe_folder"),
@@ -161,29 +164,25 @@ func validatePaths(fs FileSystem) {
 
 		// Sanitize the path to prevent path injection
 		if strings.Contains(p, "..") || strings.Contains(p, "~") || strings.Contains(p, "//") {
-			fmt.Printf("Invalid path %s: contains illegal characters or sequences\n", p)
-			os.Exit(1)
+			return fmt.Errorf("Invalid path %s: contains illegal characters or sequences", p)
 		}
 
 		absPath, err := filepath.Abs(p)
 		if err != nil {
-			fmt.Printf("Invalid path %s: %v\n", p, err)
-			os.Exit(1)
+			return fmt.Errorf("Invalid path %s: %v", p, err)
 		}
 
 		info, err := fs.Stat(absPath)
 		if os.IsNotExist(err) {
 			err = fs.MkdirAll(absPath, 0755)
 			if err != nil {
-				fmt.Printf("Failed to create directory %s: %v\n", absPath, err)
-				os.Exit(1)
+				return fmt.Errorf("Failed to create directory %s: %v", absPath, err)
 			}
 		} else if err != nil {
-			fmt.Printf("Error accessing path %s: %v\n", absPath, err)
-			os.Exit(1)
+			return fmt.Errorf("Error accessing path %s: %v", absPath, err)
 		} else if !info.IsDir() {
-			fmt.Printf("Path %s is not a directory\n", absPath)
-			os.Exit(1)
+			return fmt.Errorf("Path %s is not a directory", absPath)
 		}
 	}
+	return nil
 }
