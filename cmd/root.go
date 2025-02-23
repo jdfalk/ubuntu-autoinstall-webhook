@@ -35,11 +35,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&logDir, "logDir", "", "Directory for log storage")
 
 	// Ensure config is loaded before executing any command
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(func() { initConfig(OsFs{}) })
 }
 
 // Load configuration
-func initConfig() {
+func initConfig(fs FileSystem) {
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 	} else {
@@ -80,7 +80,7 @@ func initConfig() {
 	ensureConfigFile()
 
 	// Validate paths
-	if err := validatePaths(OsFs{}); err != nil {
+	if err := validatePaths(fs); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -164,24 +164,24 @@ func validatePaths(fs FileSystem) error {
 
 		// Sanitize the path to prevent path injection
 		if strings.Contains(p, "..") || strings.Contains(p, "~") || strings.Contains(p, "//") {
-			return fmt.Errorf("Invalid path %s: contains illegal characters or sequences", p)
+			return fmt.Errorf("invalid path %s: contains illegal characters or sequences", p)
 		}
 
 		absPath, err := filepath.Abs(p)
 		if err != nil {
-			return fmt.Errorf("Invalid path %s: %v", p, err)
+			return fmt.Errorf("invalid path %s: %v", p, err)
 		}
 
 		info, err := fs.Stat(absPath)
 		if os.IsNotExist(err) {
 			err = fs.MkdirAll(absPath, 0755)
 			if err != nil {
-				return fmt.Errorf("Failed to create directory %s: %v", absPath, err)
+				return fmt.Errorf("failed to create directory %s: %v", absPath, err)
 			}
 		} else if err != nil {
-			return fmt.Errorf("Error accessing path %s: %v", absPath, err)
+			return fmt.Errorf("error accessing path %s: %v", absPath, err)
 		} else if !info.IsDir() {
-			return fmt.Errorf("Path %s is not a directory", absPath)
+			return fmt.Errorf("path %s is not a directory", absPath)
 		}
 	}
 	return nil
