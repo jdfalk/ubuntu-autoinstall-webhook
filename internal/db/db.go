@@ -200,3 +200,175 @@ func SaveIPXEConfigVersion(clientID, config string) error {
 
 	return nil
 }
+
+// --- Type definitions ---
+
+// ClientLogDetail provides detailed information for a client log.
+type ClientLogDetail struct {
+	ID        int
+	ClientID  string
+	Detail    string
+	CreatedAt time.Time
+}
+
+// IpxeConfig represents an iPXE configuration.
+type IpxeConfig struct {
+	ID        int
+	ClientID  string
+	Config    string
+	CreatedAt time.Time
+}
+
+// CloudInitConfig represents a cloud-init configuration.
+type CloudInitConfig struct {
+	ID         int
+	ClientID   string
+	MacAddress string
+	UserData   string
+	CreatedAt  time.Time
+}
+
+// --- DB Functions ---
+
+// GetClientLogs returns a list of client logs.
+func GetClientLogs() ([]ClientLog, error) {
+	query := `SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs ORDER BY created_at DESC`
+	rows, err := DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying client logs: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []ClientLog
+	for rows.Next() {
+		var logEntry ClientLog
+		if err := rows.Scan(&logEntry.ID, &logEntry.ClientID, &logEntry.Timestamp, &logEntry.Origin, &logEntry.Description, &logEntry.Name, &logEntry.Result, &logEntry.EventType, &logEntry.Files, &logEntry.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning client log row: %w", err)
+		}
+		logs = append(logs, logEntry)
+	}
+	return logs, rows.Err()
+}
+
+// GetClientLogDetail retrieves detailed information for a specific client log by id.
+func GetClientLogDetail(id string) (ClientLog, error) {
+	query := `SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs WHERE id = $1`
+	var logDetail ClientLog
+	err := DB.QueryRow(query, id).Scan(&logDetail.ID, &logDetail.ClientID, &logDetail.Timestamp, &logDetail.Origin, &logDetail.Description, &logDetail.Name, &logDetail.Result, &logDetail.EventType, &logDetail.Files, &logDetail.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return logDetail, fmt.Errorf("client log %s not found", id)
+		}
+		return logDetail, fmt.Errorf("error querying client log detail: %w", err)
+	}
+	return logDetail, nil
+}
+
+// GetServerLogs returns a list of server logs.
+func GetServerLogs() ([]ServerLog, error) {
+	query := `SELECT id, message, created_at FROM server_logs ORDER BY created_at DESC`
+	rows, err := DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying server logs: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []ServerLog
+	for rows.Next() {
+		var sl ServerLog
+		if err := rows.Scan(&sl.ID, &sl.Message, &sl.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning server log row: %w", err)
+		}
+		logs = append(logs, sl)
+	}
+	return logs, rows.Err()
+}
+
+// GetIpxeConfigs returns the latest iPXE configuration per client.
+// This query uses PostgreSQL's DISTINCT ON to select the most recent config per client.
+func GetIpxeConfigs() ([]IpxeConfig, error) {
+	query := `
+        SELECT DISTINCT ON (client_id) id, client_id, config, created_at
+        FROM ipxe_history
+        ORDER BY client_id, created_at DESC
+    `
+	rows, err := DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying current iPXE configs: %w", err)
+	}
+	defer rows.Close()
+
+	var configs []IpxeConfig
+	for rows.Next() {
+		var cfg IpxeConfig
+		if err := rows.Scan(&cfg.ID, &cfg.ClientID, &cfg.Config, &cfg.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning iPXE config row: %w", err)
+		}
+		configs = append(configs, cfg)
+	}
+	return configs, rows.Err()
+}
+
+// GetHistoricalIpxeConfigs returns all historical iPXE configurations.
+func GetHistoricalIpxeConfigs() ([]IpxeConfig, error) {
+	query := `SELECT id, client_id, config, created_at FROM ipxe_history ORDER BY created_at DESC`
+	rows, err := DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying historical iPXE configs: %w", err)
+	}
+	defer rows.Close()
+
+	var configs []IpxeConfig
+	for rows.Next() {
+		var cfg IpxeConfig
+		if err := rows.Scan(&cfg.ID, &cfg.ClientID, &cfg.Config, &cfg.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning historical iPXE config row: %w", err)
+		}
+		configs = append(configs, cfg)
+	}
+	return configs, rows.Err()
+}
+
+// GetCloudInitConfigs returns the latest cloud-init configuration per client and MAC address.
+func GetCloudInitConfigs() ([]CloudInitConfig, error) {
+	query := `
+        SELECT DISTINCT ON (client_id, mac_address) id, client_id, mac_address, user_data, created_at
+        FROM cloud_init_history
+        ORDER BY client_id, mac_address, created_at DESC
+    `
+	rows, err := DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying current cloud-init configs: %w", err)
+	}
+	defer rows.Close()
+
+	var configs []CloudInitConfig
+	for rows.Next() {
+		var cfg CloudInitConfig
+		if err := rows.Scan(&cfg.ID, &cfg.ClientID, &cfg.MacAddress, &cfg.UserData, &cfg.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning cloud-init config row: %w", err)
+		}
+		configs = append(configs, cfg)
+	}
+	return configs, rows.Err()
+}
+
+// GetHistoricalCloudInitConfigs returns all historical cloud-init configurations.
+func GetHistoricalCloudInitConfigs() ([]CloudInitConfig, error) {
+	query := `SELECT id, client_id, mac_address, user_data, created_at FROM cloud_init_history ORDER BY created_at DESC`
+	rows, err := DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying historical cloud-init configs: %w", err)
+	}
+	defer rows.Close()
+
+	var configs []CloudInitConfig
+	for rows.Next() {
+		var cfg CloudInitConfig
+		if err := rows.Scan(&cfg.ID, &cfg.ClientID, &cfg.MacAddress, &cfg.UserData, &cfg.CreatedAt); err != nil {
+			return nil, fmt.Errorf("error scanning historical cloud-init config row: %w", err)
+		}
+		configs = append(configs, cfg)
+	}
+	return configs, rows.Err()
+}
