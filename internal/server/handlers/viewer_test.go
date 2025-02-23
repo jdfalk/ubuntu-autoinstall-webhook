@@ -4,23 +4,32 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/testutils"
 )
 
 func TestViewerHandler(t *testing.T) {
 	tdb := testutils.NewTestDB(t)
-	mockDB, mock := tdb.DB, tdb.Mock
-	defer mockDB.Close()
+	db.DB = tdb.DB
+	mock := tdb.Mock
+	defer db.DB.Close()
 
-	// Expect the distinct query to retrieve client_id and last_seen timestamp.
-	mock.ExpectQuery(`SELECT DISTINCT client_id, MAX\(timestamp\) FROM client_logs GROUP BY client_id`).
-		WillReturnRows(sqlmock.NewRows([]string{"client_id", "last_seen"}).
-			AddRow("192.168.1.1", time.Now()))
+	// Prepare expected rows for GetClientLogs:
+	// The query string as defined in db.GetClientLogs is:
+	// "SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs ORDER BY created_at DESC"
+	now := time.Now()
+	rows := sqlmock.NewRows([]string{
+		"id", "client_id", "timestamp", "origin", "description", "name", "result", "event_type", "files", "created_at",
+	}).AddRow("log1", "client1", now, "origin1", "desc1", "name1", "result1", "event1", "{}", now)
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs ORDER BY created_at DESC")).
+		WillReturnRows(rows)
 
 	req, err := http.NewRequest("GET", "/viewer", nil)
 	if err != nil {
@@ -31,22 +40,39 @@ func TestViewerHandler(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
-		t.Errorf("Expected status OK, got %v", rr.Code)
+		t.Errorf("Expected status OK, got %d", rr.Code)
+	}
+	var logs []db.ClientLog
+	if err := json.NewDecoder(rr.Body).Decode(&logs); err != nil {
+		t.Fatalf("Failed to decode response: %v", err)
+	}
+	if len(logs) != 1 {
+		t.Errorf("Expected 1 log, got %d", len(logs))
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("Unmet SQL mock expectations: %v", err)
 	}
 }
 
 func TestViewerDetailHandler(t *testing.T) {
 	tdb := testutils.NewTestDB(t)
-	mockDB, mock := tdb.DB, tdb.Mock
-	defer mockDB.Close()
+	db.DB = tdb.DB
+	mock := tdb.Mock
+	defer db.DB.Close()
 
-	// Expect the detail query to return log entry columns.
-	mock.ExpectQuery(`SELECT timestamp, origin, event_type, name, description, level FROM client_logs WHERE client_id = \$1 ORDER BY timestamp DESC`).
-		WithArgs("192.168.1.1").
-		WillReturnRows(sqlmock.NewRows([]string{"timestamp", "origin", "event_type", "name", "description", "level"}).
-			AddRow(time.Now(), "curtin", "install", "cmd-install", "Installation started", "INFO"))
+	// Prepare expected row for GetClientLogDetail:
+	// The query in db.GetClientLogDetail is:
+	// "SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs WHERE id = $1"
+	now := time.Now()
+	rows := sqlmock.NewRows([]string{
+		"id", "client_id", "timestamp", "origin", "description", "name", "result", "event_type", "files", "created_at",
+	}).AddRow("log1", "client1", now, "origin1", "desc1", "name1", "result1", "event1", "{}", now)
 
-	req, err := http.NewRequest("GET", "/viewer/192.168.1.1", nil)
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs WHERE id = $1")).
+		WithArgs("log1").
+		WillReturnRows(rows)
+
+	req, err := http.NewRequest("GET", "/viewer?id=log1", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,15 +81,17 @@ func TestViewerDetailHandler(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
-		t.Errorf("Expected status OK, got %v", rr.Code)
+		t.Errorf("Expected status OK, got %d", rr.Code)
 	}
 
-	var logs []handlers.LogEntry
-	if err := json.NewDecoder(rr.Body).Decode(&logs); err != nil {
+	var logDetail db.ClientLog
+	if err := json.NewDecoder(rr.Body).Decode(&logDetail); err != nil {
 		t.Fatalf("Failed to decode response: %v", err)
 	}
-
-	if len(logs) == 0 {
-		t.Errorf("Expected logs, but got none")
+	if logDetail.ID != "log1" {
+		t.Errorf("Expected log ID 'log1', got '%s'", logDetail.ID)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("Unmet SQL mock expectations: %v", err)
 	}
 }
