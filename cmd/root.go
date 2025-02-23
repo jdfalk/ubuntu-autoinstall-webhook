@@ -105,76 +105,114 @@ func ensureConfigFile() {
 		existingConfig = []byte("")
 	}
 
-	// Determine which keys are already set
+	// Build a set of keys that are present—either defined or commented out.
 	configSet := make(map[string]bool)
 	for _, line := range strings.Split(string(existingConfig), "\n") {
-		if strings.Contains(line, ":") {
-			key := strings.Split(line, ":")[0]
-			configSet[strings.TrimSpace(key)] = true
+		trimmed := strings.TrimSpace(line)
+		// Remove a leading '#' if present.
+		if strings.HasPrefix(trimmed, "#") {
+			trimmed = strings.TrimPrefix(trimmed, "#")
+			trimmed = strings.TrimSpace(trimmed)
 		}
-	}
-
-	// Define the missing configuration options to be appended.
-	missingConfig := []string{
-		"# Missing configuration options (added automatically)",
-		"# port: 25000",
-		"# logDir: \"/opt/custom-logs\"",
-		"# logFile: \"autoinstall_report.log\"",
-		"# database:",
-		"#   host: \"cockroachdb\"",
-		"#   port: 26257",
-		"#   user: \"admin\"",
-		"#   password: \"securepassword\"",
-		"#   dbname: \"autoinstall\"",
-		"#   sslmode: \"disable\"",
-		"#   max_open_conns: 100",
-		"#   max_idle_conns: 10",
-		"#   conn_max_lifetime: 3600",
-		"# ipxe_folder: \"/var/www/html/ipxe\"",
-		"# boot_customization_folder: \"/var/www/html/ipxe/boot\"",
-		"# cloud_init_folder: \"/var/www/html/cloud-init/\"",
-	}
-
-	// Build the list of new entries that need to be appended.
-	newEntries := []string{}
-	for _, line := range missingConfig {
-		key := strings.Split(line, ":")[0]
-		key = strings.TrimPrefix(key, "# ")
-		if !configSet[key] {
-			newEntries = append(newEntries, line)
-		}
-	}
-
-	// If there are missing options, attempt to write them in one of several candidate locations.
-	if len(newEntries) > 1 {
-		candidates := []string{
-			configPath,
-			"./config.yaml",
-			"/tmp/custom-logs/config.yaml",
-		}
-
-		writeErr := fmt.Errorf("no candidate succeeded")
-		for _, path := range candidates {
-			if err := tryWriteConfig(path, newEntries); err == nil {
-				// Successfully wrote to one candidate, stop trying.
-				writeErr = nil
-				break
-			} else {
-				// If writing failed, log the error and try the next candidate.
-				fmt.Printf("Failed to write config to %s: %v\n", path, err)
+		if strings.Contains(trimmed, ":") {
+			parts := strings.SplitN(trimmed, ":", 2)
+			key := strings.TrimSpace(parts[0])
+			// For nested keys (child keys), we only store the top-level if appropriate.
+			// For example, a line "database:" or "database: something" should register "database".
+			if !strings.Contains(key, " ") {
+				configSet[key] = true
 			}
 		}
-		if writeErr != nil {
-			fmt.Println("Failed to update config file in all candidate locations:", writeErr)
+	}
+
+	// Helper function to check if a key exists in the config.
+	exists := func(key string) bool {
+		_, ok := configSet[key]
+		return ok
+	}
+
+	// Build the list of missing entries.
+	var newEntries []string
+
+	// Add header only if at least one missing entry will be appended.
+	header := "# Missing configuration options (added automatically)"
+
+	// Check top-level options
+	if !exists("port") {
+		newEntries = append(newEntries, "# port: 25000")
+	}
+	if !exists("logDir") {
+		newEntries = append(newEntries, "# logDir: \"/opt/custom-logs\"")
+	}
+	if !exists("logFile") {
+		newEntries = append(newEntries, "# logFile: \"autoinstall_report.log\"")
+	}
+
+	// For database settings, if the parent "database" is missing, then add the whole block.
+	if !exists("database") {
+		newEntries = append(newEntries, "# database:")
+		newEntries = append(newEntries, "#   host: \"cockroachdb\"")
+		newEntries = append(newEntries, "#   port: 26257")
+		newEntries = append(newEntries, "#   user: \"admin\"")
+		newEntries = append(newEntries, "#   password: \"securepassword\"")
+		newEntries = append(newEntries, "#   dbname: \"autoinstall\"")
+		newEntries = append(newEntries, "#   sslmode: \"disable\"")
+		newEntries = append(newEntries, "#   max_open_conns: 100")
+		newEntries = append(newEntries, "#   max_idle_conns: 10")
+		newEntries = append(newEntries, "#   conn_max_lifetime: 3600")
+	}
+
+	// Check remaining options
+	if !exists("ipxe_folder") {
+		newEntries = append(newEntries, "# ipxe_folder: \"/var/www/html/ipxe\"")
+	}
+	if !exists("boot_customization_folder") {
+		newEntries = append(newEntries, "# boot_customization_folder: \"/var/www/html/ipxe/boot\"")
+	}
+	if !exists("cloud_init_folder") {
+		newEntries = append(newEntries, "# cloud_init_folder: \"/var/www/html/cloud-init/\"")
+	}
+
+	if len(newEntries) == 0 {
+		// Nothing to add.
+		return
+	}
+
+	// Prepend header
+	newEntries = append([]string{header}, newEntries...)
+
+	// Define candidate candidate paths for writing the updated config file.
+	candidates := []string{
+		configPath,
+		"./config.yaml",
+		"/tmp/custom-logs/config.yaml",
+	}
+
+	var writeErr error = fmt.Errorf("no candidate succeeded")
+	// Attempt to write the new entries using one of the candidate paths.
+	for _, path := range candidates {
+		if err := tryWriteConfig(path, newEntries); err == nil {
+			writeErr = nil
+			break
+		} else {
+			fmt.Printf("Failed to write config to %s: %v\n", path, err)
 		}
+	}
+	if writeErr != nil {
+		fmt.Println("Failed to update config file in all candidate locations:", writeErr)
+	}
+
+	// Clean up duplicate blocks in the config file
+	if err := cleanUpConfigFile(configPath); err != nil {
+		fmt.Println("Failed to clean up config file:", err)
 	}
 }
 
-// tryWriteConfig attempts to append newEntries to the file at candidate path.
-// It creates the file if it doesn't exist.
+// tryWriteConfig attempts to append entries to the file at candidate path.
+// It creates the file and its directory if they do not exist.
 func tryWriteConfig(path string, entries []string) error {
-	// If the candidate directory does not exist, try to create it.
-	dir := strings.TrimSuffix(path, "/config.yaml")
+	// Determine the directory (assume file name "config.yaml")
+	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
@@ -185,6 +223,7 @@ func tryWriteConfig(path string, entries []string) error {
 	}
 	defer f.Close()
 
+	// Append entries with proper newlines.
 	_, err = f.WriteString("\n" + strings.Join(entries, "\n") + "\n")
 	return err
 }
@@ -224,6 +263,73 @@ func validatePaths(fs FileSystem) error {
 		} else if !info.IsDir() {
 			return fmt.Errorf("path %s is not a directory", absPath)
 		}
+	}
+	return nil
+}
+
+// cleanUpConfigFile reads the config file at the given path and removes duplicate
+// "Missing configuration options (added automatically)" blocks. A block is defined as that header
+// plus any following commented lines. Only the first occurrence is kept.
+func cleanUpConfigFile(path string) error {
+	// Read the current content.
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	lines := strings.Split(string(content), "\n")
+	var cleaned []string
+	// Map to track blocks already seen.
+	blockMap := make(map[string]bool)
+
+	// Define the header string marker.
+	headerMarker := "# Missing configuration options (added automatically)"
+
+	// Iterate over all lines.
+	for i := 0; i < len(lines); {
+		line := strings.TrimSpace(lines[i])
+		// If we see a header, assume it starts a block.
+		if line == headerMarker {
+			// Gather the entire block: header + subsequent comment lines (until a non-comment or blank line is reached).
+			var blockLines []string
+			blockLines = append(blockLines, lines[i])
+			i++
+			for i < len(lines) {
+				trimmedNext := strings.TrimSpace(lines[i])
+				// Stop block if we hit a blank line or a new section header.
+				if trimmedNext == "" || (!strings.HasPrefix(trimmedNext, "#") && trimmedNext != headerMarker) {
+					break
+				}
+				// If the very next header appears (i.e. same headerMarker), break as well.
+				if trimmedNext == headerMarker {
+					break
+				}
+				blockLines = append(blockLines, lines[i])
+				i++
+			}
+			// Combine block lines.
+			blockText := strings.Join(blockLines, "\n")
+			// Only keep the block if it hasn't been seen before.
+			if !blockMap[blockText] {
+				blockMap[blockText] = true
+				cleaned = append(cleaned, blockLines...)
+			} else {
+				// Skip this duplicate block.
+				// (Do nothing – block not appended.)
+			}
+			// Optionally append a blank line after the block.
+			cleaned = append(cleaned, "")
+		} else {
+			// For non-header lines, always keep them.
+			cleaned = append(cleaned, lines[i])
+			i++
+		}
+	}
+
+	newContent := strings.Join(cleaned, "\n")
+	// Only write if there are changes.
+	if newContent != string(content) {
+		return os.WriteFile(path, []byte(newContent), 0644)
 	}
 	return nil
 }
