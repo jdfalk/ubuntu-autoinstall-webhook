@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -32,12 +33,12 @@ func TestInitConfigDefaults(t *testing.T) {
 	tempDir := "/tmp/test"
 	viper.Set("logDir", tempDir)
 
-	initConfig()
+	initConfig(AferoFs{fs})
 
 	if viper.GetString("port") != "5000" {
 		t.Errorf("Expected port 5000, got %s", viper.GetString("port"))
 	}
-	if viper.GetString("logDir") != tempDir {
+	if filepath.Clean(viper.GetString("logDir")) != filepath.Clean(tempDir) {
 		t.Errorf("Expected logDir %s, got %s", tempDir, viper.GetString("logDir"))
 	}
 	if viper.GetString("logFile") != "autoinstall_report.log" {
@@ -70,13 +71,13 @@ func TestInitConfigDefaults(t *testing.T) {
 	if viper.GetInt("database.conn_max_lifetime") != 3600 {
 		t.Errorf("Expected database.conn_max_lifetime 3600, got %d", viper.GetInt("database.conn_max_lifetime"))
 	}
-	if viper.GetString("ipxe_folder") != "/var/www/html/ipxe" {
+	if filepath.Clean(viper.GetString("ipxe_folder")) != filepath.Clean("/var/www/html/ipxe") {
 		t.Errorf("Expected ipxe_folder /var/www/html/ipxe, got %s", viper.GetString("ipxe_folder"))
 	}
-	if viper.GetString("boot_customization_folder") != "/var/www/html/ipxe/boot" {
+	if filepath.Clean(viper.GetString("boot_customization_folder")) != filepath.Clean("/var/www/html/ipxe/boot") {
 		t.Errorf("Expected boot_customization_folder /var/www/html/ipxe/boot, got %s", viper.GetString("boot_customization_folder"))
 	}
-	if viper.GetString("cloud_init_folder") != "/var/www/html/cloud-init" {
+	if filepath.Clean(viper.GetString("cloud_init_folder")) != filepath.Clean("/var/www/html/cloud-init") {
 		t.Errorf("Expected cloud_init_folder /var/www/html/cloud-init, got %s", viper.GetString("cloud_init_folder"))
 	}
 }
