@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger" // Import the logger package
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 )
@@ -17,7 +18,7 @@ var DB *sql.DB
 //go:embed migrations/*.sql
 var migrationFiles embed.FS
 
-// InitDB initializes the database connection and runs migrations
+// InitDB initializes the database connection and runs migrations.
 func InitDB() error {
 	dsn := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%d/%s?sslmode=%s",
@@ -39,9 +40,13 @@ func InitDB() error {
 	DB.SetMaxIdleConns(viper.GetInt("database.max_idle_conns"))
 	DB.SetConnMaxLifetime(time.Duration(viper.GetInt("database.conn_max_lifetime")) * time.Second)
 
+	// Ensure the DB connection is valid.
 	if err = DB.Ping(); err != nil {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
+
+	// Inject the DB connection into the logger package.
+	logger.SetDBExecutor(DB)
 
 	log.Println("Connected to CockroachDB successfully!")
 
@@ -52,7 +57,7 @@ func InitDB() error {
 	return nil
 }
 
-// runMigrations executes all embedded SQL migration files
+// runMigrations executes all embedded SQL migration files.
 func runMigrations() error {
 	files, err := migrationFiles.ReadDir("migrations")
 	if err != nil {
