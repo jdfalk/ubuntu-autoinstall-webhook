@@ -1,6 +1,10 @@
 port: "25000"
+
+# Logging Configuration
 logDir: "/opt/custom-logs"
 logFile: "autoinstall_report.log"
+
+# Database Configuration
 database:
   host: "cockroachdb"
   port: 26257
@@ -8,7 +12,9 @@ database:
   password: "securepassword"
   dbname: "autoinstall"
   sslmode: "disable"
-
+  max_open_conns: 100
+  max_idle_conns: 10
+  conn_max_lifetime: 3600
 
 # iPXE Settings
 ipxe_folder: "/var/www/html/ipxe"
