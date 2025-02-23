@@ -1,7 +1,11 @@
-// filepath: /Users/jdfalk/repos/github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger/logger.go
+// Package logger provides centralized logging functionality for the application.
+// It handles logging to both files and the database. To enable database logging,
+// the application must inject a DB executor (for example, the global DB connection)
+// by calling SetDBExecutor.
 package logger
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
 	"log"
@@ -9,11 +13,34 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/spf13/viper"
 )
 
-// Event represents a log event passed from handlers.
+// DBExecutor defines the minimal interface required to execute SQL commands.
+// Any type that implements Exec(query string, args ...interface{}) (sql.Result, error)
+// can be used (for example, a *sql.DB instance).
+type DBExecutor interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+// dbExecutor holds the injected database executor for logging to the database.
+var dbExecutor DBExecutor
+
+// SetDBExecutor injects the DB executor to be used by the logger package.
+// Call this during initialization (after establishing a DB connection).
+func SetDBExecutor(executor DBExecutor) {
+	dbExecutor = executor
+}
+
+// Logger is the standard logger instance used by the application.
+var Logger *log.Logger
+
+func init() {
+	// Initialize the logger with a default output to stdout.
+	Logger = log.New(os.Stdout, "APP_LOG: ", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
+// Event represents a log event with optional fields for client logging.
 type Event struct {
 	Origin      string  `json:"origin"`
 	Timestamp   float64 `json:"timestamp"`
@@ -28,10 +55,8 @@ type Event struct {
 }
 
 /*
-AppendToFile constructs a formatted log entry using the provided format and arguments,
-ensures that the log directory exists (creating it if necessary), and then appends the
-entry to the designated log file.
-
+AppendToFile constructs a formatted log entry and appends it to a log file.
+It ensures that the log directory exists and creates it if necessary.
 The log file path is determined by combining the "logDir" and "logFile" values obtained
 from viper configuration.
 */
@@ -40,7 +65,7 @@ func AppendToFile(format string, a ...interface{}) {
 	logDir := viper.GetString("logDir")
 	logFile := filepath.Join(logDir, viper.GetString("logFile"))
 
-	// Ensure the log directory exists. Create it if it does not exist.
+	// Ensure the log directory exists.
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(logDir, 0755); err != nil {
 			log.Printf("Error creating log directory: %v", err)
@@ -61,30 +86,22 @@ func AppendToFile(format string, a ...interface{}) {
 	}
 }
 
-/*
-AppendToSystemSQL writes a log entry to the SQL database for system-level logs.
-It uses the global db.DB instance and expects a table named "system_logs" with
-at least columns: timestamp, level, and message.
-*/
+// AppendToSystemSQL writes a log entry to the system_logs table in the database.
 func AppendToSystemSQL(level, message string) {
-	// Gracefully handle if the database connection is nil.
-	if db.DB == nil {
+	if dbExecutor == nil {
 		fmt.Printf("DB not configured; skipping system SQL logging: level=%s, message=%s\n", level, message)
 		return
 	}
 	query := `INSERT INTO system_logs (timestamp, level, message) VALUES ($1, $2, $3)`
-	_, err := db.DB.Exec(query, time.Now(), level, message)
+	_, err := dbExecutor.Exec(query, time.Now(), level, message)
 	if err != nil {
 		log.Printf("Error logging to system_logs: %v", err)
 	}
 }
 
-/*
-AppendToClientLogsSQL writes an event to the client_logs table.
-*/
+// AppendToClientLogsSQL writes an event to the client_logs table in the database.
 func AppendToClientLogsSQL(event Event) {
-	// Gracefully handle if the database connection is nil.
-	if db.DB == nil {
+	if dbExecutor == nil {
 		fmt.Printf("DB not configured; skipping client logs: %+v\n", event)
 		return
 	}
@@ -92,7 +109,7 @@ func AppendToClientLogsSQL(event Event) {
         INSERT INTO client_logs (timestamp, origin, event_type, name, description, result, status, progress, message, source_ip)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
     `
-	_, err := db.DB.Exec(
+	_, err := dbExecutor.Exec(
 		query,
 		time.Now(),
 		event.Origin,
@@ -110,128 +127,104 @@ func AppendToClientLogsSQL(event Event) {
 	}
 }
 
-/*
-AppendToClientStatusSQL writes or updates client status in the client_status table.
-It uses event.Origin as the client identifier.
-*/
+// AppendToClientStatusSQL writes or updates the client status in the client_status table.
 func AppendToClientStatusSQL(event Event) {
-	// Gracefully handle if the database connection is nil.
-	if db.DB == nil {
+	if dbExecutor == nil {
 		fmt.Printf("DB not configured; skipping client status update: %+v\n", event)
 		return
 	}
 	query := `
         INSERT INTO client_status (client_id, status, progress, message, updated_at)
-        VALUES ((SELECT id FROM client_identification WHERE id = $1), $2, $3, $4, NOW())
+        VALUES ($1, $2, $3, $4, NOW())
         ON CONFLICT (client_id) DO UPDATE SET status = $2, progress = $3, message = $4, updated_at = NOW();
     `
-	_, err := db.DB.Exec(query, event.Origin, event.Status, event.Progress, event.Message)
+	_, err := dbExecutor.Exec(query, event.Origin, event.Status, event.Progress, event.Message)
 	if err != nil {
 		log.Printf("Error inserting/updating client_status: %v", err)
 	}
 }
 
-/*
-LogSystem logs a message to both the log file and the system_logs table.
-Use this function for system-level events.
-*/
+// LogSystem logs a system-level event by writing to the file, database, and stdout.
 func LogSystem(level, format string, a ...interface{}) {
 	entry := fmt.Sprintf(format, a...)
-	// Log to file with a level prefix.
+	// Log to file.
 	AppendToFile("[%s] %s", level, entry)
-	// Log to SQL system_logs.
+	// Log to the system_logs table.
 	AppendToSystemSQL(level, entry)
-	// Output to standard out.
+	// Also output to standard output.
 	fmt.Printf("[%s] %s\n", level, entry)
 }
 
-/*
-LogClient logs a client event to both the log file and client-specific tables.
-It calls both AppendToClientLogsSQL and AppendToClientStatusSQL.
-*/
+// LogClient logs a client event by writing to the file and to the client_logs and client_status tables.
 func LogClient(eventType, format string, a ...interface{}) {
 	event := Event{
 		EventType: eventType,
 		Message:   fmt.Sprintf(format, a...),
 	}
-	// Log to file with event type and message.
+	// Log to file.
 	AppendToFile("[%s] %s", event.EventType, event.Message)
-	// Send event to client_logs table.
+	// Write event to the client_logs table.
 	AppendToClientLogsSQL(event)
-	// Send event to client_status table.
+	// Update client status in the client_status table.
 	AppendToClientStatusSQL(event)
 }
 
-// Convenience wrappers for system logging (backwards compatibility).
+// Debug logs a debug-level system message.
 func Debug(format string, a ...interface{}) {
 	LogSystem("DEBUG", format, a...)
 }
 
+// Info logs an informational system message.
 func Info(format string, a ...interface{}) {
 	LogSystem("INFO", format, a...)
 }
 
+// Warning logs a warning-level system message.
 func Warning(format string, a ...interface{}) {
 	LogSystem("WARNING", format, a...)
 }
 
+// Error logs an error-level system message.
 func Error(format string, a ...interface{}) {
 	LogSystem("ERROR", format, a...)
 }
 
-/*
-Debugf logs a formatted message with the DEBUG level.
-*/
+// Debugf logs a formatted debug-level system message.
 func Debugf(format string, a ...interface{}) {
 	LogSystem("DEBUG", format, a...)
 }
 
-/*
-Infof logs a formatted message with the INFO level.
-*/
+// Infof logs a formatted informational system message.
 func Infof(format string, a ...interface{}) {
 	LogSystem("INFO", format, a...)
 }
 
-/*
-Warningf logs a formatted message with the WARNING level.
-*/
+// Warningf logs a formatted warning-level system message.
 func Warningf(format string, a ...interface{}) {
 	LogSystem("WARNING", format, a...)
 }
 
-/*
-Errorf logs a formatted message with the ERROR level.
-*/
+// Errorf logs a formatted error-level system message.
 func Errorf(format string, a ...interface{}) {
 	LogSystem("ERROR", format, a...)
 }
 
-// New Wrappers for client logging
-/*
-Debugf logs a formatted message with the DEBUG level.
-*/
+// ClientDebugf logs a formatted debug message for client events.
 func ClientDebugf(format string, a ...interface{}) {
 	LogClient("DEBUG", format, a...)
 }
 
-/*
-Infof logs a formatted message with the INFO level.
-*/
+// ClientInfof logs a formatted informational message for client events.
 func ClientInfof(format string, a ...interface{}) {
 	LogClient("INFO", format, a...)
 }
 
-/*
-Warningf logs a formatted message with the WARNING level.
-*/
+// ClientWarningf logs a formatted warning message for client events.
 func ClientWarningf(format string, a ...interface{}) {
 	LogClient("WARNING", format, a...)
 }
 
-/*
-Errorf logs a formatted message with the ERROR level.
-*/
+// ClientErrorf logs a formatted error message for client events.
 func ClientErrorf(format string, a ...interface{}) {
 	LogClient("ERROR", format, a...)
 }
