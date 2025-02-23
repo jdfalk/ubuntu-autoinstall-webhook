@@ -50,7 +50,7 @@ func RegisterRoutes() {
 }
 
 // StartServer configures HTTP handlers then starts the HTTP server on the specified port.
-func StartServer(port string) error {
+var StartServer = func(port string) error {
 	RegisterRoutes()
 	addr := fmt.Sprintf("0.0.0.0:%s", port)
 	log.Printf("Starting webhook server on %s\n", addr)

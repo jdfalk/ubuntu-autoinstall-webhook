@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,7 +25,7 @@ var rootCmd = &cobra.Command{
 // Execute runs the root command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 }
@@ -89,27 +90,31 @@ func initConfig(fs FileSystem) {
 	viper.AutomaticEnv()
 }
 
-// ensureConfigFile ensures the config file has the correct options
+// ensureConfigFile ensures the config file has the correct options by appending missing configuration lines.
+// It attempts to write to multiple candidate locations if needed.
 func ensureConfigFile() {
 	configPath := viper.ConfigFileUsed()
 	if configPath == "" {
 		configPath = "config.yaml"
 	}
 
+	// Read existing config (if any)
 	existingConfig, err := os.ReadFile(configPath)
 	if err != nil {
-		return
+		// if the file doesn't exist or cannot be read, assume empty content
+		existingConfig = []byte("")
 	}
 
-	existingLines := strings.Split(string(existingConfig), "\n")
+	// Determine which keys are already set
 	configSet := make(map[string]bool)
-	for _, line := range existingLines {
+	for _, line := range strings.Split(string(existingConfig), "\n") {
 		if strings.Contains(line, ":") {
 			key := strings.Split(line, ":")[0]
 			configSet[strings.TrimSpace(key)] = true
 		}
 	}
 
+	// Define the missing configuration options to be appended.
 	missingConfig := []string{
 		"# Missing configuration options (added automatically)",
 		"# port: 25000",
@@ -130,6 +135,7 @@ func ensureConfigFile() {
 		"# cloud_init_folder: \"/var/www/html/cloud-init/\"",
 	}
 
+	// Build the list of new entries that need to be appended.
 	newEntries := []string{}
 	for _, line := range missingConfig {
 		key := strings.Split(line, ":")[0]
@@ -139,13 +145,48 @@ func ensureConfigFile() {
 		}
 	}
 
+	// If there are missing options, attempt to write them in one of several candidate locations.
 	if len(newEntries) > 1 {
-		f, err := os.OpenFile(configPath, os.O_APPEND|os.O_WRONLY, 0644)
-		if err == nil {
-			defer f.Close()
-			f.WriteString("\n" + strings.Join(newEntries, "\n") + "\n")
+		candidates := []string{
+			configPath,
+			"./config.yaml",
+			"/tmp/custom-logs/config.yaml",
+		}
+
+		writeErr := fmt.Errorf("no candidate succeeded")
+		for _, path := range candidates {
+			if err := tryWriteConfig(path, newEntries); err == nil {
+				// Successfully wrote to one candidate, stop trying.
+				writeErr = nil
+				break
+			} else {
+				// If writing failed, log the error and try the next candidate.
+				fmt.Printf("Failed to write config to %s: %v\n", path, err)
+			}
+		}
+		if writeErr != nil {
+			fmt.Println("Failed to update config file in all candidate locations:", writeErr)
 		}
 	}
+}
+
+// tryWriteConfig attempts to append newEntries to the file at candidate path.
+// It creates the file if it doesn't exist.
+func tryWriteConfig(path string, entries []string) error {
+	// If the candidate directory does not exist, try to create it.
+	dir := strings.TrimSuffix(path, "/config.yaml")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.WriteString("\n" + strings.Join(entries, "\n") + "\n")
+	return err
 }
 
 // validatePaths validates the paths for logDir and other directories
