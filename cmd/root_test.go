@@ -93,7 +93,9 @@ func TestValidatePaths(t *testing.T) {
 	viper.Set("boot_customization_folder", tempDir+"/boot")
 	viper.Set("cloud_init_folder", tempDir+"/cloud-init")
 
-	validatePaths(AferoFs{fs})
+	if err := validatePaths(AferoFs{fs}); err != nil {
+		t.Errorf("validatePaths failed: %v", err)
+	}
 
 	// Check if the directories were created
 	paths := []string{
@@ -127,11 +129,9 @@ func TestInvalidPaths(t *testing.T) {
 
 	for _, p := range invalidPaths {
 		viper.Set("logDir", p)
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic for invalid path %s, but did not get one", p)
-			}
-		}()
-		validatePaths(AferoFs{fs})
+		err := validatePaths(AferoFs{fs})
+		if err == nil {
+			t.Errorf("Expected error for invalid path %s, but did not get one", p)
+		}
 	}
 }
