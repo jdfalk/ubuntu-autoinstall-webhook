@@ -1,78 +1,173 @@
+// Package handlers provides HTTP handlers for viewing log data.
 package handlers
 
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 )
 
-type LogEntry struct {
-	Timestamp   time.Time `json:"timestamp"`
-	Origin      string    `json:"origin"`
-	EventType   string    `json:"event_type"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Level       string    `json:"level,omitempty"`
-}
-
-type SystemReport struct {
-	IPAddress string    `json:"ip_address"`
-	LastSeen  time.Time `json:"last_seen"`
-}
-
+// ViewerHandler returns a list of logs in JSON format.
+// If the database is not configured (db.DB is nil), it returns an empty JSON array.
 func ViewerHandler(w http.ResponseWriter, r *http.Request) {
-	query := `SELECT DISTINCT client_id, MAX(timestamp) FROM client_logs GROUP BY client_id`
-	rows, err := db.DB.Query(query)
-	if err != nil {
-		http.Error(w, "Failed to retrieve systems", http.StatusInternalServerError)
+	w.Header().Set("Content-Type", "application/json")
+	// If no database is configured, return an empty array.
+	if db.DB == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
 		return
 	}
-	defer rows.Close()
 
-	var reports []SystemReport
-	for rows.Next() {
-		var report SystemReport
-		var lastSeen time.Time
-		if err := rows.Scan(&report.IPAddress, &lastSeen); err != nil {
-			http.Error(w, "Error scanning row", http.StatusInternalServerError)
-			return
-		}
-		report.LastSeen = lastSeen
-		reports = append(reports, report)
+	// Attempt to retrieve logs from the database.
+	logs, err := db.GetClientLogs() // Assumes this function exists in your db package.
+	if err != nil {
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(reports)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(logs)
 }
 
+// ViewerDetailHandler returns detailed information for a specific log entry.
+// If the database is not configured (db.DB is nil), it returns an empty JSON object.
 func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
-	ip := strings.TrimPrefix(r.URL.Path, "/viewer/")
-	if ip == "" {
-		http.Error(w, "Missing IP address", http.StatusBadRequest)
-		return
-	}
-
-	query := `SELECT timestamp, origin, event_type, name, description, level FROM client_logs WHERE client_id = $1 ORDER BY timestamp DESC`
-	rows, err := db.DB.Query(query, ip)
-	if err != nil {
-		http.Error(w, "Failed to retrieve logs", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	var logs []LogEntry
-	for rows.Next() {
-		var log LogEntry
-		if err := rows.Scan(&log.Timestamp, &log.Origin, &log.EventType, &log.Name, &log.Description, &log.Level); err != nil {
-			http.Error(w, "Error scanning row", http.StatusInternalServerError)
-			return
-		}
-		logs = append(logs, log)
-	}
-
 	w.Header().Set("Content-Type", "application/json")
+	// If no database is configured, return an empty object.
+	if db.DB == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("{}"))
+		return
+	}
+
+	// Extract the "id" parameter.
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, `{"error": "Missing id parameter"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Attempt to retrieve detailed log info.
+	logDetail, err := db.GetClientLogDetail(id) // Assumes this function exists in your db package.
+	if err != nil {
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(logDetail)
+}
+
+// ClientLogsHandler returns a list of client logs in JSON format.
+// If the database is not configured (db.DB is nil), it returns an empty JSON array.
+func ClientLogsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	logs, err := db.GetClientLogs() // Implement this in your db package.
+	if err != nil {
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(logs)
+}
+
+// ServerLogsHandler returns a list of server logs in JSON format.
+func ServerLogsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	logs, err := db.GetServerLogs() // Implement this in your db package.
+	if err != nil {
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(logs)
+}
+
+// IpxeConfigsHandler returns the current iPXE configurations in JSON format.
+func IpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	configs, err := db.GetIpxeConfigs() // Implement this in your db package.
+	if err != nil {
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(configs)
+}
+
+// HistoricalIpxeConfigsHandler returns historical iPXE configurations in JSON format.
+func HistoricalIpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	configs, err := db.GetHistoricalIpxeConfigs() // Implement this in your db package.
+	if err != nil {
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(configs)
+}
+
+// CloudInitConfigsHandler returns the current cloud-init configurations in JSON format.
+func CloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	configs, err := db.GetCloudInitConfigs() // Implement this in your db package.
+	if err != nil {
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(configs)
+}
+
+// HistoricalCloudInitConfigsHandler returns historical cloud-init configurations in JSON format.
+func HistoricalCloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	configs, err := db.GetHistoricalCloudInitConfigs() // Implement this in your db package.
+	if err != nil {
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(configs)
 }
