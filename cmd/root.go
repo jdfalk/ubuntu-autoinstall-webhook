@@ -5,24 +5,32 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// Global variables for flags
+// Global variables for flags.
 var configFile string
 var logDir string
 
-// Root command
+// ConfigBlock represents a configuration block along with any preceding comments.
+type ConfigBlock struct {
+	Key      string
+	Comments []string
+	Lines    []string // Includes the key line and any indented child lines.
+}
+
+// rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "webhook",
 	Short: "Ubuntu Autoinstall Webhook CLI",
 	Long:  "A webhook service for capturing Ubuntu Autoinstall reports",
 }
 
-// Execute runs the root command
+// Execute runs the root command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
@@ -30,16 +38,16 @@ func Execute() {
 	}
 }
 
-// Init function to set up global flags
+// init sets up global flags and initializes configuration.
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Path to the config file")
 	rootCmd.PersistentFlags().StringVar(&logDir, "logDir", "", "Directory for log storage")
 
-	// Ensure config is loaded before executing any command
+	// OsFs is implemented in filesystem.go.
 	cobra.OnInitialize(func() { initConfig(OsFs{}) })
 }
 
-// Load configuration
+// initConfig loads configuration from file/environment and then processes it.
 func initConfig(fs FileSystem) {
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
@@ -50,12 +58,12 @@ func initConfig(fs FileSystem) {
 		viper.AddConfigPath("/etc/webhook/")
 	}
 
-	// Read logDir from CLI flag if set
+	// Override logDir if set via CLI flag.
 	if logDir != "" {
 		viper.Set("logDir", logDir)
 	}
 
-	// Set default values
+	// Set default values.
 	viper.SetDefault("port", "5000")
 	viper.SetDefault("logDir", "/var/log/autoinstall-webhook")
 	viper.SetDefault("logFile", "autoinstall_report.log")
@@ -72,44 +80,71 @@ func initConfig(fs FileSystem) {
 	viper.SetDefault("boot_customization_folder", "/var/www/html/ipxe/boot")
 	viper.SetDefault("cloud_init_folder", "/var/www/html/cloud-init/")
 
-	// Read config file if available
+	// Read config file if available.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
-	// Ensure the config file has the correct options
-	ensureConfigFile()
+	// Process (ensure + organize) the configuration file.
+	if err := processConfigFile(); err != nil {
+		fmt.Println("Failed to process config file:", err)
+	}
 
-	// Validate paths
+	// Validate paths with fallback logic.
 	if err := validatePaths(fs); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	// Enable ENV variables (WEBHOOK_PORT, WEBHOOK_LOGDIR, etc.)
+	// Enable ENV variables (e.g. WEBHOOK_PORT, WEBHOOK_LOGDIR, etc.).
 	viper.AutomaticEnv()
 }
 
-// ensureConfigFile ensures the config file has the correct options by appending missing configuration lines.
-// It attempts to write to multiple candidate locations if needed.
-func ensureConfigFile() {
+// deduplicate removes duplicate lines from a slice while preserving order.
+func deduplicate(lines []string) []string {
+	seen := make(map[string]struct{})
+	var result []string
+	for _, line := range lines {
+		if _, exists := seen[line]; !exists {
+			seen[line] = struct{}{}
+			result = append(result, line)
+		}
+	}
+	return result
+}
+
+// deduplicateConsecutive removes consecutive duplicate lines.
+func deduplicateConsecutive(lines []string) []string {
+	if len(lines) == 0 {
+		return lines
+	}
+	result := []string{lines[0]}
+	for i := 1; i < len(lines); i++ {
+		if strings.TrimSpace(lines[i]) != strings.TrimSpace(lines[i-1]) {
+			result = append(result, lines[i])
+		}
+	}
+	return result
+}
+
+// processConfigFile merges ensuring missing config entries exist and organizing the file.
+func processConfigFile() error {
 	configPath := viper.ConfigFileUsed()
 	if configPath == "" {
 		configPath = "config.yaml"
 	}
 
-	// Read existing config (if any)
-	existingConfig, err := os.ReadFile(configPath)
-	if err != nil {
-		// if the file doesn't exist or cannot be read, assume empty content
-		existingConfig = []byte("")
+	// Read existing config.
+	contentBytes, err := os.ReadFile(configPath)
+	existingContent := ""
+	if err == nil {
+		existingContent = string(contentBytes)
 	}
 
-	// Build a set of keys that are present—either defined or commented out.
+	// Build a set of keys present in the config.
 	configSet := make(map[string]bool)
-	for _, line := range strings.Split(string(existingConfig), "\n") {
+	for _, line := range strings.Split(existingContent, "\n") {
 		trimmed := strings.TrimSpace(line)
-		// Remove a leading '#' if present.
 		if strings.HasPrefix(trimmed, "#") {
 			trimmed = strings.TrimPrefix(trimmed, "#")
 			trimmed = strings.TrimSpace(trimmed)
@@ -117,219 +152,286 @@ func ensureConfigFile() {
 		if strings.Contains(trimmed, ":") {
 			parts := strings.SplitN(trimmed, ":", 2)
 			key := strings.TrimSpace(parts[0])
-			// For nested keys (child keys), we only store the top-level if appropriate.
-			// For example, a line "database:" or "database: something" should register "database".
 			if !strings.Contains(key, " ") {
 				configSet[key] = true
 			}
 		}
 	}
 
-	// Helper function to check if a key exists in the config.
 	exists := func(key string) bool {
 		_, ok := configSet[key]
 		return ok
 	}
 
-	// Build the list of missing entries.
-	var newEntries []string
-
-	// Add header only if at least one missing entry will be appended.
+	var missingEntries []string
 	header := "# Missing configuration options (added automatically)"
-
-	// Check top-level options
 	if !exists("port") {
-		newEntries = append(newEntries, "# port: 25000")
+		missingEntries = append(missingEntries, "# port: 25000")
 	}
 	if !exists("logDir") {
-		newEntries = append(newEntries, "# logDir: \"/opt/custom-logs\"")
+		missingEntries = append(missingEntries, "# logDir: \"/opt/custom-logs\"")
 	}
 	if !exists("logFile") {
-		newEntries = append(newEntries, "# logFile: \"autoinstall_report.log\"")
+		missingEntries = append(missingEntries, "# logFile: \"autoinstall_report.log\"")
 	}
-
-	// For database settings, if the parent "database" is missing, then add the whole block.
 	if !exists("database") {
-		newEntries = append(newEntries, "# database:")
-		newEntries = append(newEntries, "#   host: \"cockroachdb\"")
-		newEntries = append(newEntries, "#   port: 26257")
-		newEntries = append(newEntries, "#   user: \"admin\"")
-		newEntries = append(newEntries, "#   password: \"securepassword\"")
-		newEntries = append(newEntries, "#   dbname: \"autoinstall\"")
-		newEntries = append(newEntries, "#   sslmode: \"disable\"")
-		newEntries = append(newEntries, "#   max_open_conns: 100")
-		newEntries = append(newEntries, "#   max_idle_conns: 10")
-		newEntries = append(newEntries, "#   conn_max_lifetime: 3600")
+		missingEntries = append(missingEntries, "# database:")
+		missingEntries = append(missingEntries, "#   host: \"cockroachdb\"")
+		missingEntries = append(missingEntries, "#   port: 26257")
+		missingEntries = append(missingEntries, "#   user: \"admin\"")
+		missingEntries = append(missingEntries, "#   password: \"securepassword\"")
+		missingEntries = append(missingEntries, "#   dbname: \"autoinstall\"")
+		missingEntries = append(missingEntries, "#   sslmode: \"disable\"")
+		missingEntries = append(missingEntries, "#   max_open_conns: 100")
+		missingEntries = append(missingEntries, "#   max_idle_conns: 10")
+		missingEntries = append(missingEntries, "#   conn_max_lifetime: 3600")
 	}
-
-	// Check remaining options
 	if !exists("ipxe_folder") {
-		newEntries = append(newEntries, "# ipxe_folder: \"/var/www/html/ipxe\"")
+		missingEntries = append(missingEntries, "# ipxe_folder: \"/var/www/html/ipxe\"")
 	}
 	if !exists("boot_customization_folder") {
-		newEntries = append(newEntries, "# boot_customization_folder: \"/var/www/html/ipxe/boot\"")
+		missingEntries = append(missingEntries, "# boot_customization_folder: \"/var/www/html/ipxe/boot\"")
 	}
 	if !exists("cloud_init_folder") {
-		newEntries = append(newEntries, "# cloud_init_folder: \"/var/www/html/cloud-init/\"")
+		missingEntries = append(missingEntries, "# cloud_init_folder: \"/var/www/html/cloud-init/\"")
 	}
 
-	if len(newEntries) == 0 {
-		// Nothing to add.
-		return
+	if len(missingEntries) > 0 {
+		missingEntries = append([]string{header}, missingEntries...)
 	}
+	combinedContent := existingContent + "\n" + strings.Join(missingEntries, "\n") + "\n"
 
-	// Prepend header
-	newEntries = append([]string{header}, newEntries...)
-
-	// Define candidate candidate paths for writing the updated config file.
-	candidates := []string{
-		configPath,
-		"./config.yaml",
-		"/tmp/custom-logs/config.yaml",
+	// Organize the config file using fixed sections.
+	knownKeys := map[string]bool{
+		"port":                      true,
+		"logDir":                    true,
+		"logFile":                   true,
+		"database":                  true,
+		"ipxe_folder":               true,
+		"boot_customization_folder": true,
+		"cloud_init_folder":         true,
 	}
+	blocks := make(map[string]ConfigBlock)
+	var pendingComments []string
+	missingHeader := "# Missing configuration options (added automatically)"
+	seenMissingBlock := false
 
-	var writeErr error = fmt.Errorf("no candidate succeeded")
-	// Attempt to write the new entries using one of the candidate paths.
-	for _, path := range candidates {
-		if err := tryWriteConfig(path, newEntries); err == nil {
-			writeErr = nil
-			break
-		} else {
-			fmt.Printf("Failed to write config to %s: %v\n", path, err)
-		}
-	}
-	if writeErr != nil {
-		fmt.Println("Failed to update config file in all candidate locations:", writeErr)
-	}
-
-	// Clean up duplicate blocks in the config file
-	if err := cleanUpConfigFile(configPath); err != nil {
-		fmt.Println("Failed to clean up config file:", err)
-	}
-}
-
-// tryWriteConfig attempts to append entries to the file at candidate path.
-// It creates the file and its directory if they do not exist.
-func tryWriteConfig(path string, entries []string) error {
-	// Determine the directory (assume file name "config.yaml")
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	// Append entries with proper newlines.
-	_, err = f.WriteString("\n" + strings.Join(entries, "\n") + "\n")
-	return err
-}
-
-// validatePaths validates the paths for logDir and other directories
-func validatePaths(fs FileSystem) error {
-	paths := []string{
-		viper.GetString("logDir"),
-		viper.GetString("ipxe_folder"),
-		viper.GetString("boot_customization_folder"),
-		viper.GetString("cloud_init_folder"),
-	}
-
-	for _, p := range paths {
-		if p == "" {
+	lines := strings.Split(combinedContent, "\n")
+	i := 0
+	for i < len(lines) {
+		line := lines[i]
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			pendingComments = nil
+			i++
 			continue
 		}
-
-		// Sanitize the path to prevent path injection
-		if strings.Contains(p, "..") || strings.Contains(p, "~") || strings.Contains(p, "//") {
-			return fmt.Errorf("invalid path %s: contains illegal characters or sequences", p)
-		}
-
-		absPath, err := filepath.Abs(p)
-		if err != nil {
-			return fmt.Errorf("invalid path %s: %v", p, err)
-		}
-
-		info, err := fs.Stat(absPath)
-		if os.IsNotExist(err) {
-			err = fs.MkdirAll(absPath, 0755)
-			if err != nil {
-				return fmt.Errorf("failed to create directory %s: %v", absPath, err)
+		if strings.HasPrefix(trimmed, "#") {
+			if trimmed == missingHeader {
+				if seenMissingBlock {
+					i++
+					for i < len(lines) {
+						if strings.TrimSpace(lines[i]) == "" || !strings.HasPrefix(strings.TrimSpace(lines[i]), "#") {
+							break
+						}
+						i++
+					}
+					pendingComments = nil
+					continue
+				} else {
+					seenMissingBlock = true
+				}
 			}
-		} else if err != nil {
-			return fmt.Errorf("error accessing path %s: %v", absPath, err)
-		} else if !info.IsDir() {
-			return fmt.Errorf("path %s is not a directory", absPath)
+			pendingComments = append(pendingComments, line)
+			i++
+			continue
 		}
+		if line == strings.TrimLeft(line, " ") && strings.Contains(trimmed, ":") {
+			parts := strings.SplitN(trimmed, ":", 2)
+			key := strings.TrimSpace(parts[0])
+			if knownKeys[key] {
+				dedupedComments := deduplicate(pendingComments)
+				blk := ConfigBlock{
+					Key:      key,
+					Comments: dedupedComments,
+					Lines:    []string{line},
+				}
+				pendingComments = nil
+				i++
+				if key == "database" {
+					for i < len(lines) {
+						nextLine := lines[i]
+						if nextLine != strings.TrimLeft(nextLine, " ") && strings.TrimSpace(nextLine) != "" {
+							blk.Lines = append(blk.Lines, nextLine)
+							i++
+						} else {
+							break
+						}
+					}
+				}
+				if _, exists := blocks[key]; !exists {
+					blocks[key] = blk
+				}
+				continue
+			}
+		}
+		pendingComments = nil
+		i++
 	}
+
+	// Define sections. For each section, sort keys alphabetically.
+	type Section struct {
+		Header string
+		Keys   []string
+	}
+	sections := []Section{
+		{Header: "", Keys: []string{"port"}},
+		{Header: "# Logging Configuration", Keys: []string{"logDir", "logFile"}},
+		{Header: "# Database Configuration", Keys: []string{"database"}},
+		{Header: "# iPXE Settings", Keys: []string{"boot_customization_folder", "ipxe_folder"}},
+		{Header: "# Cloud-Init Settings", Keys: []string{"cloud_init_folder"}},
+	}
+
+	var outputLines []string
+	for _, sec := range sections {
+		// Sort keys alphabetically.
+		sortedKeys := make([]string, len(sec.Keys))
+		copy(sortedKeys, sec.Keys)
+		sort.Strings(sortedKeys)
+
+		// Check if the header is already present among the blocks for this section.
+		headerAlreadyPresent := false
+		for _, key := range sortedKeys {
+			if blk, ok := blocks[key]; ok {
+				if len(blk.Comments) > 0 && strings.TrimSpace(blk.Comments[0]) == sec.Header {
+					headerAlreadyPresent = true
+					break
+				}
+			}
+		}
+		// Add the header only if it isn't already present.
+		if sec.Header != "" && !headerAlreadyPresent {
+			outputLines = append(outputLines, sec.Header)
+		}
+		for _, key := range sortedKeys {
+			if blk, ok := blocks[key]; ok {
+				// Deduplicate block comments and avoid printing consecutive duplicates.
+				deduped := deduplicate(blk.Comments)
+				for _, comm := range deduped {
+					if len(outputLines) == 0 || strings.TrimSpace(outputLines[len(outputLines)-1]) != strings.TrimSpace(comm) {
+						outputLines = append(outputLines, comm)
+					}
+				}
+				outputLines = append(outputLines, blk.Lines...)
+			}
+		}
+		outputLines = append(outputLines, "")
+	}
+
+	// Remove any consecutive duplicate lines from the final output.
+	finalLines := deduplicateConsecutive(outputLines)
+	organizedContent := strings.Join(finalLines, "\n")
+
+	// Write the organized config file using candidate locations.
+	if err := writeFileToCandidateLocations(filepath.Base(configPath), []byte(organizedContent)); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// cleanUpConfigFile reads the config file at the given path and removes duplicate
-// "Missing configuration options (added automatically)" blocks. A block is defined as that header
-// plus any following commented lines. Only the first occurrence is kept.
-func cleanUpConfigFile(path string) error {
-	// Read the current content.
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return err
+// writeFileToCandidateLocations attempts to write a file by trying four candidate locations.
+func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
+	var candidates []string
+
+	// Candidate 1: directory of the config file (if available).
+	if configPath := viper.ConfigFileUsed(); configPath != "" {
+		configDir := filepath.Dir(configPath)
+		candidates = append(candidates, filepath.Join(configDir, fileToCheck))
 	}
+	// Candidate 2: current directory under "ubuntu-autoinstall-webhook".
+	candidates = append(candidates, filepath.Join(".", "ubuntu-autoinstall-webhook", fileToCheck))
+	// Candidate 3: user's home directory under ubuntu-autoinstall-webhook.
+	if homeDir, err := os.UserHomeDir(); err == nil {
+		candidates = append(candidates, filepath.Join(homeDir, "ubuntu-autoinstall-webhook", fileToCheck))
+	}
+	// Candidate 4: temporary directory under ubuntu-autoinstall-webhook.
+	candidates = append(candidates, filepath.Join(os.TempDir(), "ubuntu-autoinstall-webhook", fileToCheck))
 
-	lines := strings.Split(string(content), "\n")
-	var cleaned []string
-	// Map to track blocks already seen.
-	blockMap := make(map[string]bool)
+	var lastErr error
+	for _, candidatePath := range candidates {
+		if err := os.MkdirAll(filepath.Dir(candidatePath), 0755); err != nil {
+			lastErr = err
+			continue
+		}
+		if err := os.WriteFile(candidatePath, data, 0644); err != nil {
+			lastErr = err
+			fmt.Printf("Failed to write file to %s: %v\n", candidatePath, err)
+			continue
+		}
+		fmt.Printf("Successfully wrote file to %s\n", candidatePath)
+		return nil
+	}
+	return fmt.Errorf("failed to write file to all candidate locations: last error: %v", lastErr)
+}
 
-	// Define the header string marker.
-	headerMarker := "# Missing configuration options (added automatically)"
-
-	// Iterate over all lines.
-	for i := 0; i < len(lines); {
-		line := strings.TrimSpace(lines[i])
-		// If we see a header, assume it starts a block.
-		if line == headerMarker {
-			// Gather the entire block: header + subsequent comment lines (until a non-comment or blank line is reached).
-			var blockLines []string
-			blockLines = append(blockLines, lines[i])
-			i++
-			for i < len(lines) {
-				trimmedNext := strings.TrimSpace(lines[i])
-				// Stop block if we hit a blank line or a new section header.
-				if trimmedNext == "" || (!strings.HasPrefix(trimmedNext, "#") && trimmedNext != headerMarker) {
-					break
-				}
-				// If the very next header appears (i.e. same headerMarker), break as well.
-				if trimmedNext == headerMarker {
-					break
-				}
-				blockLines = append(blockLines, lines[i])
-				i++
-			}
-			// Combine block lines.
-			blockText := strings.Join(blockLines, "\n")
-			// Only keep the block if it hasn't been seen before.
-			if !blockMap[blockText] {
-				blockMap[blockText] = true
-				cleaned = append(cleaned, blockLines...)
-			} else {
-				// Skip this duplicate block.
-				// (Do nothing – block not appended.)
-			}
-			// Optionally append a blank line after the block.
-			cleaned = append(cleaned, "")
-		} else {
-			// For non-header lines, always keep them.
-			cleaned = append(cleaned, lines[i])
-			i++
+// ensureFolderExists checks if a folder exists and is writable by creating a temporary file.
+func ensureFolderExists(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := os.MkdirAll(path, 0755); err != nil {
+			return false
 		}
 	}
+	// Try writing a temporary file.
+	testFile := filepath.Join(path, ".tmp")
+	if err := os.WriteFile(testFile, []byte{}, 0644); err != nil {
+		return false
+	}
+	os.Remove(testFile)
+	return true
+}
 
-	newContent := strings.Join(cleaned, "\n")
-	// Only write if there are changes.
-	if newContent != string(content) {
-		return os.WriteFile(path, []byte(newContent), 0644)
+// getAvailableFolder attempts to use the provided folder and a set of alternatives.
+func getAvailableFolder(defaultPath string, alternatives ...string) (string, error) {
+	paths := append([]string{defaultPath}, alternatives...)
+	for _, path := range paths {
+		if !ensureFolderExists(path) {
+			fmt.Printf("Warning: Cannot use folder %s, trying next candidate.\n", path)
+			continue
+		}
+		return path, nil
+	}
+	return "", fmt.Errorf("no valid folder found")
+}
+
+// validatePaths uses fallback logic for critical directories.
+// It also checks for invalid characters or sequences in the original path.
+func validatePaths(fs FileSystem) error {
+	keys := []string{"logDir", "ipxe_folder", "boot_customization_folder", "cloud_init_folder"}
+	for _, key := range keys {
+		originalPath := viper.GetString(key)
+		// Check for illegal sequences in the original path.
+		if strings.Contains(originalPath, "..") || strings.Contains(originalPath, "~") || strings.Contains(originalPath, "//") {
+			return fmt.Errorf("invalid path %s for key %s: contains illegal characters or sequences", originalPath, key)
+		}
+
+		base := filepath.Base(originalPath)
+		// Candidate 2: current working directory.
+		cand2 := filepath.Join(".", "ubuntu-autoinstall-webhook", base)
+		// Candidate 3: user's home directory.
+		home, err := os.UserHomeDir()
+		if err != nil {
+			home = "."
+		}
+		cand3 := filepath.Join(home, "ubuntu-autoinstall-webhook", base)
+		// Candidate 4: temporary directory.
+		cand4 := filepath.Join(os.TempDir(), "ubuntu-autoinstall-webhook", base)
+
+		available, err := getAvailableFolder(originalPath, cand2, cand3, cand4)
+		if err != nil {
+			return fmt.Errorf("failed to validate path for %s: %v", key, err)
+		}
+		viper.Set(key, available)
 	}
 	return nil
 }

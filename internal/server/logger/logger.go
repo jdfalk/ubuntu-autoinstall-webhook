@@ -1,8 +1,7 @@
-// // filepath: /Users/jdfalk/repos/github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger/logger.go
+// filepath: /Users/jdfalk/repos/github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger/logger.go
 package logger
 
 import (
-	_ "database/sql"
 	"fmt"
 	"io"
 	"log"
@@ -68,6 +67,11 @@ It uses the global db.DB instance and expects a table named "system_logs" with
 at least columns: timestamp, level, and message.
 */
 func AppendToSystemSQL(level, message string) {
+	// Gracefully handle if the database connection is nil.
+	if db.DB == nil {
+		fmt.Printf("DB not configured; skipping system SQL logging: level=%s, message=%s\n", level, message)
+		return
+	}
 	query := `INSERT INTO system_logs (timestamp, level, message) VALUES ($1, $2, $3)`
 	_, err := db.DB.Exec(query, time.Now(), level, message)
 	if err != nil {
@@ -79,6 +83,11 @@ func AppendToSystemSQL(level, message string) {
 AppendToClientLogsSQL writes an event to the client_logs table.
 */
 func AppendToClientLogsSQL(event Event) {
+	// Gracefully handle if the database connection is nil.
+	if db.DB == nil {
+		fmt.Printf("DB not configured; skipping client logs: %+v\n", event)
+		return
+	}
 	query := `
         INSERT INTO client_logs (timestamp, origin, event_type, name, description, result, status, progress, message, source_ip)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
@@ -106,6 +115,11 @@ AppendToClientStatusSQL writes or updates client status in the client_status tab
 It uses event.Origin as the client identifier.
 */
 func AppendToClientStatusSQL(event Event) {
+	// Gracefully handle if the database connection is nil.
+	if db.DB == nil {
+		fmt.Printf("DB not configured; skipping client status update: %+v\n", event)
+		return
+	}
 	query := `
         INSERT INTO client_status (client_id, status, progress, message, updated_at)
         VALUES ((SELECT id FROM client_identification WHERE id = $1), $2, $3, $4, NOW())
@@ -148,7 +162,7 @@ func LogClient(eventType, format string, a ...interface{}) {
 	AppendToClientStatusSQL(event)
 }
 
-// Existing convenience wrappers for system logging (backwards–compatibility)
+// Convenience wrappers for system logging (backwards compatibility).
 func Debug(format string, a ...interface{}) {
 	LogSystem("DEBUG", format, a...)
 }
