@@ -202,7 +202,8 @@ jobs:
             TARGETARCH=${{ matrix.arch }}
           context: /workspace
           file: Dockerfile
-          kaniko-args: --build-arg TARGETARCH=${{ matrix.arch }}
+          kaniko-args: |
+              --custom-platform=linux/${{ matrix.arch }}
 
 
       # - name: Build and Push Nightly Docker Image with Kaniko
