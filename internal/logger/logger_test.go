@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/spf13/viper"
 )
 
@@ -45,13 +44,13 @@ func TestAppendToFile(t *testing.T) {
 }
 
 func TestAppendToSQL(t *testing.T) {
-	// Create sqlmock DB and set the global db.DB.
+	// Create sqlmock DB and inject it into the logger.
 	sqlDB, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("Failed to open sqlmock database: %v", err)
 	}
 	defer sqlDB.Close()
-	db.DB = sqlDB
+	SetDBExecutor(sqlDB)
 
 	// Expect the SQL log to be written. Use sqlmock.AnyArg() for the timestamp.
 	mock.ExpectExec("INSERT INTO system_logs").
@@ -68,13 +67,13 @@ func TestAppendToSQL(t *testing.T) {
 func TestLog(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_log.log")
 
-	// Setup sqlmock for SQL logging.
+	// Setup sqlmock for SQL logging and inject it into the logger.
 	sqlDB, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("Failed to open sqlmock: %v", err)
 	}
 	defer sqlDB.Close()
-	db.DB = sqlDB
+	SetDBExecutor(sqlDB)
 
 	// Expect SQL logging with INFO level.
 	mock.ExpectExec("INSERT INTO system_logs").
@@ -94,7 +93,7 @@ func TestLog(t *testing.T) {
 	}
 }
 
-// TestDebug validates the backwards compatible Debug function that now calls LogSystem.
+// TestDebug validates the Debug function that now calls LogSystem.
 func TestDebug(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_debug.log")
 	sqlDB, mock, err := sqlmock.New()
@@ -102,7 +101,7 @@ func TestDebug(t *testing.T) {
 		t.Fatalf("Failed to open sqlmock: %v", err)
 	}
 	defer sqlDB.Close()
-	db.DB = sqlDB
+	SetDBExecutor(sqlDB)
 
 	mock.ExpectExec("INSERT INTO system_logs").
 		WithArgs(sqlmock.AnyArg(), "DEBUG", "Debug message").
@@ -120,7 +119,7 @@ func TestDebug(t *testing.T) {
 	}
 }
 
-// TestInfo validates the backwards compatible Info function that now calls LogSystem.
+// TestInfo validates the Info function that now calls LogSystem.
 func TestInfo(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_info.log")
 	sqlDB, mock, err := sqlmock.New()
@@ -128,7 +127,7 @@ func TestInfo(t *testing.T) {
 		t.Fatalf("Failed to open sqlmock: %v", err)
 	}
 	defer sqlDB.Close()
-	db.DB = sqlDB
+	SetDBExecutor(sqlDB)
 
 	mock.ExpectExec("INSERT INTO system_logs").
 		WithArgs(sqlmock.AnyArg(), "INFO", "Info message").
@@ -146,7 +145,7 @@ func TestInfo(t *testing.T) {
 	}
 }
 
-// TestWarning validates the backwards compatible Warning function that now calls LogSystem.
+// TestWarning validates the Warning function that now calls LogSystem.
 func TestWarning(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_warning.log")
 	sqlDB, mock, err := sqlmock.New()
@@ -154,7 +153,7 @@ func TestWarning(t *testing.T) {
 		t.Fatalf("Failed to open sqlmock: %v", err)
 	}
 	defer sqlDB.Close()
-	db.DB = sqlDB
+	SetDBExecutor(sqlDB)
 
 	mock.ExpectExec("INSERT INTO system_logs").
 		WithArgs(sqlmock.AnyArg(), "WARNING", "Warning message").
@@ -172,7 +171,7 @@ func TestWarning(t *testing.T) {
 	}
 }
 
-// TestError validates the backwards compatible Error function that now calls LogSystem.
+// TestError validates the Error function that now calls LogSystem.
 func TestError(t *testing.T) {
 	logFile := setupFileLogging(t, "test_log_error.log")
 	sqlDB, mock, err := sqlmock.New()
@@ -180,7 +179,7 @@ func TestError(t *testing.T) {
 		t.Fatalf("Failed to open sqlmock: %v", err)
 	}
 	defer sqlDB.Close()
-	db.DB = sqlDB
+	SetDBExecutor(sqlDB)
 
 	mock.ExpectExec("INSERT INTO system_logs").
 		WithArgs(sqlmock.AnyArg(), "ERROR", "Error message").

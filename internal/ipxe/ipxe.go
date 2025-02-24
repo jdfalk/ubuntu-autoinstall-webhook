@@ -2,7 +2,6 @@ package ipxe
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -20,13 +19,15 @@ type IPXEHistory struct {
 
 // storeFileHistory saves the current version of the iPXE file before modification.
 func storeFileHistory(macAddress, ipxeFilePath string) error {
-	content, err := ioutil.ReadFile(ipxeFilePath)
+	// Read the current file contents using os.ReadFile.
+	content, err := os.ReadFile(ipxeFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to read iPXE file: %w", err)
 	}
 
 	historyFile := fmt.Sprintf("%s.history.%d", ipxeFilePath, time.Now().Unix())
-	err = ioutil.WriteFile(historyFile, content, 0644)
+	// Write the file contents to the history file using os.WriteFile.
+	err = os.WriteFile(historyFile, content, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to store iPXE history: %w", err)
 	}
@@ -34,7 +35,7 @@ func storeFileHistory(macAddress, ipxeFilePath string) error {
 	return nil
 }
 
-// UpdateIPXEFile modifies an iPXE file when a client reaches 25% progress
+// UpdateIPXEFile modifies an iPXE file when a client reaches 25% progress.
 func UpdateIPXEFile(macAddress string) error {
 	ipxeFolder := viper.GetString("ipxe_folder")
 	bootCustomizationFolder := viper.GetString("boot_customization_folder")
@@ -43,11 +44,11 @@ func UpdateIPXEFile(macAddress string) error {
 		return fmt.Errorf("iPXE folder paths are not set in configuration")
 	}
 
-	// Construct file paths based on MAC address
+	// Construct file paths based on MAC address.
 	macFile := filepath.Join(bootCustomizationFolder, fmt.Sprintf("mac-%s.ipxe", macAddress))
 	defaultFile := filepath.Join(ipxeFolder, fmt.Sprintf("%s.ipxe", macAddress))
 
-	// Determine which file to update
+	// Determine which file to update.
 	var ipxeFilePath string
 	if _, err := os.Stat(macFile); err == nil {
 		ipxeFilePath = macFile
@@ -57,13 +58,13 @@ func UpdateIPXEFile(macAddress string) error {
 		return fmt.Errorf("no iPXE file found for MAC: %s", macAddress)
 	}
 
-	// Store file history before modification
+	// Store file history before modification.
 	err := storeFileHistory(macAddress, ipxeFilePath)
 	if err != nil {
 		return err
 	}
 
-	// Update the iPXE file to instruct normal boot
+	// Update the iPXE file to instruct normal boot.
 	newContent := "#!ipxe\nexit\n"
 	err = os.WriteFile(ipxeFilePath, []byte(newContent), 0644)
 	if err != nil {

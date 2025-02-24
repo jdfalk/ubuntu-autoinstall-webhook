@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,7 +9,15 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 )
+
+// TestMain configures the new logger for tests.
+func TestMain(m *testing.M) {
+	// Silence logger output during tests.
+	logger.SetOutput(io.Discard)
+	os.Exit(m.Run())
+}
 
 // AferoFs is a wrapper for afero.Fs that implements the FileSystem interface.
 type AferoFs struct {

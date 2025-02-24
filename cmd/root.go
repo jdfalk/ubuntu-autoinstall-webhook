@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger" // Import the centralized logger
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -33,7 +33,7 @@ var rootCmd = &cobra.Command{
 // Execute runs the root command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Println(err)
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 }
@@ -82,17 +82,17 @@ func initConfig(fs FileSystem) {
 
 	// Read config file if available.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		logger.Info("Using config file:", viper.ConfigFileUsed())
 	}
 
 	// Process (ensure + organize) the configuration file.
 	if err := processConfigFile(); err != nil {
-		fmt.Println("Failed to process config file:", err)
+		logger.Error("Failed to process config file:", err)
 	}
 
 	// Validate paths with fallback logic.
 	if err := validatePaths(fs); err != nil {
-		fmt.Println(err)
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -366,10 +366,10 @@ func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
 		}
 		if err := os.WriteFile(candidatePath, data, 0644); err != nil {
 			lastErr = err
-			fmt.Printf("Failed to write file to %s: %v\n", candidatePath, err)
+			logger.Warning("Failed to write file to", candidatePath, ":", err)
 			continue
 		}
-		fmt.Printf("Successfully wrote file to %s\n", candidatePath)
+		logger.Info("Successfully wrote file to", candidatePath)
 		return nil
 	}
 	return fmt.Errorf("failed to write file to all candidate locations: last error: %v", lastErr)
@@ -396,7 +396,7 @@ func getAvailableFolder(defaultPath string, alternatives ...string) (string, err
 	paths := append([]string{defaultPath}, alternatives...)
 	for _, path := range paths {
 		if !ensureFolderExists(path) {
-			fmt.Printf("Warning: Cannot use folder %s, trying next candidate.\n", path)
+			logger.Warning("Cannot use folder", path, "trying next candidate.")
 			continue
 		}
 		return path, nil

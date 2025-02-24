@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 )
 
 // Serve command
