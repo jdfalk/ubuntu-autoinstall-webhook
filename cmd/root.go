@@ -47,6 +47,11 @@ func init() {
 	cobra.OnInitialize(func() { initConfig(OsFs{}) })
 }
 
+// keyExistsInContent checks if a key (with colon) exists anywhere in the provided content.
+func keyExistsInContent(content, key string) bool {
+	return strings.Contains(content, key+":")
+}
+
 // initConfig loads configuration from file/environment and then processes it.
 func initConfig(fs FileSystem) {
 	if configFile != "" {
@@ -67,6 +72,9 @@ func initConfig(fs FileSystem) {
 	viper.SetDefault("port", "5000")
 	viper.SetDefault("logDir", "/var/log/autoinstall-webhook")
 	viper.SetDefault("logFile", "autoinstall_report.log")
+	// Database defaults are now defined per field:
+	viper.SetDefault("database.enabled", true)
+	viper.SetDefault("database.type", "postgres")
 	viper.SetDefault("database.host", "localhost")
 	viper.SetDefault("database.port", 5432)
 	viper.SetDefault("database.user", "user")
@@ -85,7 +93,7 @@ func initConfig(fs FileSystem) {
 		logger.Infof("%s", "Using config file: "+viper.ConfigFileUsed())
 	}
 
-	// Process (ensure + organize) the configuration file.
+	// Process (ensure missing options are added and file is organized).
 	if err := processConfigFile(); err != nil {
 		logger.Errorf("%s", fmt.Sprintf("Failed to process config file: %v", err))
 	}
@@ -127,7 +135,8 @@ func deduplicateConsecutive(lines []string) []string {
 	return result
 }
 
-// processConfigFile merges ensuring missing config entries exist and organizing the file.
+// processConfigFile reads the existing config file (or creates a new one)
+// and appends any missing configuration options with default values.
 func processConfigFile() error {
 	configPath := viper.ConfigFileUsed()
 	if configPath == "" {
@@ -141,58 +150,60 @@ func processConfigFile() error {
 		existingContent = string(contentBytes)
 	}
 
-	// Build a set of keys present in the config.
-	configSet := make(map[string]bool)
-	for _, line := range strings.Split(existingContent, "\n") {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "#") {
-			trimmed = strings.TrimPrefix(trimmed, "#")
-			trimmed = strings.TrimSpace(trimmed)
-		}
-		if strings.Contains(trimmed, ":") {
-			parts := strings.SplitN(trimmed, ":", 2)
-			key := strings.TrimSpace(parts[0])
-			if !strings.Contains(key, " ") {
-				configSet[key] = true
-			}
-		}
-	}
-
-	exists := func(key string) bool {
-		_, ok := configSet[key]
-		return ok
-	}
-
 	var missingEntries []string
 	header := "# Missing configuration options (added automatically)"
-	if !exists("port") {
+	// Use keyExistsInContent to check if a particular key is present anywhere.
+	if !keyExistsInContent(existingContent, "port") {
 		missingEntries = append(missingEntries, "# port: 25000")
 	}
-	if !exists("logDir") {
+	if !keyExistsInContent(existingContent, "logDir") {
 		missingEntries = append(missingEntries, "# logDir: \"/opt/custom-logs\"")
 	}
-	if !exists("logFile") {
+	if !keyExistsInContent(existingContent, "logFile") {
 		missingEntries = append(missingEntries, "# logFile: \"autoinstall_report.log\"")
 	}
-	if !exists("database") {
-		missingEntries = append(missingEntries, "# database:")
-		missingEntries = append(missingEntries, "#   host: \"cockroachdb\"")
-		missingEntries = append(missingEntries, "#   port: 26257")
-		missingEntries = append(missingEntries, "#   user: \"admin\"")
-		missingEntries = append(missingEntries, "#   password: \"securepassword\"")
-		missingEntries = append(missingEntries, "#   dbname: \"autoinstall\"")
-		missingEntries = append(missingEntries, "#   sslmode: \"disable\"")
-		missingEntries = append(missingEntries, "#   max_open_conns: 100")
-		missingEntries = append(missingEntries, "#   max_idle_conns: 10")
-		missingEntries = append(missingEntries, "#   conn_max_lifetime: 3600")
+	// Database configuration keys:
+	if !keyExistsInContent(existingContent, "database.enabled") {
+		missingEntries = append(missingEntries, "# database.enabled: true")
 	}
-	if !exists("ipxe_folder") {
+	if !keyExistsInContent(existingContent, "database.type") {
+		missingEntries = append(missingEntries, "# database.type: postgres")
+	}
+	if !keyExistsInContent(existingContent, "database.host") {
+		missingEntries = append(missingEntries, "# database.host: \"localhost\"")
+	}
+	if !keyExistsInContent(existingContent, "database.port") {
+		missingEntries = append(missingEntries, "# database.port: 5432")
+	}
+	if !keyExistsInContent(existingContent, "database.user") {
+		missingEntries = append(missingEntries, "# database.user: \"user\"")
+	}
+	if !keyExistsInContent(existingContent, "database.password") {
+		missingEntries = append(missingEntries, "# database.password: \"password\"")
+	}
+	if !keyExistsInContent(existingContent, "database.dbname") {
+		missingEntries = append(missingEntries, "# database.dbname: \"autoinstall\"")
+	}
+	if !keyExistsInContent(existingContent, "database.sslmode") {
+		missingEntries = append(missingEntries, "# database.sslmode: \"disable\"")
+	}
+	if !keyExistsInContent(existingContent, "database.max_open_conns") {
+		missingEntries = append(missingEntries, "# database.max_open_conns: 100")
+	}
+	if !keyExistsInContent(existingContent, "database.max_idle_conns") {
+		missingEntries = append(missingEntries, "# database.max_idle_conns: 10")
+	}
+	if !keyExistsInContent(existingContent, "database.conn_max_lifetime") {
+		missingEntries = append(missingEntries, "# database.conn_max_lifetime: 3600")
+	}
+	// Other keys.
+	if !keyExistsInContent(existingContent, "ipxe_folder") {
 		missingEntries = append(missingEntries, "# ipxe_folder: \"/var/www/html/ipxe\"")
 	}
-	if !exists("boot_customization_folder") {
+	if !keyExistsInContent(existingContent, "boot_customization_folder") {
 		missingEntries = append(missingEntries, "# boot_customization_folder: \"/var/www/html/ipxe/boot\"")
 	}
-	if !exists("cloud_init_folder") {
+	if !keyExistsInContent(existingContent, "cloud_init_folder") {
 		missingEntries = append(missingEntries, "# cloud_init_folder: \"/var/www/html/cloud-init/\"")
 	}
 
@@ -203,13 +214,23 @@ func processConfigFile() error {
 
 	// Organize the config file using fixed sections.
 	knownKeys := map[string]bool{
-		"port":                      true,
-		"logDir":                    true,
-		"logFile":                   true,
-		"database":                  true,
-		"ipxe_folder":               true,
-		"boot_customization_folder": true,
-		"cloud_init_folder":         true,
+		"port":                       true,
+		"logDir":                     true,
+		"logFile":                    true,
+		"database.enabled":           true,
+		"database.type":              true,
+		"database.host":              true,
+		"database.port":              true,
+		"database.user":              true,
+		"database.password":          true,
+		"database.dbname":            true,
+		"database.sslmode":           true,
+		"database.max_open_conns":    true,
+		"database.max_idle_conns":    true,
+		"database.conn_max_lifetime": true,
+		"ipxe_folder":                true,
+		"boot_customization_folder":  true,
+		"cloud_init_folder":          true,
 	}
 	blocks := make(map[string]ConfigBlock)
 	var pendingComments []string
@@ -258,7 +279,11 @@ func processConfigFile() error {
 				}
 				pendingComments = nil
 				i++
-				if key == "database" {
+				// If it's a database key, attempt to collect subsequent indented lines.
+				if key == "database.enabled" || key == "database.type" || key == "database.host" ||
+					key == "database.port" || key == "database.user" || key == "database.password" ||
+					key == "database.dbname" || key == "database.sslmode" || key == "database.max_open_conns" ||
+					key == "database.max_idle_conns" || key == "database.conn_max_lifetime" {
 					for i < len(lines) {
 						nextLine := lines[i]
 						if nextLine != strings.TrimLeft(nextLine, " ") && strings.TrimSpace(nextLine) != "" {
@@ -287,7 +312,10 @@ func processConfigFile() error {
 	sections := []Section{
 		{Header: "", Keys: []string{"port"}},
 		{Header: "# Logging Configuration", Keys: []string{"logDir", "logFile"}},
-		{Header: "# Database Configuration", Keys: []string{"database"}},
+		{Header: "# Database Configuration", Keys: []string{
+			"database.enabled", "database.type", "database.host", "database.port", "database.user",
+			"database.password", "database.dbname", "database.sslmode", "database.max_open_conns",
+			"database.max_idle_conns", "database.conn_max_lifetime"}},
 		{Header: "# iPXE Settings", Keys: []string{"boot_customization_folder", "ipxe_folder"}},
 		{Header: "# Cloud-Init Settings", Keys: []string{"cloud_init_folder"}},
 	}
