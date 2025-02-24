@@ -1,0 +1,16 @@
+<div class="editor-container">
+  <h2>Config Editor</h2>
+  <div class="config-selector">
+    <label for="configType">Select Config Type:</label>
+    <select id="configType" [(ngModel)]="configType" (change)="loadConfig()">
+      <option value="ipxe">iPXE Config</option>
+      <option value="cloudinit">Cloud‑init Config</option>
+    </select>
+  </div>
+
+  <!-- Monaco Editor component -->
+  <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="configContent"></ngx-monaco-editor>
+  <br>
+  <button (click)="saveConfig()">Save Config</button>
+  <p class="message">{{ message }}</p>
+</div>

@@ -1,0 +1,11 @@
+/* Basic styling for system logs page */
+.logs-container {
+    padding: 16px;
+  }
+
+  .log-entry {
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    padding: 10px;
+  }

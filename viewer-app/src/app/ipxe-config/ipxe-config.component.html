@@ -1,0 +1,11 @@
+<div class="configs-container">
+    <h2>Current iPXE Configs</h2>
+    <div *ngFor="let config of ipxeConfigs" class="config-entry">
+      <pre>{{ config | json }}</pre>
+    </div>
+
+    <h2>Historical iPXE Configs</h2>
+    <div *ngFor="let config of historicalConfigs" class="config-entry">
+      <pre>{{ config | json }}</pre>
+    </div>
+  </div>
