@@ -193,7 +193,9 @@ jobs:
           executor: 'gcr.io/kaniko-project/executor:debug'
           push: true
           tags: |
-              ${{ steps.metadata.outputs.tags }}
+              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:${{ github.sha }}-${{ matrix.arch }}
+              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-${{ matrix.arch }}
+              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly-${{ github.head_ref }}-${{ matrix.arch }}
               ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly-${{ matrix.arch }}
           labels: ${{ steps.metadata.outputs.labels }}
           cache: true
@@ -201,7 +203,7 @@ jobs:
           build-args: |
             TARGETARCH=${{ matrix.arch }}
           context: /workspace
-          file: Dockerfile
+          # file: Dockerfile
           kaniko-args: |
               --custom-platform=linux/${{ matrix.arch }}
 
@@ -240,10 +242,16 @@ jobs:
           export TAG="nightly"
 
           docker manifest create $IMAGE_NAME:$TAG \
-            --amend $IMAGE_NAME:$TAG-amd64 \
-            --amend $IMAGE_NAME:$TAG-arm64
+            --amend $IMAGE_NAME:$TAG-${{ github.sha }}-amd64 \
+            --amend $IMAGE_NAME:$TAG-${{ github.sha }}-arm64
 
           docker manifest push $IMAGE_NAME:$TAG
+
+          docker manifest create $IMAGE_NAME:$TAG-${{ github.sha }} \
+            --amend $IMAGE_NAME:$TAG-${{ github.sha }}-amd64 \
+            --amend $IMAGE_NAME:$TAG-${{ github.sha }}-arm64
+
+          docker manifest push $IMAGE_NAME:$TAG-${{ github.sha }}
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
