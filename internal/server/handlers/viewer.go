@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 )
 
 // ViewerHandler returns a list of logs in JSON format.
@@ -14,6 +15,7 @@ func ViewerHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// If no database is configured, return an empty array.
 	if db.DB == nil {
+		logger.Infof("ViewerHandler: No database configured, returning empty log list.")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("[]"))
 		return
@@ -22,6 +24,7 @@ func ViewerHandler(w http.ResponseWriter, r *http.Request) {
 	// Attempt to retrieve logs from the database.
 	logs, err := db.GetClientLogs() // Assumes this function exists in your db package.
 	if err != nil {
+		logger.Errorf("%s", err.Error())
 		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 		return
 	}
@@ -35,6 +38,7 @@ func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// If no database is configured, return an empty object.
 	if db.DB == nil {
+		logger.Infof("ViewerDetailHandler: No database configured, returning empty detail.")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("{}"))
 		return
@@ -43,6 +47,7 @@ func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the "id" parameter.
 	id := r.URL.Query().Get("id")
 	if id == "" {
+		logger.Errorf("ViewerDetailHandler: Missing id parameter.")
 		http.Error(w, `{"error": "Missing id parameter"}`, http.StatusBadRequest)
 		return
 	}
@@ -50,6 +55,7 @@ func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
 	// Attempt to retrieve detailed log info.
 	logDetail, err := db.GetClientLogDetail(id) // Assumes this function exists in your db package.
 	if err != nil {
+		logger.Errorf("%s", err.Error())
 		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 		return
 	}
@@ -62,6 +68,7 @@ func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
 func ClientLogsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if db.DB == nil {
+		logger.Infof("ClientLogsHandler: No database configured, returning empty log list.")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("[]"))
 		return
@@ -69,6 +76,7 @@ func ClientLogsHandler(w http.ResponseWriter, r *http.Request) {
 
 	logs, err := db.GetClientLogs() // Implement this in your db package.
 	if err != nil {
+		logger.Errorf("%s", err.Error())
 		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 		return
 	}
@@ -81,6 +89,7 @@ func ClientLogsHandler(w http.ResponseWriter, r *http.Request) {
 func ServerLogsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if db.DB == nil {
+		logger.Infof("ServerLogsHandler: No database configured, returning empty log list.")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("[]"))
 		return
@@ -88,6 +97,7 @@ func ServerLogsHandler(w http.ResponseWriter, r *http.Request) {
 
 	logs, err := db.GetServerLogs() // Implement this in your db package.
 	if err != nil {
+		logger.Errorf("%s", err.Error())
 		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 		return
 	}
@@ -100,6 +110,7 @@ func ServerLogsHandler(w http.ResponseWriter, r *http.Request) {
 func IpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if db.DB == nil {
+		logger.Infof("IpxeConfigsHandler: No database configured, returning empty config list.")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("[]"))
 		return
@@ -107,6 +118,7 @@ func IpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
 
 	configs, err := db.GetIpxeConfigs() // Implement this in your db package.
 	if err != nil {
+		logger.Errorf("%s", err.Error())
 		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 		return
 	}
@@ -119,6 +131,7 @@ func IpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
 func HistoricalIpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if db.DB == nil {
+		logger.Infof("HistoricalIpxeConfigsHandler: No database configured, returning empty config list.")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("[]"))
 		return
@@ -126,6 +139,7 @@ func HistoricalIpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
 
 	configs, err := db.GetHistoricalIpxeConfigs() // Implement this in your db package.
 	if err != nil {
+		logger.Errorf("%s", err.Error())
 		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 		return
 	}
@@ -138,6 +152,7 @@ func HistoricalIpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
 func CloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if db.DB == nil {
+		logger.Infof("CloudInitConfigsHandler: No database configured, returning empty config list.")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("[]"))
 		return
@@ -145,6 +160,7 @@ func CloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
 
 	configs, err := db.GetCloudInitConfigs() // Implement this in your db package.
 	if err != nil {
+		logger.Errorf("%s", err.Error())
 		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 		return
 	}
@@ -157,6 +173,7 @@ func CloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
 func HistoricalCloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if db.DB == nil {
+		logger.Infof("HistoricalCloudInitConfigsHandler: No database configured, returning empty config list.")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("[]"))
 		return
@@ -164,6 +181,7 @@ func HistoricalCloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
 
 	configs, err := db.GetHistoricalCloudInitConfigs() // Implement this in your db package.
 	if err != nil {
+		logger.Errorf("%s", err.Error())
 		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 		return
 	}
