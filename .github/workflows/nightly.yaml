@@ -220,7 +220,6 @@ jobs:
           cache-repository: ghcr.io/${{ github.repository }}/cache
           build-args: |
             TARGETARCH=${{ matrix.arch }}
-          context: /workspace
           # file: Dockerfile
           kaniko-args: |
               --custom-platform=linux/${{ matrix.arch }}
