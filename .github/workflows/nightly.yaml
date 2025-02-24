@@ -171,6 +171,8 @@ jobs:
     name: Build and Push Multi-Arch Nightly Docker Image
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.kaniko_build.outputs.digest }}
     strategy:
       matrix:
         arch: [amd64, arm64]
@@ -190,20 +192,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Log in to GitHub Container Registry (GHCR)
-      #   run: |
-      #     mkdir -p $(pwd)/kaniko/.docker
-      #     echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-      #     cp ~/.docker/config.json $(pwd)/kaniko/.docker/config.json
-
-      # - name: Validate Docker Login Configuration
-      #   run: |
-      #     if [ ! -f $(pwd)/kaniko/.docker/config.json ]; then
-      #       echo "❌ Docker config.json file is missing in $(pwd)/kaniko/.docker!"
-      #       exit 1
-      #     fi
-      #     echo "✅ Docker login validated. config.json is correctly placed in $(pwd)/kaniko/.docker."
-
       - name: Download Built Binaries
         uses: actions/download-artifact@v4
         with:
@@ -213,7 +201,9 @@ jobs:
 
       - run: chmod +x dist/webhook-nightly-linux-${{ matrix.arch }}*
 
-      - uses: int128/kaniko-action@v1.49.0
+      - name: Kaniko Build
+        id: kaniko_build
+        uses: int128/kaniko-action@v1.49.0
         with:
           executor: 'gcr.io/kaniko-project/executor:debug'
           push: true
@@ -231,24 +221,6 @@ jobs:
           kaniko-args: |
               --custom-platform=linux/${{ matrix.arch }}
 
-
-      # - name: Build and Push Nightly Docker Image with Kaniko
-      #   run: |
-      #     export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
-      #     export ARCH="${{ matrix.arch }}"
-      #     export FULL_TAG="$IMAGE_NAME:nightly-$ARCH"
-
-      #     docker run --rm \
-      #       --privileged \
-      #       -v $(pwd)/kaniko/.docker:/kaniko/.docker \
-      #       -v "$(pwd)":/workspace \
-      #       -e DOCKER_CONFIG=/kaniko/.docker \
-      #       gcr.io/kaniko-project/executor:latest \
-      #       --context /workspace \
-      #       --dockerfile Dockerfile \
-      #       --custom-platform=linux/$ARCH \
-      #       --build-arg TARGETARCH=$ARCH \
-      #       --destination $FULL_TAG
 
   manifest:
     name: Create and Push Nightly Docker Manifest
@@ -288,13 +260,20 @@ jobs:
           # Pull the image to ensure it's available locally
           docker pull $IMAGE_NAME
           IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
-          cosign attest --predicate attestation.json --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
+          cosign attest --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
           echo "attestation for arm64 image"
           IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-arm64"
           docker pull $IMAGE_NAME
           IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
-          cosign attest --predicate attestation.json --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
+          cosign attest --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+      - name: Attest Container Build Provenance
+        uses: actions/attest-build-provenance@v2.2.0
+        with:
+          subject-name: "ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
+          subject-digest: ${{ needs.docker.outputs.digest }}  # Use the digest from the Kaniko build step
+          push-to-registry: true
 
