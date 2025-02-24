@@ -185,6 +185,8 @@ jobs:
           pattern: nightly-binaries-*
           merge-multiple: true
           path: dist/
+      - run: ls dist/
+      - run: tree dist/
 
       - name: Build and Push Nightly Docker Image with Kaniko
         run: |
