@@ -140,14 +140,14 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
-      - name: Attest Binaries with Provenance
-        run: |
-          for file in dist/*; do
-            cosign attest-blob --predicate provenance.json --type custom --yes --key env://COSIGN_PRIVATE_KEY $file
-          done
-        env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      # - name: Attest Binaries with Provenance
+      #   run: |
+      #     for file in dist/*; do
+      #       cosign attest-blob --predicate provenance.json --type custom --yes --key env://COSIGN_PRIVATE_KEY $file
+      #     done
+      #   env:
+      #     COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      #     COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Attest Binaries with SBOM
         run: |
