@@ -159,6 +159,11 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v2.2.0
+        with:
+          subject-path: 'dist/*'
+
 
   docker:
     name: Build and Push Multi-Arch Nightly Docker Image
@@ -203,8 +208,9 @@ jobs:
           pattern: nightly-binaries-linux-${{ matrix.arch }}*
           merge-multiple: true
           path: dist/
-      - run: ls dist/
+      - run: ls -alsh dist/
       - run: tree dist/
+      - run: chmod +x dist/webhook-nightly-linux-${{ matrix.arch }}*
 
       - uses: int128/kaniko-action@v1.49.0
         with:
