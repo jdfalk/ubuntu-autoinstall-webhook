@@ -107,6 +107,7 @@ jobs:
           done
 
       - name: Create Git Tag
+        id: create_tag
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
@@ -116,9 +117,10 @@ jobs:
           echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
 
       - name: Publish Release Binaries
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.1
         with:
           files: dist/*
+          tag_name: ${{ steps.create_tag.outputs.tag_name }}
 
       - name: Sign Binaries with Cosign
         run: |
