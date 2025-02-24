@@ -62,7 +62,9 @@ jobs:
         run: go test -v ./...
 
       - name: Generate Code Coverage
-        run: go test -coverprofile=coverage.txt -covermode=atomic ./...
+        run: |
+            go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+            go tool cover -html=./cover.out -o coverage.html
 
       - name: Build Nightly Binaries
         run: |
@@ -208,8 +210,7 @@ jobs:
           pattern: nightly-binaries-linux-${{ matrix.arch }}*
           merge-multiple: true
           path: dist/
-      - run: ls -alsh dist/
-      - run: tree dist/
+
       - run: chmod +x dist/webhook-nightly-linux-${{ matrix.arch }}*
 
       - uses: int128/kaniko-action@v1.49.0
@@ -278,8 +279,6 @@ jobs:
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: "v2.0.1"
 
       - name: Generate Attestation for Nightly Docker Image
         run: |
