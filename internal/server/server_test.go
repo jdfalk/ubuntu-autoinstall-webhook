@@ -1,15 +1,24 @@
 package server_test
 
 import (
+	"io"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/assets"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server"
 )
+
+func TestMain(m *testing.M) {
+	// Silence logger output during tests.
+	logger.SetOutput(io.Discard)
+	os.Exit(m.Run())
+}
 
 // TestViewerAppServing verifies that a request to a non-existent file under the Angular app path
 // falls back to serving index.html from the embedded assets.

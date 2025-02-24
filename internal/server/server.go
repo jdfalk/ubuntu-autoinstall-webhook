@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
-	"log"
 	"mime"
 	"net/http"
 	"path"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/assets"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
 )
 
@@ -33,7 +33,7 @@ func RegisterRoutes() {
 		// If file does not exist, serve index.html for deep linking.
 		indexData, err := fs.ReadFile(assets.AssetsFS, "index.html")
 		if err != nil {
-			log.Printf("Error reading index.html: %v", err)
+			logger.Errorf("Error reading index.html: %v", err.Error())
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -53,7 +53,7 @@ func RegisterRoutes() {
 var StartServer = func(port string) error {
 	RegisterRoutes()
 	addr := fmt.Sprintf("0.0.0.0:%s", port)
-	log.Printf("Starting webhook server on %s\n", addr)
+	logger.Infof("Starting webhook server on %s", addr)
 	return http.ListenAndServe(addr, nil)
 }
 

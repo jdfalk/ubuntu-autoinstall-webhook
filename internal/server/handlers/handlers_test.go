@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,8 +13,8 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/testutils"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -38,7 +39,7 @@ func TestMain(m *testing.M) {
 	// Create a test DB using our helper.
 	tdb := testutils.NewTestDB(&testing.T{})
 	mockDB, sqlMock = tdb.DB, tdb.Mock
-	// *** FIX: assign the global DB variable used in production code ***
+	// Assign the global DB variable used in production code.
 	db.DB = mockDB
 
 	// Use an in-memory filesystem for testing.
@@ -50,7 +51,7 @@ func TestMain(m *testing.M) {
 
 	// Ensure the base and logs directories exist.
 	if err := appFs.MkdirAll(logDir, 0755); err != nil {
-		logger.Error("Failed to create logs directory: %v\n", err)
+		logger.Errorf("%s", "Failed to create logs directory")
 		os.Exit(1)
 	}
 
@@ -62,7 +63,7 @@ func TestMain(m *testing.M) {
 	// Create the log file in the in-memory filesystem.
 	file, err := appFs.Create(logFilePath)
 	if err != nil {
-		logger.Error("Failed to create log file: %v\n", err)
+		logger.Errorf("%s", "Failed to create log file")
 		os.Exit(1)
 	}
 	file.Close()
@@ -70,6 +71,9 @@ func TestMain(m *testing.M) {
 	// Set the log directory and log file name.
 	viper.Set("logDir", logDir)
 	viper.Set("logFile", "log.json")
+
+	// Silence logger output during tests.
+	logger.SetOutput(io.Discard)
 
 	code := m.Run()
 	mockDB.Close()
@@ -79,7 +83,7 @@ func TestMain(m *testing.M) {
 func TestWebhookHandler_Success(t *testing.T) {
 	// Set up expected database calls.
 	sqlMock.ExpectExec("INSERT INTO client_logs").WillReturnResult(sqlmock.NewResult(1, 1))
-	sqlMock.ExpectExec(`INSERT INTO client_status \(client_id, status, progress, message, updated_at\) VALUES \(\(SELECT id FROM client_identification WHERE id = \$1\), \$2, \$3, \$4, NOW\(\)\) ON CONFLICT \(client_id\) DO UPDATE SET status = \$2, progress = \$3, message = \$4, updated_at = NOW\(\)`).WillReturnResult(sqlmock.NewResult(1, 1))
+	sqlMock.ExpectExec(`INSERT INTO client_status $begin:math:text$client_id, status, progress, message, updated_at$end:math:text$ VALUES $begin:math:text$\\(SELECT id FROM client_identification WHERE id = \\$1$end:math:text$, \$2, \$3, \$4, NOW$begin:math:text$$end:math:text$\) ON CONFLICT $begin:math:text$client_id$end:math:text$ DO UPDATE SET status = \$2, progress = \$3, message = \$4, updated_at = NOW$begin:math:text$$end:math:text$`).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	// Override the package-level FileLogger with our mock.
 	mockLogger := new(MockLogWriter)
@@ -161,7 +165,7 @@ func TestWebhookHandler_StatusUpdate(t *testing.T) {
 	// Setup database expectation for client_logs insert.
 	sqlMock.ExpectExec("INSERT INTO client_logs").WillReturnResult(sqlmock.NewResult(1, 1))
 	// Setup database expectation for client_status update.
-	sqlMock.ExpectExec(`INSERT INTO client_status \(client_id, status, progress, message, updated_at\) VALUES \(\(SELECT id FROM client_identification WHERE id = \$1\), \$2, \$3, \$4, NOW\(\)\) ON CONFLICT \(client_id\) DO UPDATE SET status = \$2, progress = \$3, message = \$4, updated_at = NOW\(\)`).WillReturnResult(sqlmock.NewResult(1, 1))
+	sqlMock.ExpectExec(`INSERT INTO client_status $begin:math:text$client_id, status, progress, message, updated_at$end:math:text$ VALUES $begin:math:text$\\(SELECT id FROM client_identification WHERE id = \\$1$end:math:text$, \$2, \$3, \$4, NOW$begin:math:text$$end:math:text$\) ON CONFLICT $begin:math:text$client_id$end:math:text$ DO UPDATE SET status = \$2, progress = \$3, message = \$4, updated_at = NOW$begin:math:text$$end:math:text$`).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	// Override the package-level FileLogger with our mock for status event.
 	mockLogger := new(MockLogWriter)
@@ -176,7 +180,6 @@ func TestWebhookHandler_StatusUpdate(t *testing.T) {
 		Status:      "in-progress",
 		Progress:    75,
 		Message:     "Installation nearing completion",
-		// SourceIP will be set by getClientIP.
 	}
 
 	// Prepare request; setting RemoteAddr ensures the SourceIP is derived correctly.
@@ -189,7 +192,6 @@ func TestWebhookHandler_StatusUpdate(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Set expectation on the mock logger.
-	// Update expected event to include the SourceIP from r.RemoteAddr.
 	expected := event
 	expected.SourceIP = "192.168.1.2"
 	mockLogger.

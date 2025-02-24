@@ -20,9 +20,7 @@ func TestViewerHandler(t *testing.T) {
 	mock := tdb.Mock
 	defer db.DB.Close()
 
-	// Prepare expected rows for GetClientLogs:
-	// The query string as defined in db.GetClientLogs is:
-	// "SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs ORDER BY created_at DESC"
+	// Prepare expected rows for GetClientLogs.
 	now := time.Now()
 	rows := sqlmock.NewRows([]string{
 		"id", "client_id", "timestamp", "origin", "description", "name", "result", "event_type", "files", "created_at",
@@ -60,9 +58,7 @@ func TestViewerDetailHandler(t *testing.T) {
 	mock := tdb.Mock
 	defer db.DB.Close()
 
-	// Prepare expected row for GetClientLogDetail:
-	// The query in db.GetClientLogDetail is:
-	// "SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs WHERE id = $1"
+	// Prepare expected row for GetClientLogDetail.
 	now := time.Now()
 	rows := sqlmock.NewRows([]string{
 		"id", "client_id", "timestamp", "origin", "description", "name", "result", "event_type", "files", "created_at",

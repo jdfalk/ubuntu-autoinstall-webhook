@@ -33,7 +33,7 @@ var rootCmd = &cobra.Command{
 // Execute runs the root command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		logger.Error(err.Error())
+		logger.Errorf("%s", err.Error())
 		os.Exit(1)
 	}
 }
@@ -82,17 +82,17 @@ func initConfig(fs FileSystem) {
 
 	// Read config file if available.
 	if err := viper.ReadInConfig(); err == nil {
-		logger.Info("Using config file:", viper.ConfigFileUsed())
+		logger.Infof("%s", "Using config file: "+viper.ConfigFileUsed())
 	}
 
 	// Process (ensure + organize) the configuration file.
 	if err := processConfigFile(); err != nil {
-		logger.Error("Failed to process config file:", err)
+		logger.Errorf("%s", fmt.Sprintf("Failed to process config file: %v", err))
 	}
 
 	// Validate paths with fallback logic.
 	if err := validatePaths(fs); err != nil {
-		logger.Error(err.Error())
+		logger.Errorf("%s", err.Error())
 		os.Exit(1)
 	}
 
@@ -366,10 +366,10 @@ func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
 		}
 		if err := os.WriteFile(candidatePath, data, 0644); err != nil {
 			lastErr = err
-			logger.Warning("Failed to write file to", candidatePath, ":", err)
+			logger.Warningf("%s", "Failed to write file to "+candidatePath+": "+err.Error())
 			continue
 		}
-		logger.Info("Successfully wrote file to", candidatePath)
+		logger.Infof("%s", "Successfully wrote file to "+candidatePath)
 		return nil
 	}
 	return fmt.Errorf("failed to write file to all candidate locations: last error: %v", lastErr)
@@ -396,7 +396,7 @@ func getAvailableFolder(defaultPath string, alternatives ...string) (string, err
 	paths := append([]string{defaultPath}, alternatives...)
 	for _, path := range paths {
 		if !ensureFolderExists(path) {
-			logger.Warning("Cannot use folder", path, "trying next candidate.")
+			logger.Warningf("%s", "Cannot use folder "+path+" trying next candidate.")
 			continue
 		}
 		return path, nil
