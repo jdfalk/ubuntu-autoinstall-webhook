@@ -26,6 +26,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: 'lts/*'
+          check-latest: true
+          cache: 'npm'
+          cache-dependency-path: |
+            viewer-app/package-lock.json
+            viewer-app/package.json
+      - run: npm install --prefix viewer-app
+      - run: npm ci --prefix viewer-app
+      - run: npm run build --prefix viewer-app
+
       - name: Set up Go
         uses: actions/setup-go@v5.3.0
         with:
