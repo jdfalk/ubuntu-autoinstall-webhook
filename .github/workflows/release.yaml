@@ -35,8 +35,17 @@ jobs:
       - name: Install Dependencies
         run: go mod tidy
 
+      - name: Lint Code
+        run: golangci-lint run
+
+      - name: Generate Mocks
+        run: go generate ./...
+
       - name: Run Tests
         run: go test -v ./...
+
+      - name: Generate Code Coverage
+        run: go test -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Build Binary
         run: |
