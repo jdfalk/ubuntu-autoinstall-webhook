@@ -133,10 +133,13 @@ jobs:
 
       - name: Sign Binaries with Cosign
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
+          # echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
           for file in dist/*; do
-            cosign sign --yes $file
+            cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY $file
           done
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Attest Binaries with Provenance
         run: |
