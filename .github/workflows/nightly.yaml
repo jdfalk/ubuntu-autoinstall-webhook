@@ -188,23 +188,40 @@ jobs:
       - run: ls dist/
       - run: tree dist/
 
-      - name: Build and Push Nightly Docker Image with Kaniko
-        run: |
-          export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
-          export ARCH="${{ matrix.arch }}"
-          export FULL_TAG="$IMAGE_NAME:nightly-$ARCH"
+      - uses: int128/kaniko-action@v1.49.0
+        with:
+          executor: 'gcr.io/kaniko-project/executor:debug'
+          push: true
+          tags: |
+              ${{ steps.metadata.outputs.tags }}
+              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly-${{ matrix.arch }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          cache: true
+          cache-repository: ghcr.io/${{ github.repository }}/cache
+          build-args: |
+            TARGETARCH=${{ matrix.arch }}
+          context: /workspace
+          file: Dockerfile
+          kaniko-args: --build-arg TARGETARCH=${{ matrix.arch }}
 
-          docker run --rm \
-            --privileged \
-            -v $(pwd)/kaniko/.docker:/kaniko/.docker \
-            -v "$(pwd)":/workspace \
-            -e DOCKER_CONFIG=/kaniko/.docker \
-            gcr.io/kaniko-project/executor:latest \
-            --context /workspace \
-            --dockerfile Dockerfile \
-            --custom-platform=linux/$ARCH \
-            --build-arg TARGETARCH=$ARCH \
-            --destination $FULL_TAG
+
+      # - name: Build and Push Nightly Docker Image with Kaniko
+      #   run: |
+      #     export IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
+      #     export ARCH="${{ matrix.arch }}"
+      #     export FULL_TAG="$IMAGE_NAME:nightly-$ARCH"
+
+      #     docker run --rm \
+      #       --privileged \
+      #       -v $(pwd)/kaniko/.docker:/kaniko/.docker \
+      #       -v "$(pwd)":/workspace \
+      #       -e DOCKER_CONFIG=/kaniko/.docker \
+      #       gcr.io/kaniko-project/executor:latest \
+      #       --context /workspace \
+      #       --dockerfile Dockerfile \
+      #       --custom-platform=linux/$ARCH \
+      #       --build-arg TARGETARCH=$ARCH \
+      #       --destination $FULL_TAG
 
   manifest:
     name: Create and Push Nightly Docker Manifest
