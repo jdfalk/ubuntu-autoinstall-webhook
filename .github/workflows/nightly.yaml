@@ -252,23 +252,23 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
 
-      - name: Generate Attestation for Nightly Docker Image
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
-          echo "attestation for amd64 image"
-          IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-amd64"
-          # Pull the image to ensure it's available locally
-          docker pull $IMAGE_NAME
-          IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
-          cosign attest --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
-          echo "attestation for arm64 image"
-          IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-arm64"
-          docker pull $IMAGE_NAME
-          IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
-          cosign attest --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
-        env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      # - name: Generate Attestation for Nightly Docker Image
+      #   run: |
+      #     echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
+      #     echo "attestation for amd64 image"
+      #     IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-amd64"
+      #     # Pull the image to ensure it's available locally
+      #     docker pull $IMAGE_NAME
+      #     IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
+      #     cosign attest --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
+      #     echo "attestation for arm64 image"
+      #     IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-arm64"
+      #     docker pull $IMAGE_NAME
+      #     IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
+      #     cosign attest --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
+      #   env:
+      #     COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      #     COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Attest Container Build Provenance
         uses: actions/attest-build-provenance@v2.2.0
