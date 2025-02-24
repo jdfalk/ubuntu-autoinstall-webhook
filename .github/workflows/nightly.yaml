@@ -284,13 +284,13 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
           echo "attestation for amd64 image"
-          IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-amd64"
+          IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-amd64"
           # Pull the image to ensure it's available locally
           docker pull $IMAGE_NAME
           IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
           cosign attest --predicate attestation.json --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
           echo "attestation for arm64 image"
-          IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-arm64"
+          IMAGE_NAME="ghcr.io/jdfalk/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-arm64"
           docker pull $IMAGE_NAME
           IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_NAME)
           cosign attest --predicate attestation.json --type spdx --yes --key env://COSIGN_PRIVATE_KEY $IMAGE_DIGEST
