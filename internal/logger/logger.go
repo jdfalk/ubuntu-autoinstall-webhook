@@ -1,8 +1,9 @@
+package logger
+
 // Package logger provides centralized logging functionality for the application.
 // It handles logging to both files and the database. To enable database logging,
 // the application must inject a DB executor (for example, the global DB connection)
-// by calling SetDBExecutor.
-package logger
+// by calling SetDBExecutor. This package also provides a standard logger instance
 
 import (
 	"database/sql"

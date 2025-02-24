@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -48,7 +47,8 @@ func InitDB() error {
 	// Inject the DB connection into the logger package.
 	logger.SetDBExecutor(DB)
 
-	log.Println("Connected to CockroachDB successfully!")
+	// Log the successful connection using the new logger.
+	logger.Info("Connected to CockroachDB successfully!")
 
 	if err := runMigrations(); err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -84,7 +84,7 @@ func runMigrations() error {
 			}
 
 			if count > 0 {
-				log.Printf("Skipping already applied migration: %s", migrationName)
+				logger.Infof("Skipping already applied migration: %s", migrationName)
 				continue
 			}
 
@@ -103,11 +103,11 @@ func runMigrations() error {
 				return fmt.Errorf("failed to record migration %s: %w", migrationName, err)
 			}
 
-			log.Printf("Applied migration: %s", migrationName)
+			logger.Infof("Applied migration: %s", migrationName)
 		}
 	}
 
-	log.Println("Database migrations applied successfully.")
+	logger.Info("Database migrations applied successfully.")
 	return nil
 }
 

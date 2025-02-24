@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/ipxe"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/spf13/viper"

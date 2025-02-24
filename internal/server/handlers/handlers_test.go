@@ -13,7 +13,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/handlers"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/testutils"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"

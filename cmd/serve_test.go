@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server/logger"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 	"github.com/spf13/viper"
 )
 
