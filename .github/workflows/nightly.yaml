@@ -6,9 +6,12 @@ on:
   workflow_dispatch:  # Allows manual triggering
 
 permissions:
+  actions: write
+  attestations: write # Required for Sigstore Cosign
   contents: write
   packages: write
   id-token: write  # Required for Sigstore Cosign
+
 
 jobs:
   build:
