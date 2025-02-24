@@ -32,8 +32,8 @@ jobs:
       - name: Install Dependencies
         run: go mod tidy
 
-      - name: Lint Code
-        run: golangci-lint run
+      - name: Golangci-lint
+        uses: golangci/golangci-lint-action@v6.5.0
 
       - name: Generate Mocks
         run: go generate ./...
