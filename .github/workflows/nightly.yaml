@@ -173,19 +173,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Log in to GitHub Container Registry (GHCR)
-        run: |
-          mkdir -p $(pwd)/kaniko/.docker
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-          cp ~/.docker/config.json $(pwd)/kaniko/.docker/config.json
+      # - name: Log in to GitHub Container Registry (GHCR)
+      #   run: |
+      #     mkdir -p $(pwd)/kaniko/.docker
+      #     echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+      #     cp ~/.docker/config.json $(pwd)/kaniko/.docker/config.json
 
-      - name: Validate Docker Login Configuration
-        run: |
-          if [ ! -f $(pwd)/kaniko/.docker/config.json ]; then
-            echo "❌ Docker config.json file is missing in $(pwd)/kaniko/.docker!"
-            exit 1
-          fi
-          echo "✅ Docker login validated. config.json is correctly placed in $(pwd)/kaniko/.docker."
+      # - name: Validate Docker Login Configuration
+      #   run: |
+      #     if [ ! -f $(pwd)/kaniko/.docker/config.json ]; then
+      #       echo "❌ Docker config.json file is missing in $(pwd)/kaniko/.docker!"
+      #       exit 1
+      #     fi
+      #     echo "✅ Docker login validated. config.json is correctly placed in $(pwd)/kaniko/.docker."
 
       - name: Download Built Binaries
         uses: actions/download-artifact@v4
