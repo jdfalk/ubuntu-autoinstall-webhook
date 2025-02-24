@@ -195,7 +195,7 @@ jobs:
           tags: |
               ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:${{ github.sha }}-${{ matrix.arch }}
               ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly-${{ github.sha }}-${{ matrix.arch }}
-              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly-${{ github.head_ref }}-${{ matrix.arch }}
+              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly-${{ github.ref_name }}-${{ matrix.arch }}
               ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:nightly-${{ matrix.arch }}
           labels: ${{ steps.metadata.outputs.labels }}
           cache: true
