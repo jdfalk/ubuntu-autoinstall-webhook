@@ -133,7 +133,6 @@ jobs:
 
       - name: Sign Binaries with Cosign
         run: |
-          # echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
           for file in dist/*; do
             cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY $file
           done
@@ -144,16 +143,21 @@ jobs:
       - name: Attest Binaries with Provenance
         run: |
           for file in dist/*; do
-            cosign attest --predicate provenance.json --type custom --yes $file
+            cosign attest-blob --predicate provenance.json --type custom --yes --key env://COSIGN_PRIVATE_KEY $file
           done
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Attest Binaries with SBOM
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io --username $GITHUB_ACTOR --password-stdin
           for sbom in sbom/*; do
             binary_name=$(basename $sbom .spdx.json)
-            cosign attest --predicate $sbom --type spdx --yes dist/$binary_name
+            cosign attest-blob --predicate $sbom --type spdx --yes --key env://COSIGN_PRIVATE_KEY dist/$binary_name
           done
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
 
   docker:
