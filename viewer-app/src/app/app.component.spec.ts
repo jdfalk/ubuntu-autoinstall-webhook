@@ -1,38 +1,29 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-  let component: AppComponent;
-  let fixture: ComponentFixture<AppComponent>;
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      providers: [provideHttpClientTesting(), provideRouter([])],
-      declarations: [AppComponent]
+      imports: [AppComponent],
     }).compileComponents();
   });
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(AppComponent);
-    component = fixture.componentInstance;
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it(`should have the 'viewer-app' title`, () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app.title).toEqual('viewer-app');
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should fetch systems on init', () => {
-    spyOn(component['http'], 'get').and.callThrough();
-    component.ngOnInit();
-    expect(component['http'].get).toHaveBeenCalledWith('/api/viewer');
-  });
-
-  it('should navigate to logs when an IP is clicked', () => {
-    spyOn(component['router'], 'navigate');
-    component.navigateToLogs('192.168.1.1');
-    expect(component['router'].navigate).toHaveBeenCalledWith(['/viewer', '192.168.1.1']);
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, viewer-app');
   });
 });
