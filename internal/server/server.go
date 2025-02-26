@@ -18,6 +18,16 @@ import (
 // RegisterRoutes registers all HTTP routes (for serving the Angular app and API endpoints)
 // into the default HTTP mux.
 func RegisterRoutes() {
+	// Default handler: if the bare URL "/" is requested (and it's not an API request), redirect to "/viewer-app/".
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// If the request is exactly "/" then redirect.
+		if r.URL.Path == "/" {
+			http.Redirect(w, r, "/viewer-app/", http.StatusFound)
+			return
+		}
+		// Otherwise, let the request fall through to other handlers.
+	})
+
 	// Serve Angular app (with deep linking support).
 	http.Handle("/viewer-app/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Trim the /viewer-app/ prefix from the requested path.
