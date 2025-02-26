@@ -19,38 +19,49 @@ var migrationFiles embed.FS
 
 // InitDB initializes the database connection and runs migrations.
 func InitDB() error {
-	dsn := fmt.Sprintf(
-		"postgresql://%s:%s@%s:%d/%s?sslmode=%s",
-		viper.GetString("database.user"),
-		viper.GetString("database.password"),
-		viper.GetString("database.host"),
-		viper.GetInt("database.port"),
-		viper.GetString("database.dbname"),
-		viper.GetString("database.sslmode"),
-	)
+	logger.Debugf("Starting DB initialization")
+
+	// Retrieve DB settings from Viper.
+	user := viper.GetString("database.user")
+	password := viper.GetString("database.password")
+	host := viper.GetString("database.host")
+	port := viper.GetInt("database.port")
+	dbname := viper.GetString("database.dbname")
+	sslmode := viper.GetString("database.sslmode")
+
+	// Log the DB settings (be careful not to log sensitive details in production!)
+	logger.Debugf("DB Config - host: %s, port: %d, user: %s, dbname: %s, sslmode: %s", host, port, user, dbname, sslmode)
+
+	// Construct the DSN. (Check that your driver accepts "postgresql://")
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s", user, password, host, port, dbname, sslmode)
+	logger.Debugf("Constructed DSN: %s", dsn)
 
 	var err error
 	DB, err = sql.Open("postgres", dsn)
 	if err != nil {
+		logger.Errorf("Failed to open database: %v", err)
 		return fmt.Errorf("failed to open database: %w", err)
 	}
 
+	// Set connection pool parameters.
 	DB.SetMaxOpenConns(viper.GetInt("database.max_open_conns"))
 	DB.SetMaxIdleConns(viper.GetInt("database.max_idle_conns"))
 	DB.SetConnMaxLifetime(time.Duration(viper.GetInt("database.conn_max_lifetime")) * time.Second)
 
 	// Ensure the DB connection is valid.
 	if err = DB.Ping(); err != nil {
+		logger.Errorf("Failed to ping database: %v", err)
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
+	logger.Debugf("DB ping successful")
 
 	// Inject the DB connection into the logger package.
 	logger.SetDBExecutor(DB)
-
-	// Log the successful connection using the new logger.
 	logger.Info("Connected to CockroachDB successfully!")
 
+	// Run migrations.
 	if err := runMigrations(); err != nil {
+		logger.Errorf("Failed to run migrations: %v", err)
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
@@ -376,4 +387,19 @@ func GetHistoricalCloudInitConfigs() ([]CloudInitConfig, error) {
 		configs = append(configs, cfg)
 	}
 	return configs, rows.Err()
+}
+
+// CloseDB gracefully closes the database connection.
+func CloseDB() error {
+	if DB != nil {
+		err := DB.Close()
+		if err != nil {
+			logger.Errorf("Failed to close database: %v", err)
+			return fmt.Errorf("failed to close database: %w", err)
+		}
+		logger.Info("Database connection closed successfully.")
+	} else {
+		logger.Infof("No database connection to close.")
+	}
+	return nil
 }

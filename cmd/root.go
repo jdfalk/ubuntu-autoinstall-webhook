@@ -1,10 +1,10 @@
+// Package cmd provides the main command-line interface for the Ubuntu Autoinstall Webhook service.
 package cmd
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger" // Import the centralized logger
@@ -18,9 +18,12 @@ var logDir string
 
 // ConfigBlock represents a configuration block along with any preceding comments.
 type ConfigBlock struct {
-	Key      string
+	// Key is the configuration key.
+	Key string
+	// Comments are any preceding comment lines.
 	Comments []string
-	Lines    []string // Includes the key line and any indented child lines.
+	// Lines include the key line and any indented child lines.
+	Lines []string
 }
 
 // rootCmd represents the base command when called without any subcommands.
@@ -48,11 +51,13 @@ func init() {
 }
 
 // keyExistsInContent checks if a key (with colon) exists anywhere in the provided content.
+// It returns true if the key followed by a colon is found.
 func keyExistsInContent(content, key string) bool {
 	return strings.Contains(content, key+":")
 }
 
-// initConfig loads configuration from file/environment and then processes it.
+// initConfig loads configuration from file/environment, processes the config file,
+// and validates critical paths. It also sets default values including a new option for log level.
 func initConfig(fs FileSystem) {
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
@@ -72,15 +77,17 @@ func initConfig(fs FileSystem) {
 	viper.SetDefault("port", "5000")
 	viper.SetDefault("logDir", "/var/log/autoinstall-webhook")
 	viper.SetDefault("logFile", "autoinstall_report.log")
-	// Database defaults are now defined per field:
-	viper.SetDefault("database.enabled", true)
+	// New viper default for log level output.
+	viper.SetDefault("logLevel", "INFO")
+	// Database defaults – note that now the default for "enabled" is false.
+	viper.SetDefault("database.enabled", false)
 	viper.SetDefault("database.type", "postgres")
 	viper.SetDefault("database.host", "localhost")
 	viper.SetDefault("database.port", 5432)
 	viper.SetDefault("database.user", "user")
 	viper.SetDefault("database.password", "password")
 	viper.SetDefault("database.dbname", "autoinstall")
-	viper.SetDefault("database.sslmode", "disable")
+	viper.SetDefault("database.sslmode", "require")
 	viper.SetDefault("database.max_open_conns", 100)
 	viper.SetDefault("database.max_idle_conns", 10)
 	viper.SetDefault("database.conn_max_lifetime", 3600)
@@ -90,16 +97,30 @@ func initConfig(fs FileSystem) {
 
 	// Read config file if available.
 	if err := viper.ReadInConfig(); err == nil {
-		logger.Infof("%s", "Using config file: "+viper.ConfigFileUsed())
+		logger.Infof("Using config file: %s", viper.ConfigFileUsed())
+	} else {
+		logger.Debugf("No config file found or error reading config: %v", err)
 	}
 
 	// Process (ensure missing options are added and file is organized).
 	if err := processConfigFile(); err != nil {
-		logger.Errorf("%s", fmt.Sprintf("Failed to process config file: %v", err))
+		logger.Errorf("Failed to process config file: %v", err)
 	}
 
+	// Re-read the config file so that Viper picks up the new defaults and organization.
+	if err := viper.ReadInConfig(); err != nil {
+		logger.Warningf("Error re-reading config file: %v", err)
+	} else {
+		logger.Infof("Re-loaded config file with updated settings")
+	}
+
+	// DEBUG: Log all settings and the database.enabled value.
+	logger.Infof("All config settings: %#v", viper.AllSettings())
+	logger.Infof("Raw database.enabled: %#v", viper.Get("database.enabled"))
+	logger.Infof("Database enabled (bool): %v", viper.GetBool("database.enabled"))
+
 	// Validate paths with fallback logic.
-	if err := validatePaths(fs); err != nil {
+	if err := validatePaths(); err != nil {
 		logger.Errorf("%s", err.Error())
 		os.Exit(1)
 	}
@@ -136,7 +157,8 @@ func deduplicateConsecutive(lines []string) []string {
 }
 
 // processConfigFile reads the existing config file (or creates a new one)
-// and appends any missing configuration options with default values.
+// and appends any missing configuration options with default values, then
+// organizes the file into fixed sections.
 func processConfigFile() error {
 	configPath := viper.ConfigFileUsed()
 	if configPath == "" {
@@ -148,11 +170,13 @@ func processConfigFile() error {
 	existingContent := ""
 	if err == nil {
 		existingContent = string(contentBytes)
+	} else {
+		logger.Debugf("Error reading config file, will create a new one: %v", err)
 	}
 
 	var missingEntries []string
 	header := "# Missing configuration options (added automatically)"
-	// Use keyExistsInContent to check if a particular key is present anywhere.
+	// Check for missing flat keys.
 	if !keyExistsInContent(existingContent, "port") {
 		missingEntries = append(missingEntries, "# port: 25000")
 	}
@@ -162,39 +186,21 @@ func processConfigFile() error {
 	if !keyExistsInContent(existingContent, "logFile") {
 		missingEntries = append(missingEntries, "# logFile: \"autoinstall_report.log\"")
 	}
-	// Database configuration keys:
-	if !keyExistsInContent(existingContent, "database.enabled") {
-		missingEntries = append(missingEntries, "# database.enabled: true")
-	}
-	if !keyExistsInContent(existingContent, "database.type") {
-		missingEntries = append(missingEntries, "# database.type: postgres")
-	}
-	if !keyExistsInContent(existingContent, "database.host") {
-		missingEntries = append(missingEntries, "# database.host: \"localhost\"")
-	}
-	if !keyExistsInContent(existingContent, "database.port") {
-		missingEntries = append(missingEntries, "# database.port: 5432")
-	}
-	if !keyExistsInContent(existingContent, "database.user") {
-		missingEntries = append(missingEntries, "# database.user: \"user\"")
-	}
-	if !keyExistsInContent(existingContent, "database.password") {
-		missingEntries = append(missingEntries, "# database.password: \"password\"")
-	}
-	if !keyExistsInContent(existingContent, "database.dbname") {
-		missingEntries = append(missingEntries, "# database.dbname: \"autoinstall\"")
-	}
-	if !keyExistsInContent(existingContent, "database.sslmode") {
-		missingEntries = append(missingEntries, "# database.sslmode: \"disable\"")
-	}
-	if !keyExistsInContent(existingContent, "database.max_open_conns") {
-		missingEntries = append(missingEntries, "# database.max_open_conns: 100")
-	}
-	if !keyExistsInContent(existingContent, "database.max_idle_conns") {
-		missingEntries = append(missingEntries, "# database.max_idle_conns: 10")
-	}
-	if !keyExistsInContent(existingContent, "database.conn_max_lifetime") {
-		missingEntries = append(missingEntries, "# database.conn_max_lifetime: 3600")
+	// For database, check if the block exists; if not, add a nested block.
+	if !strings.Contains(existingContent, "database:") {
+		missingEntries = append(missingEntries, "# Database Configuration")
+		missingEntries = append(missingEntries, "database:")
+		missingEntries = append(missingEntries, "  enabled: false")
+		missingEntries = append(missingEntries, "  type: postgres")
+		missingEntries = append(missingEntries, "  host: localhost")
+		missingEntries = append(missingEntries, "  port: 5432")
+		missingEntries = append(missingEntries, "  user: user")
+		missingEntries = append(missingEntries, "  password: password")
+		missingEntries = append(missingEntries, "  dbname: autoinstall")
+		missingEntries = append(missingEntries, "  sslmode: enabled")
+		missingEntries = append(missingEntries, "  max_open_conns: 100")
+		missingEntries = append(missingEntries, "  max_idle_conns: 10")
+		missingEntries = append(missingEntries, "  conn_max_lifetime: 3600")
 	}
 	// Other keys.
 	if !keyExistsInContent(existingContent, "ipxe_folder") {
@@ -207,30 +213,24 @@ func processConfigFile() error {
 		missingEntries = append(missingEntries, "# cloud_init_folder: \"/var/www/html/cloud-init/\"")
 	}
 
+	var combinedContent string
 	if len(missingEntries) > 0 {
 		missingEntries = append([]string{header}, missingEntries...)
+		combinedContent = existingContent + "\n" + strings.Join(missingEntries, "\n") + "\n"
+	} else {
+		combinedContent = existingContent
 	}
-	combinedContent := existingContent + "\n" + strings.Join(missingEntries, "\n") + "\n"
 
 	// Organize the config file using fixed sections.
+	// Treat "database" as one block.
 	knownKeys := map[string]bool{
-		"port":                       true,
-		"logDir":                     true,
-		"logFile":                    true,
-		"database.enabled":           true,
-		"database.type":              true,
-		"database.host":              true,
-		"database.port":              true,
-		"database.user":              true,
-		"database.password":          true,
-		"database.dbname":            true,
-		"database.sslmode":           true,
-		"database.max_open_conns":    true,
-		"database.max_idle_conns":    true,
-		"database.conn_max_lifetime": true,
-		"ipxe_folder":                true,
-		"boot_customization_folder":  true,
-		"cloud_init_folder":          true,
+		"port":                      true,
+		"logDir":                    true,
+		"logFile":                   true,
+		"database":                  true,
+		"ipxe_folder":               true,
+		"boot_customization_folder": true,
+		"cloud_init_folder":         true,
 	}
 	blocks := make(map[string]ConfigBlock)
 	var pendingComments []string
@@ -267,6 +267,29 @@ func processConfigFile() error {
 			i++
 			continue
 		}
+		// Handle the database block as a single unit.
+		if strings.HasPrefix(trimmed, "database:") {
+			blk := ConfigBlock{
+				Key:      "database",
+				Comments: pendingComments,
+				Lines:    []string{line},
+			}
+			pendingComments = nil
+			i++
+			// Capture following indented lines as part of the database block.
+			for i < len(lines) {
+				nextLine := lines[i]
+				if nextLine != strings.TrimLeft(nextLine, " ") && strings.TrimSpace(nextLine) != "" {
+					blk.Lines = append(blk.Lines, nextLine)
+					i++
+				} else {
+					break
+				}
+			}
+			blocks["database"] = blk
+			continue
+		}
+		// Process flat keys.
 		if line == strings.TrimLeft(line, " ") && strings.Contains(trimmed, ":") {
 			parts := strings.SplitN(trimmed, ":", 2)
 			key := strings.TrimSpace(parts[0])
@@ -278,20 +301,13 @@ func processConfigFile() error {
 					Lines:    []string{line},
 				}
 				pendingComments = nil
-				i++
-				// If it's a database key, attempt to collect subsequent indented lines.
-				if key == "database.enabled" || key == "database.type" || key == "database.host" ||
-					key == "database.port" || key == "database.user" || key == "database.password" ||
-					key == "database.dbname" || key == "database.sslmode" || key == "database.max_open_conns" ||
-					key == "database.max_idle_conns" || key == "database.conn_max_lifetime" {
-					for i < len(lines) {
-						nextLine := lines[i]
-						if nextLine != strings.TrimLeft(nextLine, " ") && strings.TrimSpace(nextLine) != "" {
-							blk.Lines = append(blk.Lines, nextLine)
-							i++
-						} else {
-							break
-						}
+				// Capture subsequent indented lines.
+				for i++; i < len(lines); i++ {
+					nextLine := lines[i]
+					if nextLine != strings.TrimLeft(nextLine, " ") && strings.TrimSpace(nextLine) != "" {
+						blk.Lines = append(blk.Lines, nextLine)
+					} else {
+						break
 					}
 				}
 				if _, exists := blocks[key]; !exists {
@@ -304,7 +320,7 @@ func processConfigFile() error {
 		i++
 	}
 
-	// Define sections. For each section, sort keys alphabetically.
+	// Define sections.
 	type Section struct {
 		Header string
 		Keys   []string
@@ -312,51 +328,31 @@ func processConfigFile() error {
 	sections := []Section{
 		{Header: "", Keys: []string{"port"}},
 		{Header: "# Logging Configuration", Keys: []string{"logDir", "logFile"}},
-		{Header: "# Database Configuration", Keys: []string{
-			"database.enabled", "database.type", "database.host", "database.port", "database.user",
-			"database.password", "database.dbname", "database.sslmode", "database.max_open_conns",
-			"database.max_idle_conns", "database.conn_max_lifetime"}},
-		{Header: "# iPXE Settings", Keys: []string{"boot_customization_folder", "ipxe_folder"}},
+		{Header: "# Database Configuration", Keys: []string{"database"}},
+		{Header: "# iPXE Settings", Keys: []string{"ipxe_folder", "boot_customization_folder"}},
 		{Header: "# Cloud-Init Settings", Keys: []string{"cloud_init_folder"}},
 	}
 
 	var outputLines []string
 	for _, sec := range sections {
-		// Sort keys alphabetically.
-		sortedKeys := make([]string, len(sec.Keys))
-		copy(sortedKeys, sec.Keys)
-		sort.Strings(sortedKeys)
-
-		// Check if the header is already present among the blocks for this section.
-		headerAlreadyPresent := false
-		for _, key := range sortedKeys {
-			if blk, ok := blocks[key]; ok {
-				if len(blk.Comments) > 0 && strings.TrimSpace(blk.Comments[0]) == sec.Header {
-					headerAlreadyPresent = true
-					break
-				}
-			}
-		}
-		// Add the header only if it isn't already present.
-		if sec.Header != "" && !headerAlreadyPresent {
+		if sec.Header != "" {
 			outputLines = append(outputLines, sec.Header)
 		}
-		for _, key := range sortedKeys {
+		for _, key := range sec.Keys {
 			if blk, ok := blocks[key]; ok {
-				// Deduplicate block comments and avoid printing consecutive duplicates.
-				deduped := deduplicate(blk.Comments)
-				for _, comm := range deduped {
+				for _, comm := range deduplicate(blk.Comments) {
 					if len(outputLines) == 0 || strings.TrimSpace(outputLines[len(outputLines)-1]) != strings.TrimSpace(comm) {
 						outputLines = append(outputLines, comm)
 					}
 				}
+				// Replace loop with a single append operation as suggested by S1011.
 				outputLines = append(outputLines, blk.Lines...)
 			}
 		}
 		outputLines = append(outputLines, "")
 	}
 
-	// Remove any consecutive duplicate lines from the final output.
+	// Remove any consecutive duplicate lines.
 	finalLines := deduplicateConsecutive(outputLines)
 	organizedContent := strings.Join(finalLines, "\n")
 
@@ -368,7 +364,7 @@ func processConfigFile() error {
 	return nil
 }
 
-// writeFileToCandidateLocations attempts to write a file by trying four candidate locations.
+// writeFileToCandidateLocations attempts to write a file by trying multiple candidate locations.
 func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
 	var candidates []string
 
@@ -394,10 +390,10 @@ func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
 		}
 		if err := os.WriteFile(candidatePath, data, 0644); err != nil {
 			lastErr = err
-			logger.Warningf("%s", "Failed to write file to "+candidatePath+": "+err.Error())
+			logger.Warningf("Failed to write file to %s: %v", candidatePath, err)
 			continue
 		}
-		logger.Infof("%s", "Successfully wrote file to "+candidatePath)
+		logger.Infof("Successfully wrote file to %s", candidatePath)
 		return nil
 	}
 	return fmt.Errorf("failed to write file to all candidate locations: last error: %v", lastErr)
@@ -424,7 +420,7 @@ func getAvailableFolder(defaultPath string, alternatives ...string) (string, err
 	paths := append([]string{defaultPath}, alternatives...)
 	for _, path := range paths {
 		if !ensureFolderExists(path) {
-			logger.Warningf("%s", "Cannot use folder "+path+" trying next candidate.")
+			logger.Warningf("Cannot use folder %s trying next candidate.", path)
 			continue
 		}
 		return path, nil
@@ -434,7 +430,7 @@ func getAvailableFolder(defaultPath string, alternatives ...string) (string, err
 
 // validatePaths uses fallback logic for critical directories.
 // It also checks for invalid characters or sequences in the original path.
-func validatePaths(fs FileSystem) error {
+func validatePaths() error {
 	keys := []string{"logDir", "ipxe_folder", "boot_customization_folder", "cloud_init_folder"}
 	for _, key := range keys {
 		originalPath := viper.GetString(key)
