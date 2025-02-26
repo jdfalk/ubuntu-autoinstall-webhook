@@ -1,1 +1,6 @@
-<p>config-editor works!</p>
+<!-- config-editor.component.html -->
+<div class="config-editor-container">
+  <h2>Configuration Editor</h2>
+  <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="configContent" (ngModelChange)="onConfigChanged($event)"
+    (ngOnInit)="ngOnInit()"></ngx-monaco-editor>
+</div>
