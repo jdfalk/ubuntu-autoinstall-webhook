@@ -1,0 +1,21 @@
+/* viewer.component.scss */
+.sidenav-container {
+  height: calc(100vh - 64px);
+  /* subtract the height of the top toolbar (default 64px) */
+}
+
+.sidenav {
+  width: 300px;
+  padding: 10px;
+  background-color: #fafafa;
+}
+
+.content {
+  padding: 20px;
+}
+
+.viewer-content {
+  margin: 0;
+}
+
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
