@@ -14,8 +14,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// DB is the global database connection.
 var DB *sql.DB
 
+// migrationFiles contains all embedded SQL migration files.
+//
 //go:embed migrations/*.sql
 var migrationFiles embed.FS
 
@@ -159,7 +162,8 @@ func SaveNetworkInterface(clientID, macAddress, interfaceName, chipset, driver s
 	return nil
 }
 
-// SaveCloudInitVersion stores a new cloud-init configuration and maintains only the last five versions.
+// SaveCloudInitVersion stores a new cloud-init configuration in the history table
+// and maintains only the last five versions.
 func SaveCloudInitVersion(clientID, macAddress, userData string) error {
 	query := `
 		INSERT INTO cloud_init_history (client_id, mac_address, user_data)
@@ -188,8 +192,9 @@ func SaveCloudInitVersion(clientID, macAddress, userData string) error {
 	return nil
 }
 
-// SaveIPXEConfigVersion stores a new version of the IPXE configuration for a client,
+// SaveIPXEConfigVersion stores a new version of the iPXE configuration for a client,
 // and ensures that only the last five versions are kept.
+// (Legacy function; use SaveIPXEConfiguration for phase support.)
 func SaveIPXEConfigVersion(clientID, config string) error {
 	query := `
 		INSERT INTO ipxe_history (client_id, config)
@@ -218,10 +223,48 @@ func SaveIPXEConfigVersion(clientID, config string) error {
 	return nil
 }
 
+// SaveIPXEConfiguration inserts a new iPXE configuration record into the database,
+// including the phase field (e.g. "install" or "post-install").
+func SaveIPXEConfiguration(macAddress, config, phase string) error {
+	query := `
+        INSERT INTO ipxe_configuration (client_id, config, phase, created_at)
+        VALUES ($1, $2, $3, $4)
+    `
+	// For simplicity, assume client_id is the same as macAddress.
+	clientID := macAddress
+	_, err := DB.Exec(query, clientID, config, phase, time.Now())
+	if err != nil {
+		logger.Errorf("Error inserting iPXE configuration: %v", err)
+		return fmt.Errorf("error inserting iPXE configuration: %w", err)
+	}
+	logger.Infof("Saved new iPXE configuration for MAC %s with phase %s", macAddress, phase)
+	return nil
+}
+
+// GetLatestIPXEConfig retrieves the latest iPXE configuration for the given MAC address and phase.
+func GetLatestIPXEConfig(macAddress, phase string) (IpxeConfig, error) {
+	var cfg IpxeConfig
+	// Assuming client_id is derived from macAddress.
+	clientID := macAddress
+	query := `
+        SELECT id, client_id, config, created_at
+        FROM ipxe_configuration
+        WHERE client_id = $1 AND phase = $2
+        ORDER BY created_at DESC
+        LIMIT 1
+    `
+	err := DB.QueryRow(query, clientID, phase).Scan(&cfg.ID, &cfg.ClientID, &cfg.Config, &cfg.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return cfg, fmt.Errorf("no iPXE configuration found for MAC %s with phase %s", macAddress, phase)
+		}
+		return cfg, fmt.Errorf("error querying latest iPXE configuration: %w", err)
+	}
+	return cfg, nil
+}
+
 // SaveClientLog saves a client log to the database.
 func SaveClientLog(event interface{}) {
-	// Assume that event is of type db.Event if needed.
-	// For simplicity, we use a similar logic as before:
 	e, ok := event.(map[string]interface{})
 	if !ok {
 		logger.Errorf("SaveClientLog: invalid event format")
@@ -371,7 +414,7 @@ func GetServerLogs() ([]ServerLog, error) {
 	return logs, rows.Err()
 }
 
-// GetIpxeConfigs returns the latest iPXE configuration per client.
+// GetIpxeConfigs returns the latest iPXE configuration per client from ipxe_history.
 func GetIpxeConfigs() ([]IpxeConfig, error) {
 	query := `
         SELECT DISTINCT ON (client_id) id, client_id, config, created_at
@@ -388,7 +431,7 @@ func GetIpxeConfigs() ([]IpxeConfig, error) {
 	for rows.Next() {
 		var cfg IpxeConfig
 		if err := rows.Scan(&cfg.ID, &cfg.ClientID, &cfg.Config, &cfg.CreatedAt); err != nil {
-			return nil, fmt.Errorf("error scanning iPXE config row: %w", err)
+			return nil, fmt.Errorf("error scanning iPXe config row: %w", err)
 		}
 		configs = append(configs, cfg)
 	}
@@ -400,7 +443,7 @@ func GetHistoricalIpxeConfigs() ([]IpxeConfig, error) {
 	query := `SELECT id, client_id, config, created_at FROM ipxe_history ORDER BY created_at DESC`
 	rows, err := DB.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("error querying historical iPXE configs: %w", err)
+		return nil, fmt.Errorf("error querying historical iPXe configs: %w", err)
 	}
 	defer rows.Close()
 
@@ -408,7 +451,7 @@ func GetHistoricalIpxeConfigs() ([]IpxeConfig, error) {
 	for rows.Next() {
 		var cfg IpxeConfig
 		if err := rows.Scan(&cfg.ID, &cfg.ClientID, &cfg.Config, &cfg.CreatedAt); err != nil {
-			return nil, fmt.Errorf("error scanning historical iPXE config row: %w", err)
+			return nil, fmt.Errorf("error scanning historical iPXe config row: %w", err)
 		}
 		configs = append(configs, cfg)
 	}

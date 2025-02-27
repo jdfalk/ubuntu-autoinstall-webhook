@@ -160,8 +160,7 @@ func ViewerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ViewerDetailHandler returns detailed information for a specific log entry.
-// The id parameter is extracted from the URL path. Reserved ids (like "status", "logs", "report")
-// are handled by deferring to ViewerHandler.
+// Reserved ids (like "status", "logs", "report") are handled by deferring to ViewerHandler.
 func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if db.DB == nil {
@@ -172,7 +171,6 @@ func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := strings.TrimPrefix(r.URL.Path, "/api/viewer/")
-	// Check for reserved keywords.
 	reserved := map[string]bool{
 		"status": true,
 		"logs":   true,
@@ -369,15 +367,19 @@ func CloudInitUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Cloud-init data updated successfully"))
 }
 
-// UpdateIPXEOnProgress updates the iPXE file when a client reaches 25% completion.
+// UpdateIPXEOnProgress updates the iPXE file when a client reaches a certain completion threshold.
+// It determines the correct phase ("install" or "post-install") based on progress, and passes it to ipxe.UpdateIPXEFile.
 func UpdateIPXEOnProgress(clientID string, progress int, macAddress string) {
+	var phase string
 	if progress >= 25 {
-		err := ipxe.UpdateIPXEFile(macAddress)
-		if err != nil {
-			logger.Errorf("Failed to update iPXE for %s: %v", macAddress, err)
-		} else {
-			logger.Infof("Updated iPXE file for MAC: %s", macAddress)
-		}
+		phase = "post-install"
+	} else {
+		phase = "install"
+	}
+	if err := ipxe.UpdateIPXEFile(macAddress, phase); err != nil {
+		logger.Errorf("Failed to update iPXE for %s: %v", macAddress, err)
+	} else {
+		logger.Infof("Updated iPXE file for MAC: %s", macAddress)
 	}
 }
 

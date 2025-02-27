@@ -2,23 +2,20 @@ package ipxe
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 )
 
-// IPXEHistory stores the last five IPXE configuration versions per client.
-type IPXEHistory struct {
-	ID        string    `json:"id"`
-	ClientID  string    `json:"client_id"`
-	Config    string    `json:"config"`
-	CreatedAt time.Time `json:"created_at"`
-}
+// Fs is the file system used for file operations.
+// In production it uses the real OS file system; tests may override it.
+var Fs afero.Fs = afero.NewOsFs()
 
 // generateIPXEFilePath constructs the iPXE file path based solely on the MAC address.
 // It uses boot_customization_folder if provided; otherwise, it falls back to ipxe_folder.
@@ -44,8 +41,7 @@ func generateIPXEFilePath(macAddress string) (string, error) {
 // storeFileHistory saves the current version of the iPXE file before modification.
 func storeFileHistory(ipxeFilePath string) error {
 	logger.Infof("Storing history for iPXE file: %s", ipxeFilePath)
-	// Read the current file contents using os.ReadFile.
-	content, err := os.ReadFile(ipxeFilePath)
+	content, err := afero.ReadFile(Fs, ipxeFilePath)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to read iPXE file %s: %v", ipxeFilePath, err)
 		logger.Errorf("%s", errMsg)
@@ -53,8 +49,7 @@ func storeFileHistory(ipxeFilePath string) error {
 	}
 
 	historyFile := fmt.Sprintf("%s.history.%d", ipxeFilePath, time.Now().Unix())
-	// Write the file contents to the history file using os.WriteFile.
-	err = os.WriteFile(historyFile, content, 0644)
+	err = afero.WriteFile(Fs, historyFile, content, 0644)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to store iPXE history to %s: %v", historyFile, err)
 		logger.Errorf("%s", errMsg)
@@ -65,17 +60,17 @@ func storeFileHistory(ipxeFilePath string) error {
 	return nil
 }
 
-// UpdateIPXEFile modifies an iPXE file when a client reaches 25% progress.
-// It generates the file path based solely on the provided MAC address.
-func UpdateIPXEFile(macAddress string) error {
-	logger.Infof("Starting update of iPXE file for MAC address: %s", macAddress)
+// UpdateIPXEFile modifies an iPXE file based on the provided MAC address and phase.
+// It writes new content to disk (including the phase in a comment) and saves the new configuration to the database.
+func UpdateIPXEFile(macAddress string, phase string) error {
+	logger.Infof("Starting update of iPXE file for MAC address: %s with phase: %s", macAddress, phase)
 	ipxeFilePath, err := generateIPXEFilePath(macAddress)
 	if err != nil {
 		return err
 	}
 
 	// If the file exists, store its history before updating.
-	if _, err := os.Stat(ipxeFilePath); err == nil {
+	if _, err := Fs.Stat(ipxeFilePath); err == nil {
 		logger.Infof("iPXE file %s exists; storing history before update.", ipxeFilePath)
 		if err := storeFileHistory(ipxeFilePath); err != nil {
 			return err
@@ -84,9 +79,9 @@ func UpdateIPXEFile(macAddress string) error {
 		logger.Infof("iPXE file %s does not exist; it will be created.", ipxeFilePath)
 	}
 
-	// Update the iPXE file to instruct normal boot.
-	newContent := "#!ipxe\nexit\n"
-	err = os.WriteFile(ipxeFilePath, []byte(newContent), 0644)
+	// Create new content including the phase.
+	newContent := fmt.Sprintf("#!ipxe\n# phase: %s\nexit\n", phase)
+	err = afero.WriteFile(Fs, ipxeFilePath, []byte(newContent), 0644)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to update iPXE file %s: %v", ipxeFilePath, err)
 		logger.Errorf("%s", errMsg)
@@ -94,5 +89,37 @@ func UpdateIPXEFile(macAddress string) error {
 	}
 
 	logger.Infof("Successfully updated iPXE file %s", ipxeFilePath)
+
+	// Save the new configuration to the database.
+	if err := db.SaveIPXEConfiguration(macAddress, newContent, phase); err != nil {
+		logger.Errorf("Failed to save iPXE configuration for %s: %v", macAddress, err)
+		return err
+	}
+
 	return nil
+}
+
+// UpdateIPXEOnProgress updates the iPXE file when a client reaches a certain progress threshold.
+// It determines the new phase ("install" or "post-install"), updates the configuration, and logs the latest config.
+func UpdateIPXEOnProgress(clientID string, progress int, macAddress string) {
+	var newPhase string
+	if progress >= 25 {
+		newPhase = "post-install"
+	} else {
+		newPhase = "install"
+	}
+
+	err := UpdateIPXEFile(macAddress, newPhase)
+	if err != nil {
+		logger.Errorf("Failed to update iPXE for %s: %v", macAddress, err)
+		return
+	}
+
+	// Retrieve the latest IPXE configuration matching the phase.
+	cfg, err := db.GetLatestIPXEConfig(macAddress, newPhase)
+	if err != nil {
+		logger.Errorf("Failed to retrieve latest IPXE config for %s with phase %s: %v", macAddress, newPhase, err)
+	} else {
+		logger.Infof("Latest IPXE configuration for MAC %s (phase %s): %+v", macAddress, newPhase, cfg)
+	}
 }
