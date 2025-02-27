@@ -29,3 +29,5 @@ ubuntu-autoinstall-webhook-mac
 ubuntu-autoinstall-webhook
 
 !*.sql
+
+config.yaml

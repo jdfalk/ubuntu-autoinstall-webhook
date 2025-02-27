@@ -1,3 +1,4 @@
+// Package handlers provides HTTP handlers for processing webhook events and viewing log data.
 package handlers
 
 import (
@@ -10,10 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/ipxe"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
-
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/db"
 	"github.com/spf13/viper"
 )
 
@@ -94,38 +94,26 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract client IP.
 	clientIP := getClientIP(r)
 
-	// Decode request body.
 	var event Event
-	err := json.NewDecoder(r.Body).Decode(&event)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 	event.SourceIP = clientIP
 
-	// Convert timestamp to human-readable format.
 	timestamp := time.Unix(int64(event.Timestamp), 0).Format(time.RFC3339)
+	logger.Infof("%s - Event: %+v", timestamp, event)
 
-	// Log event to standard log.
-	logger.Infof("%s - Event: %+v\n", timestamp, event)
-
-	// Log event per source IP in JSON format using FileLogger.
 	if err := FileLogger.Write(event); err != nil {
-		fmt.Println(err)
+		logger.Errorf("Error logging to file: %v", err)
 	}
 
-	// Save client log to the database.
-	saveClientLogToDB(event)
+	// Delegate saving client log and status to the db package.
+	db.SaveClientLog(event)
+	db.SaveClientStatus(event)
 
-	// If the event includes a status update, save it to the database.
-	if event.Status != "" {
-		saveClientStatus(event)
-	}
-
-	// Respond.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, `{"status": "success", "message": "Event received"}`)
@@ -149,37 +137,191 @@ func getClientIP(r *http.Request) string {
 	return ip
 }
 
-// saveClientLogToDB saves the client log to the database.
-func saveClientLogToDB(event Event) {
-	query := `INSERT INTO client_logs (client_id, timestamp, origin, description, name, result, event_type, files, created_at)
-		VALUES ((SELECT id FROM client_identification WHERE id = $1), $2, $3, $4, $5, $6, $7, $8, NOW())`
-	filesJSON, _ := json.Marshal(event.Files)
-	_, err := db.DB.Exec(query, event.SourceIP, time.Unix(int64(event.Timestamp), 0), event.Origin,
-		event.Description, event.Name, event.Result, event.EventType, string(filesJSON))
-	if err != nil {
-		logger.ClientErrorf("Error saving client log: %v\n", err)
+// ViewerHandler returns a list of logs in JSON format.
+func ViewerHandler(w http.ResponseWriter, r *http.Request) {
+	logger.Infof("ViewerHandler called")
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		logger.Infof("ViewerHandler: No database configured, returning empty log list.")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
 	}
-}
 
-// saveClientStatus saves client status update to the database.
-func saveClientStatus(event Event) {
-	query := `INSERT INTO client_status (client_id, status, progress, message, updated_at)
-		VALUES ((SELECT id FROM client_identification WHERE id = $1), $2, $3, $4, NOW())
-		ON CONFLICT (client_id) DO UPDATE
-		SET status = $2, progress = $3, message = $4, updated_at = NOW();`
-	_, err := db.DB.Exec(query, event.SourceIP, event.Status, event.Progress, event.Message)
+	logs, err := db.GetClientLogs()
 	if err != nil {
-		logger.ClientErrorf("Error saving client status: %v\n", err)
+		logger.Errorf("ViewerHandler error: %s", err.Error())
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(logs)
 }
 
-// formatIPFilename formats the IP address into a valid filename.
-func formatIPFilename(ip string) string {
-	safeIP := strings.ReplaceAll(ip, ".", "_")
-	return fmt.Sprintf("%s.json", safeIP)
+// ViewerDetailHandler returns detailed information for a specific log entry.
+// The id parameter is extracted from the URL path. Reserved ids (like "status", "logs", "report")
+// are handled by deferring to ViewerHandler.
+func ViewerDetailHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		logger.Infof("ViewerDetailHandler: No database configured, returning empty detail.")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("{}"))
+		return
+	}
+
+	id := strings.TrimPrefix(r.URL.Path, "/api/viewer/")
+	// Check for reserved keywords.
+	reserved := map[string]bool{
+		"status": true,
+		"logs":   true,
+		"report": true,
+	}
+	if id == "" || reserved[id] {
+		logger.Infof("ViewerDetailHandler: Reserved id '%s' detected, deferring to ViewerHandler", id)
+		ViewerHandler(w, r)
+		return
+	}
+
+	logger.Infof("ViewerDetailHandler called with id: %s", id)
+	logDetail, err := db.GetClientLogDetail(id)
+	if err != nil {
+		logger.Errorf("ViewerDetailHandler error: %s", err.Error())
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(logDetail)
 }
 
-// HardwareInfoHandler processes client hardware submissions
+// ClientLogsHandler returns a list of client logs in JSON format.
+func ClientLogsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		logger.Infof("ClientLogsHandler: No database configured, returning empty log list.")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	logs, err := db.GetClientLogs()
+	if err != nil {
+		logger.Errorf("ClientLogsHandler error: %s", err.Error())
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(logs)
+}
+
+// ServerLogsHandler returns a list of server logs in JSON format.
+func ServerLogsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		logger.Infof("ServerLogsHandler: No database configured, returning empty log list.")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	logs, err := db.GetServerLogs()
+	if err != nil {
+		logger.Errorf("ServerLogsHandler error: %s", err.Error())
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(logs)
+}
+
+// IpxeConfigsHandler returns the latest iPXE configurations in JSON format.
+func IpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		logger.Infof("IpxeConfigsHandler: No database configured, returning empty config list.")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	configs, err := db.GetIpxeConfigs()
+	if err != nil {
+		logger.Errorf("IpxeConfigsHandler error: %s", err.Error())
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(configs)
+}
+
+// HistoricalIpxeConfigsHandler returns historical iPXE configurations in JSON format.
+func HistoricalIpxeConfigsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		logger.Infof("HistoricalIpxeConfigsHandler: No database configured, returning empty config list.")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	configs, err := db.GetHistoricalIpxeConfigs()
+	if err != nil {
+		logger.Errorf("HistoricalIpxeConfigsHandler error: %s", err.Error())
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(configs)
+}
+
+// CloudInitConfigsHandler returns the current cloud-init configurations in JSON format.
+func CloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		logger.Infof("CloudInitConfigsHandler: No database configured, returning empty config list.")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	configs, err := db.GetCloudInitConfigs()
+	if err != nil {
+		logger.Errorf("CloudInitConfigsHandler error: %s", err.Error())
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(configs)
+}
+
+// HistoricalCloudInitConfigsHandler returns historical cloud-init configurations in JSON format.
+func HistoricalCloudInitConfigsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if db.DB == nil {
+		logger.Infof("HistoricalCloudInitConfigsHandler: No database configured, returning empty config list.")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("[]"))
+		return
+	}
+
+	configs, err := db.GetHistoricalCloudInitConfigs()
+	if err != nil {
+		logger.Errorf("HistoricalCloudInitConfigsHandler error: %s", err.Error())
+		http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(configs)
+}
+
+// HardwareInfoHandler processes client hardware submissions.
 func HardwareInfoHandler(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		ClientID      string `json:"client_id"`
@@ -204,7 +346,7 @@ func HardwareInfoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hardware info saved successfully"))
 }
 
-// CloudInitUpdateHandler processes cloud-init updates
+// CloudInitUpdateHandler processes cloud-init updates.
 func CloudInitUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		ClientID   string `json:"client_id"`
@@ -227,7 +369,7 @@ func CloudInitUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Cloud-init data updated successfully"))
 }
 
-// UpdateIPXEOnProgress updates the iPXE file when a client reaches 25% completion
+// UpdateIPXEOnProgress updates the iPXE file when a client reaches 25% completion.
 func UpdateIPXEOnProgress(clientID string, progress int, macAddress string) {
 	if progress >= 25 {
 		err := ipxe.UpdateIPXEFile(macAddress)
@@ -237,4 +379,10 @@ func UpdateIPXEOnProgress(clientID string, progress int, macAddress string) {
 			logger.Infof("Updated iPXE file for MAC: %s", macAddress)
 		}
 	}
+}
+
+// formatIPFilename formats the IP address into a valid filename.
+func formatIPFilename(ip string) string {
+	safeIP := strings.ReplaceAll(ip, ".", "_")
+	return fmt.Sprintf("%s.json", safeIP)
 }

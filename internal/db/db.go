@@ -3,13 +3,15 @@ package db
 import (
 	"database/sql"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger" // Import the logger package
-	_ "github.com/lib/pq"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 	"github.com/spf13/viper"
+
+	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
@@ -29,10 +31,10 @@ func InitDB() error {
 	dbname := viper.GetString("database.dbname")
 	sslmode := viper.GetString("database.sslmode")
 
-	// Log the DB settings (be careful not to log sensitive details in production!)
+	// Debug: Log the DB settings (sensitive details should be omitted in production)
 	logger.Debugf("DB Config - host: %s, port: %d, user: %s, dbname: %s, sslmode: %s", host, port, user, dbname, sslmode)
 
-	// Construct the DSN. (Check that your driver accepts "postgresql://")
+	// Construct the DSN. (Ensure that your driver accepts the scheme "postgresql://")
 	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s", user, password, host, port, dbname, sslmode)
 	logger.Debugf("Constructed DSN: %s", dsn)
 
@@ -198,7 +200,6 @@ func SaveIPXEConfigVersion(clientID, config string) error {
 		return fmt.Errorf("error inserting IPXE history: %w", err)
 	}
 
-	// Prune old versions, keeping only the most recent five.
 	query = `
 		DELETE FROM ipxe_history
 		WHERE client_id = $1
@@ -217,14 +218,84 @@ func SaveIPXEConfigVersion(clientID, config string) error {
 	return nil
 }
 
-// --- Type definitions ---
+// SaveClientLog saves a client log to the database.
+func SaveClientLog(event interface{}) {
+	// Assume that event is of type db.Event if needed.
+	// For simplicity, we use a similar logic as before:
+	e, ok := event.(map[string]interface{})
+	if !ok {
+		logger.Errorf("SaveClientLog: invalid event format")
+		return
+	}
+	// Extract required fields.
+	sourceIP, _ := e["source_ip"].(string)
+	timestampFloat, _ := e["timestamp"].(float64)
+	origin, _ := e["origin"].(string)
+	description, _ := e["description"].(string)
+	name, _ := e["name"].(string)
+	result, _ := e["result"].(string)
+	eventType, _ := e["event_type"].(string)
+	filesBytes, _ := json.Marshal(e["files"])
+
+	query := `INSERT INTO client_logs (client_id, timestamp, origin, description, name, result, event_type, files, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`
+	_, err := DB.Exec(query, sourceIP, time.Unix(int64(timestampFloat), 0), origin, description, name, result, eventType, string(filesBytes))
+	if err != nil {
+		logger.ClientErrorf("Error saving client log: %v", err)
+	}
+}
+
+// SaveClientStatus saves a client status update to the database.
+func SaveClientStatus(event interface{}) {
+	e, ok := event.(map[string]interface{})
+	if !ok {
+		logger.Errorf("SaveClientStatus: invalid event format")
+		return
+	}
+	sourceIP, _ := e["source_ip"].(string)
+	status, _ := e["status"].(string)
+	progress, _ := e["progress"].(float64)
+	message, _ := e["message"].(string)
+
+	query := `INSERT INTO client_status (client_id, status, progress, message, updated_at)
+		VALUES ($1, $2, $3, $4, NOW())
+		ON CONFLICT (client_id) DO UPDATE
+		SET status = $2, progress = $3, message = $4, updated_at = NOW();`
+	_, err := DB.Exec(query, sourceIP, status, int(progress), message)
+	if err != nil {
+		logger.ClientErrorf("Error saving client status: %v", err)
+	}
+}
+
+// CloseDB gracefully closes the database connection.
+func CloseDB() error {
+	if DB != nil {
+		err := DB.Close()
+		if err != nil {
+			logger.Errorf("Failed to close database: %v", err)
+			return fmt.Errorf("failed to close database: %w", err)
+		}
+		logger.Info("Database connection closed successfully.")
+	} else {
+		logger.Infof("No database connection to close.")
+	}
+	return nil
+}
+
+// --- Type definitions for log queries ---
 
 // ClientLogDetail provides detailed information for a client log.
 type ClientLogDetail struct {
-	ID        int
-	ClientID  string
-	Detail    string
-	CreatedAt time.Time
+	ID          int
+	ClientID    string
+	Timestamp   time.Time
+	Origin      string
+	Description string
+	Name        string
+	Result      string
+	EventType   string
+	Files       string
+	CreatedAt   time.Time
 }
 
 // IpxeConfig represents an iPXE configuration.
@@ -244,10 +315,10 @@ type CloudInitConfig struct {
 	CreatedAt  time.Time
 }
 
-// --- DB Functions ---
+// --- DB Query Functions ---
 
 // GetClientLogs returns a list of client logs.
-func GetClientLogs() ([]ClientLog, error) {
+func GetClientLogs() ([]ClientLogDetail, error) {
 	query := `SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs ORDER BY created_at DESC`
 	rows, err := DB.Query(query)
 	if err != nil {
@@ -255,9 +326,9 @@ func GetClientLogs() ([]ClientLog, error) {
 	}
 	defer rows.Close()
 
-	var logs []ClientLog
+	var logs []ClientLogDetail
 	for rows.Next() {
-		var logEntry ClientLog
+		var logEntry ClientLogDetail
 		if err := rows.Scan(&logEntry.ID, &logEntry.ClientID, &logEntry.Timestamp, &logEntry.Origin, &logEntry.Description, &logEntry.Name, &logEntry.Result, &logEntry.EventType, &logEntry.Files, &logEntry.CreatedAt); err != nil {
 			return nil, fmt.Errorf("error scanning client log row: %w", err)
 		}
@@ -267,9 +338,9 @@ func GetClientLogs() ([]ClientLog, error) {
 }
 
 // GetClientLogDetail retrieves detailed information for a specific client log by id.
-func GetClientLogDetail(id string) (ClientLog, error) {
+func GetClientLogDetail(id string) (ClientLogDetail, error) {
 	query := `SELECT id, client_id, timestamp, origin, description, name, result, event_type, files, created_at FROM client_logs WHERE id = $1`
-	var logDetail ClientLog
+	var logDetail ClientLogDetail
 	err := DB.QueryRow(query, id).Scan(&logDetail.ID, &logDetail.ClientID, &logDetail.Timestamp, &logDetail.Origin, &logDetail.Description, &logDetail.Name, &logDetail.Result, &logDetail.EventType, &logDetail.Files, &logDetail.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -301,7 +372,6 @@ func GetServerLogs() ([]ServerLog, error) {
 }
 
 // GetIpxeConfigs returns the latest iPXE configuration per client.
-// This query uses PostgreSQL's DISTINCT ON to select the most recent config per client.
 func GetIpxeConfigs() ([]IpxeConfig, error) {
 	query := `
         SELECT DISTINCT ON (client_id) id, client_id, config, created_at
@@ -387,19 +457,4 @@ func GetHistoricalCloudInitConfigs() ([]CloudInitConfig, error) {
 		configs = append(configs, cfg)
 	}
 	return configs, rows.Err()
-}
-
-// CloseDB gracefully closes the database connection.
-func CloseDB() error {
-	if DB != nil {
-		err := DB.Close()
-		if err != nil {
-			logger.Errorf("Failed to close database: %v", err)
-			return fmt.Errorf("failed to close database: %w", err)
-		}
-		logger.Info("Database connection closed successfully.")
-	} else {
-		logger.Infof("No database connection to close.")
-	}
-	return nil
 }
