@@ -276,4 +276,3 @@ jobs:
           subject-name: "ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
           subject-digest: ${{ needs.docker.outputs.digest }}  # Use the digest from the Kaniko build step
           push-to-registry: true
-
