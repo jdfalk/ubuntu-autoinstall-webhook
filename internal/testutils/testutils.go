@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/spf13/afero"
 )
 
 // TestDB provides a shared mock database setup for tests.
@@ -40,4 +41,10 @@ func MockDBInit() func() error {
 	return func() error {
 		return nil
 	}
+}
+
+// NewTestFS returns a new in-memory afero file system for tests.
+func NewTestFS(t *testing.T) afero.Fs {
+	fs := afero.NewMemMapFs()
+	return fs
 }

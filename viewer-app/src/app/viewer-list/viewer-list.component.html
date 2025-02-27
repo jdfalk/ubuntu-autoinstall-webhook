@@ -1,0 +1,10 @@
+<div class="viewer-list-container">
+    <h2>Systems</h2>
+    <div class="node-box" *ngFor="let node of nodes" (click)="viewNode(node)">
+      <p><strong>Hostname:</strong> {{ node.hostname }}</p>
+      <p><strong>MAC Address:</strong> {{ node.mac }}</p>
+      <p><strong>IP Address:</strong> {{ node.ip }}</p>
+      <p><strong>iPXE Destination:</strong> {{ node.ipxeDestination }}</p>
+      <p><strong>Cloud-init:</strong> {{ node.cloudInitPhase }}</p>
+    </div>
+  </div>

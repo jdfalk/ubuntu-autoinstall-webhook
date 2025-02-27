@@ -18,6 +18,7 @@ import { CommonModule } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ViewerComponent } from './viewer/viewer.component';
+import { ViewerListComponent } from './viewer-list/viewer-list.component';
 import { ConfigEditorComponent } from './config-editor/config-editor.component';
 import { FormsModule } from '@angular/forms';
 // Import the ngx-monaco-editor-v2 module and initialize it.
@@ -34,7 +35,8 @@ import { MatListModule } from '@angular/material/list';
     declarations: [
         AppComponent,
         ViewerComponent,
-        ConfigEditorComponent
+        ConfigEditorComponent,
+        ViewerListComponent
     ],
     // Import necessary modules for the application.
     imports: [
