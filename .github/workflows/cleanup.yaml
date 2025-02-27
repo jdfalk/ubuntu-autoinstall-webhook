@@ -25,9 +25,9 @@ jobs:
           IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
           IMAGE_TAG="nightly"
 
-          # Fetch the list of nightly image versions older than 30 days
+          # Fetch the list of image versions that are tagged as "nightly" and older than 30 days.
           gh api --paginate "/user/packages/container/${IMAGE_NAME}/versions" \
-            --jq ".[] | select(.updated_at < \"$(date -d '30 days ago' --iso-8601=seconds)\") | .id" |
+            --jq ".[] | select(.metadata.container.tags[]? == \"${IMAGE_TAG}\") | select(.updated_at < \"$(date -d '30 days ago' --iso-8601=seconds)\") | .id" |
             while read -r image_id; do
               echo "Deleting image ID: $image_id"
               gh api -X DELETE "/user/packages/container/${IMAGE_NAME}/versions/$image_id"

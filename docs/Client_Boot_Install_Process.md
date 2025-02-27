@@ -1,3 +1,20 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Client Boot and Install Process Document](#client-boot-and-install-process-document)
+  - [**1. Overview**](#1-overview)
+  - [**2. Boot Process**](#2-boot-process)
+    - [**2.1. PXE Boot & iPXE Chainloading**](#21-pxe-boot--ipxe-chainloading)
+  - [**3. Installation Process**](#3-installation-process)
+    - [**3.1. Live Ubuntu Boot with Cloud-Init**](#31-live-ubuntu-boot-with-cloud-init)
+    - [**3.2. Sending Logs & Status Updates**](#32-sending-logs--status-updates)
+    - [**3.3. Post-Install Configuration**](#33-post-install-configuration)
+  - [**4. Error Handling & Recovery**](#4-error-handling--recovery)
+  - [**5. Conclusion**](#5-conclusion)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Client Boot and Install Process Document
 
 ## **1. Overview**

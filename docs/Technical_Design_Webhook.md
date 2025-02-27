@@ -1,3 +1,23 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Technical Design Document for Ubuntu Autoinstall Webhook](#technical-design-document-for-ubuntu-autoinstall-webhook)
+  - [**1. Overview**](#1-overview)
+  - [**2. Architecture**](#2-architecture)
+    - [**2.1. High-Level Architecture**](#21-high-level-architecture)
+    - [**2.2. Component Breakdown**](#22-component-breakdown)
+      - [**2.2.1. Webhook API**](#221-webhook-api)
+      - [**2.2.2. Database**](#222-database)
+      - [**2.2.3. iPXE Configuration Server**](#223-ipxe-configuration-server)
+      - [**2.2.4. Cloud-Init Configuration Server**](#224-cloud-init-configuration-server)
+  - [**3. Data Flow**](#3-data-flow)
+  - [**4. Error Handling & Recovery**](#4-error-handling--recovery)
+  - [**5. Deployment & Scaling**](#5-deployment--scaling)
+  - [**6. Conclusion**](#6-conclusion)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Technical Design Document for Ubuntu Autoinstall Webhook
 
 ## **1. Overview**
