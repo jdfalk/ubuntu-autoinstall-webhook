@@ -7,10 +7,45 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger" // Import the centralized logger
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+// --- File System Abstraction ---
+
+// FileSystem is an interface for file system operations.
+type FileSystem interface {
+	Stat(name string) (os.FileInfo, error)
+	MkdirAll(path string, perm os.FileMode) error
+	WriteFile(filename string, data []byte, perm os.FileMode) error
+	UserHomeDir() (string, error)
+}
+
+// OsFs is a wrapper for the actual OS file system.
+type OsFs struct{}
+
+// Stat returns the FileInfo structure describing the file.
+func (OsFs) Stat(name string) (os.FileInfo, error) {
+	return os.Stat(name)
+}
+
+// MkdirAll creates a directory named path, along with any necessary parents.
+func (OsFs) MkdirAll(path string, perm os.FileMode) error {
+	return os.MkdirAll(path, perm)
+}
+
+// WriteFile writes data to a file named by filename with the given permissions.
+func (OsFs) WriteFile(filename string, data []byte, perm os.FileMode) error {
+	return os.WriteFile(filename, data, perm)
+}
+
+// UserHomeDir returns the current user's home directory.
+func (OsFs) UserHomeDir() (string, error) {
+	return os.UserHomeDir()
+}
+
+// --- End File System Abstraction ---
 
 // Global variables for flags.
 var configFile string
@@ -46,7 +81,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Path to the config file")
 	rootCmd.PersistentFlags().StringVar(&logDir, "logDir", "", "Directory for log storage")
 
-	// OsFs is implemented in filesystem.go.
+	// Use OsFs as the file system implementation.
 	cobra.OnInitialize(func() { initConfig(OsFs{}) })
 }
 
@@ -103,7 +138,7 @@ func initConfig(fs FileSystem) {
 	}
 
 	// Process (ensure missing options are added and file is organized).
-	if err := processConfigFile(); err != nil {
+	if err := processConfigFile(fs); err != nil {
 		logger.Errorf("Failed to process config file: %v", err)
 	}
 
@@ -120,7 +155,7 @@ func initConfig(fs FileSystem) {
 	logger.Infof("Database enabled (bool): %v", viper.GetBool("database.enabled"))
 
 	// Validate paths with fallback logic.
-	if err := validatePaths(); err != nil {
+	if err := validatePaths(fs); err != nil {
 		logger.Errorf("%s", err.Error())
 		os.Exit(1)
 	}
@@ -159,7 +194,7 @@ func deduplicateConsecutive(lines []string) []string {
 // processConfigFile reads the existing config file (or creates a new one)
 // and appends any missing configuration options with default values, then
 // organizes the file into fixed sections.
-func processConfigFile() error {
+func processConfigFile(fs FileSystem) error {
 	configPath := viper.ConfigFileUsed()
 	if configPath == "" {
 		configPath = "config.yaml"
@@ -345,7 +380,7 @@ func processConfigFile() error {
 						outputLines = append(outputLines, comm)
 					}
 				}
-				// Replace loop with a single append operation as suggested by S1011.
+				// Replace loop with a single append operation.
 				outputLines = append(outputLines, blk.Lines...)
 			}
 		}
@@ -357,7 +392,7 @@ func processConfigFile() error {
 	organizedContent := strings.Join(finalLines, "\n")
 
 	// Write the organized config file using candidate locations.
-	if err := writeFileToCandidateLocations(filepath.Base(configPath), []byte(organizedContent)); err != nil {
+	if err := writeFileToCandidateLocations(fs, filepath.Base(configPath), []byte(organizedContent)); err != nil {
 		return err
 	}
 
@@ -365,7 +400,7 @@ func processConfigFile() error {
 }
 
 // writeFileToCandidateLocations attempts to write a file by trying multiple candidate locations.
-func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
+func writeFileToCandidateLocations(fs FileSystem, fileToCheck string, data []byte) error {
 	var candidates []string
 
 	// Candidate 1: directory of the config file (if available).
@@ -376,7 +411,7 @@ func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
 	// Candidate 2: current directory under "ubuntu-autoinstall-webhook".
 	candidates = append(candidates, filepath.Join(".", "ubuntu-autoinstall-webhook", fileToCheck))
 	// Candidate 3: user's home directory under ubuntu-autoinstall-webhook.
-	if homeDir, err := os.UserHomeDir(); err == nil {
+	if homeDir, err := fs.UserHomeDir(); err == nil {
 		candidates = append(candidates, filepath.Join(homeDir, "ubuntu-autoinstall-webhook", fileToCheck))
 	}
 	// Candidate 4: temporary directory under ubuntu-autoinstall-webhook.
@@ -384,11 +419,11 @@ func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
 
 	var lastErr error
 	for _, candidatePath := range candidates {
-		if err := os.MkdirAll(filepath.Dir(candidatePath), 0755); err != nil {
+		if err := fs.MkdirAll(filepath.Dir(candidatePath), 0755); err != nil {
 			lastErr = err
 			continue
 		}
-		if err := os.WriteFile(candidatePath, data, 0644); err != nil {
+		if err := fs.WriteFile(candidatePath, data, 0644); err != nil {
 			lastErr = err
 			logger.Warningf("Failed to write file to %s: %v", candidatePath, err)
 			continue
@@ -400,26 +435,27 @@ func writeFileToCandidateLocations(fileToCheck string, data []byte) error {
 }
 
 // ensureFolderExists checks if a folder exists and is writable by creating a temporary file.
-func ensureFolderExists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.MkdirAll(path, 0755); err != nil {
+func ensureFolderExists(fs FileSystem, path string) bool {
+	if _, err := fs.Stat(path); os.IsNotExist(err) {
+		if err := fs.MkdirAll(path, 0755); err != nil {
 			return false
 		}
 	}
 	// Try writing a temporary file.
 	testFile := filepath.Join(path, ".tmp")
-	if err := os.WriteFile(testFile, []byte{}, 0644); err != nil {
+	if err := fs.WriteFile(testFile, []byte{}, 0644); err != nil {
 		return false
 	}
+	// Remove the temporary file.
 	os.Remove(testFile)
 	return true
 }
 
 // getAvailableFolder attempts to use the provided folder and a set of alternatives.
-func getAvailableFolder(defaultPath string, alternatives ...string) (string, error) {
+func getAvailableFolder(fs FileSystem, defaultPath string, alternatives ...string) (string, error) {
 	paths := append([]string{defaultPath}, alternatives...)
 	for _, path := range paths {
-		if !ensureFolderExists(path) {
+		if !ensureFolderExists(fs, path) {
 			logger.Warningf("Cannot use folder %s trying next candidate.", path)
 			continue
 		}
@@ -430,7 +466,7 @@ func getAvailableFolder(defaultPath string, alternatives ...string) (string, err
 
 // validatePaths uses fallback logic for critical directories.
 // It also checks for invalid characters or sequences in the original path.
-func validatePaths() error {
+func validatePaths(fs FileSystem) error {
 	keys := []string{"logDir", "ipxe_folder", "boot_customization_folder", "cloud_init_folder"}
 	for _, key := range keys {
 		originalPath := viper.GetString(key)
@@ -443,7 +479,7 @@ func validatePaths() error {
 		// Candidate 2: current working directory.
 		cand2 := filepath.Join(".", "ubuntu-autoinstall-webhook", base)
 		// Candidate 3: user's home directory.
-		home, err := os.UserHomeDir()
+		home, err := fs.UserHomeDir()
 		if err != nil {
 			home = "."
 		}
@@ -451,7 +487,7 @@ func validatePaths() error {
 		// Candidate 4: temporary directory.
 		cand4 := filepath.Join(os.TempDir(), "ubuntu-autoinstall-webhook", base)
 
-		available, err := getAvailableFolder(originalPath, cand2, cand3, cand4)
+		available, err := getAvailableFolder(fs, originalPath, cand2, cand3, cand4)
 		if err != nil {
 			return fmt.Errorf("failed to validate path for %s: %v", key, err)
 		}

@@ -56,7 +56,16 @@ func RegisterRoutes() {
 	http.HandleFunc("/api/hardware-info", handlers.HardwareInfoHandler)
 	http.HandleFunc("/api/cloud-init", handlers.CloudInitUpdateHandler)
 	http.HandleFunc("/api/viewer", handlers.ViewerHandler)
-	http.HandleFunc("/api/viewer/", handlers.ViewerDetailHandler)
+	http.HandleFunc("/api/viewer/", func(w http.ResponseWriter, r *http.Request) {
+		// Extract the part after "/api/viewer/"
+		id := strings.TrimPrefix(r.URL.Path, "/api/viewer/")
+		// If no id parameter is provided, fall back to ViewerHandler.
+		if id == "" {
+			handlers.ViewerHandler(w, r)
+			return
+		}
+		handlers.ViewerDetailHandler(w, r)
+	})
 }
 
 // StartServer configures HTTP handlers then starts the HTTP server on the specified port.
