@@ -1,3 +1,27 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Developer Guide for Ubuntu Autoinstall Webhook](#developer-guide-for-ubuntu-autoinstall-webhook)
+  - [**1. Introduction**](#1-introduction)
+  - [**2. Setting Up the Development Environment**](#2-setting-up-the-development-environment)
+    - [**2.1. Prerequisites**](#21-prerequisites)
+    - [**2.2. Cloning the Repository**](#22-cloning-the-repository)
+    - [**2.3. Installing Dependencies**](#23-installing-dependencies)
+    - [**2.4. Running the Webhook Locally**](#24-running-the-webhook-locally)
+  - [**3. Webhook API Documentation**](#3-webhook-api-documentation)
+    - [**3.1. Endpoints**](#31-endpoints)
+      - [`POST /hardware-info`](#post-hardware-info)
+      - [`POST /logs`](#post-logs)
+      - [`POST /status`](#post-status)
+  - [**4. Best Practices**](#4-best-practices)
+  - [**5. Deployment Instructions**](#5-deployment-instructions)
+    - [**5.1. Docker Deployment**](#51-docker-deployment)
+    - [**5.2. Kubernetes Deployment**](#52-kubernetes-deployment)
+  - [**6. Conclusion**](#6-conclusion)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Developer Guide for Ubuntu Autoinstall Webhook
 
 ## **1. Introduction**

@@ -1,3 +1,31 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Troubleshooting Manual for Ubuntu Autoinstall Webhook](#troubleshooting-manual-for-ubuntu-autoinstall-webhook)
+  - [**1. Introduction**](#1-introduction)
+  - [**2. Common Issues & Fixes**](#2-common-issues--fixes)
+    - [**2.1. Webhook API Not Responding**](#21-webhook-api-not-responding)
+      - [**Symptoms:**](#symptoms)
+      - [**Diagnostic Steps:**](#diagnostic-steps)
+      - [**Solution:**](#solution)
+    - [**2.2. PXE Boot Fails**](#22-pxe-boot-fails)
+      - [**Symptoms:**](#symptoms-1)
+      - [**Diagnostic Steps:**](#diagnostic-steps-1)
+      - [**Solution:**](#solution-1)
+    - [**2.3. Cloud-Init Fails to Fetch Configuration**](#23-cloud-init-fails-to-fetch-configuration)
+      - [**Symptoms:**](#symptoms-2)
+      - [**Diagnostic Steps:**](#diagnostic-steps-2)
+      - [**Solution:**](#solution-2)
+    - [**2.4. Webhook Does Not Receive Logs or Status Updates**](#24-webhook-does-not-receive-logs-or-status-updates)
+      - [**Symptoms:**](#symptoms-3)
+      - [**Diagnostic Steps:**](#diagnostic-steps-3)
+      - [**Solution:**](#solution-3)
+  - [**3. Additional Resources**](#3-additional-resources)
+  - [**4. Conclusion**](#4-conclusion)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Troubleshooting Manual for Ubuntu Autoinstall Webhook
 
 ## **1. Introduction**

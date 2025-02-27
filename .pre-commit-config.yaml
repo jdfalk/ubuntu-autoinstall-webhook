@@ -1,0 +1,116 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: detect-aws-credentials
+      - id: detect-private-key
+      # - id: check-json
+      #   types: [json]
+      # - id: pretty-format-json
+      #   types: [json]
+      #   args: ["--autofix"]
+
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v1.9.4 # Use the sha / tag you want to point at
+    hooks:
+      - id: biome-check
+        args: ["--fix", "--write"]
+        types: [javascript]
+  # - repo: https://github.com/rhysd/actionlint
+  #   rev: v1.7.7
+  #   hooks:
+  #     # - id: actionlint
+  #     #   name: Lint GitHub Actions workflow files
+  #     #   description: Runs actionlint to lint GitHub Actions workflow files
+  #     #   language: golang
+  #     #   types: ["yaml"]
+  #     #   files: ^\.github/workflows/
+  #     #   entry: actionlint
+  #     #   minimum_pre_commit_version: 3.0.0
+  #     # - id: actionlint-docker
+  #     #   name: Lint GitHub Actions workflow files
+  #     #   description: Runs actionlint Docker image to lint GitHub Actions workflow files
+  #     #   language: docker_image
+  #     #   types: ["yaml"]
+  #     #   files: ^\.github/workflows/
+  #     #   entry: docker.io/rhysd/actionlint:1.7.7
+  #     - id: actionlint-system
+  #       name: Lint GitHub Actions workflow files
+  #       description: Runs system-installed actionlint to lint GitHub Actions workflow files
+  #       language: system
+  #       types: ["yaml"]
+  #       files: ^\.github/workflows/
+  #       entry: actionlint
+  - repo: https://github.com/thlorenz/doctoc
+    rev: v2.2.0
+    hooks:
+      - id: doctoc
+
+  - repo: https://github.com/bufbuild/buf
+    rev: v1.50.0
+    hooks:
+      - id: buf-generate
+        name: buf generate
+        language: golang
+        language_version: 1.23.0
+        entry: buf generate
+        types: [proto]
+        pass_filenames: false
+      - id: buf-breaking
+        name: buf breaking
+        language: golang
+        language_version: 1.23.0
+        entry: buf breaking
+        types: [proto]
+        pass_filenames: false
+      - id: buf-lint
+        name: buf lint
+        language: golang
+        language_version: 1.23.0
+        entry: buf lint
+        types: [proto]
+        pass_filenames: false
+      - id: buf-format
+        name: buf format
+        language: golang
+        language_version: 1.23.0
+        entry: buf format -w --exit-code
+        types: [proto]
+        pass_filenames: false
+      - id: buf-dep-update
+        name: buf dep update
+        language: golang
+        language_version: 1.23.0
+        entry: buf dep update
+        files: '(buf\.lock|buf\.yaml)'
+        pass_filenames: false
+      - id: buf-dep-prune
+        name: buf dep prune
+        language: golang
+        language_version: 1.23.0
+        entry: buf dep prune
+        files: '(buf\.lock|buf\.yaml)'
+        pass_filenames: false
+        # Deprecated: use buf-dep-update instead.
+      - id: buf-mod-update
+        name: buf mod update
+        language: golang
+        language_version: 1.23.0
+        entry: buf mod update
+        files: '(buf\.lock|buf\.yaml)'
+        pass_filenames: false
+        # Deprecated: use buf-dep-prune instead.
+      - id: buf-mod-prune
+        name: buf mod prune
+        language: golang
+        language_version: 1.23.0
+        entry: buf mod prune
+        files: '(buf\.lock|buf\.yaml)'
+        pass_filenames: false

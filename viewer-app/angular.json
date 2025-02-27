@@ -1,28 +1,40 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
-  "version": 1,
   "newProjectRoot": "projects",
   "projects": {
     "viewer-app": {
-      "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "root": "",
-      "sourceRoot": "src",
-      "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser-esbuild",
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "maximumError": "5MB",
+                  "maximumWarning": "2MB",
+                  "type": "initial"
+                },
+                {
+                  "maximumError": "6MB",
+                  "maximumWarning": "3MB",
+                  "type": "anyComponentStyle"
+                }
+              ],
+              "buildOptimizer": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "namedChunks": false,
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "vendorChunk": false
+            }
+          },
           "options": {
-            "outputPath": "dist/viewer-app",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "tsconfig.app.json",
-            "baseHref": "/viewer-app/",
             "assets": [
               "src/favicon.ico",
               "src/assets",
@@ -32,50 +44,17 @@
                 "output": "./assets/monaco"
               }
             ],
+            "baseHref": "/viewer-app/",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "outputPath": "dist/viewer-app",
+            "polyfills": "src/polyfills.ts",
+            "scripts": [],
             "styles": [
               "@angular/material/prebuilt-themes/azure-blue.css",
               "src/styles.scss"
             ],
-            "scripts": []
-          },
-          "configurations": {
-            "production": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ],
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "namedChunks": false,
-              "vendorChunk": false,
-              "buildOptimizer": true,
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "2MB",
-                  "maximumError": "5MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "3MB",
-                  "maximumError": "6MB"
-                }
-              ]
-            }
-          }
-        },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "viewer-app:build"
-          },
-          "configurations": {
-            "production": {
-              "browserTarget": "viewer-app:build:production"
-            }
+            "tsConfig": "tsconfig.app.json"
           }
         },
         "extract-i18n": {
@@ -84,39 +63,60 @@
             "browserTarget": "viewer-app:build"
           }
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "karmaConfig": "karma.conf.js",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
-            "styles": [
-              "@angular/material/prebuilt-themes/azure-blue.css",
-              "src/styles.scss"
-            ],
-            "scripts": []
-          }
-        },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
+            "exclude": [
+              "**/node_modules/**"
+            ],
             "tsConfig": [
               "tsconfig.app.json",
               "tsconfig.spec.json",
               "e2e/tsconfig.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
             ]
           }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "browserTarget": "viewer-app:build:production"
+            }
+          },
+          "options": {
+            "browserTarget": "viewer-app:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "assets": [
+              "src/favicon.ico",
+              "src/assets"
+            ],
+            "inlineStyleLanguage": "scss",
+            "karmaConfig": "karma.conf.js",
+            "main": "src/test.ts",
+            "polyfills": "src/polyfills.ts",
+            "scripts": [],
+            "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "src/styles.scss"
+            ],
+            "tsConfig": "tsconfig.spec.json"
+          }
         }
-      }
+      },
+      "prefix": "app",
+      "projectType": "application",
+      "root": "",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "sourceRoot": "src"
     }
-  }
+  },
+  "version": 1
 }

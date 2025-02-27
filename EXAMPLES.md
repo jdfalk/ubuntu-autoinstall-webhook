@@ -1,3 +1,17 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Webhook API Examples](#webhook-api-examples)
+  - [Sending a Webhook Request](#sending-a-webhook-request)
+    - [Example using cURL](#example-using-curl)
+    - [Example with Optional Fields](#example-with-optional-fields)
+  - [Example using Python](#example-using-python)
+  - [Example using Go](#example-using-go)
+  - [Expected Response](#expected-response)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Webhook API Examples
 
 This document provides examples of how to call the webhook API.

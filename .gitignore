@@ -33,3 +33,4 @@ ubuntu-autoinstall-webhook
 config.yaml
 *.bak
 
+.config.yaml

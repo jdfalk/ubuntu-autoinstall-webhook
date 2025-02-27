@@ -1,3 +1,28 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Test-Driven Design (TDD) for Ubuntu Autoinstall Webhook](#test-driven-design-tdd-for-ubuntu-autoinstall-webhook)
+  - [**1. Overview**](#1-overview)
+  - [**2. Functional Requirements & Test Cases**](#2-functional-requirements--test-cases)
+    - [**2.1. Collect Hardware Information**](#21-collect-hardware-information)
+      - [**Test Cases:**](#test-cases)
+    - [**2.2. Collect Logs**](#22-collect-logs)
+      - [**Test Cases:**](#test-cases-1)
+    - [**2.3. Monitor Cloud-Init Status**](#23-monitor-cloud-init-status)
+      - [**Test Cases:**](#test-cases-2)
+    - [**2.4. Modify iPXE Customization File**](#24-modify-ipxe-customization-file)
+      - [**Test Cases:**](#test-cases-3)
+    - [**2.5. Process Installation Flow**](#25-process-installation-flow)
+      - [**Test Cases:**](#test-cases-4)
+    - [**2.6. Authentication & Validation**](#26-authentication--validation)
+      - [**Test Cases:**](#test-cases-5)
+    - [**2.7. Webhook API for External Use**](#27-webhook-api-for-external-use)
+      - [**Test Cases:**](#test-cases-6)
+  - [**3. Conclusion**](#3-conclusion)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Test-Driven Design (TDD) for Ubuntu Autoinstall Webhook
 
 ## **1. Overview**

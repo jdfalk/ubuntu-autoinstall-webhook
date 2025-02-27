@@ -8,4 +8,3 @@ export const routes: Routes = [
   { path: 'viewer', component: ViewerComponent },
   { path: 'config-editor', component: ConfigEditorComponent }
 ];
-

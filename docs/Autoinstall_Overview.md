@@ -1,3 +1,17 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Ubuntu Autoinstall Webhook - Overview Document](#ubuntu-autoinstall-webhook---overview-document)
+  - [**1. Introduction**](#1-introduction)
+  - [**2. Key Features**](#2-key-features)
+  - [**3. High-Level Workflow**](#3-high-level-workflow)
+  - [**4. System Components**](#4-system-components)
+  - [**5. Deployment Considerations**](#5-deployment-considerations)
+  - [**6. Conclusion**](#6-conclusion)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Ubuntu Autoinstall Webhook - Overview Document
 
 ## **1. Introduction**
