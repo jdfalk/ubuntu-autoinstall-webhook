@@ -9,7 +9,13 @@ import (
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/server"
 )
 
-// Serve command
+/*
+InitDBFunc is the exported function variable for initializing the database.
+It is set to the real db.InitDB by default but can be overridden for testing.
+*/
+var InitDBFunc = db.InitDB
+
+// serveCmd represents the "serve" command, which starts the webhook server.
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the webhook server",
@@ -19,19 +25,19 @@ var serveCmd = &cobra.Command{
 		if port == "" {
 			port = "8080"
 		}
-		// Initialize the database connection.
-		// This function should be defined in the db package.
-		// It should return an error if the connection fails.
-		err := db.InitDB()
+
+		// Initialize the database connection using the exported InitDBFunc.
+		err := InitDBFunc()
 		if err != nil {
 			logger.Errorf("Error initializing database: %v", err.Error())
 			return
 		}
-		// Ensure the database is closed when the server stops.
-		defer db.CloseDB()
+		// Ensure the database is closed when the server stops using the shared SafeClose helper.
+		defer db.SafeClose()
+
 		// Log the startup message.
 		logger.Infof("Webhook server running on port %s", port)
-		// Start the server using the proper function.
+		// Start the server on the specified port.
 		server.StartServer(port)
 	},
 }

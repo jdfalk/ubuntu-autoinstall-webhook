@@ -5,6 +5,7 @@ import (
 	"io/fs"
 )
 
+//go:generate rm -rf dist node_modules
 //go:generate npm install
 //go:generate npm run build
 //go:embed dist/viewer-app/*

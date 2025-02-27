@@ -3,7 +3,7 @@ package logger
 // Package logger provides centralized logging functionality for the application.
 // It handles logging to both files and the database. To enable database logging,
 // the application must inject a DB executor (for example, the global DB connection)
-// by calling SetDBExecutor. This package also provides a standard logger instance
+// by calling SetDBExecutor. This package also provides a standard logger instance.
 
 import (
 	"database/sql"
@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/spf13/viper"
@@ -27,10 +28,35 @@ type DBExecutor interface {
 // dbExecutor holds the injected database executor for logging to the database.
 var dbExecutor DBExecutor
 
+// bufferedLog represents a log message that would be written to the system_logs table.
+type bufferedLog struct {
+	level   string
+	message string
+}
+
+var (
+	// systemSQLBuffer buffers log messages until the DB executor is initialized.
+	systemSQLBuffer []bufferedLog
+	// bufferMutex protects access to the systemSQLBuffer.
+	bufferMutex sync.Mutex
+)
+
 // SetDBExecutor injects the DB executor to be used by the logger package.
 // Call this during initialization (after establishing a DB connection).
+// When set, any buffered log messages are flushed.
 func SetDBExecutor(executor DBExecutor) {
+	bufferMutex.Lock()
+	defer bufferMutex.Unlock()
 	dbExecutor = executor
+	// Flush any buffered messages to the database.
+	for _, bl := range systemSQLBuffer {
+		query := `INSERT INTO system_logs (timestamp, level, message) VALUES ($1, $2, $3)`
+		_, err := dbExecutor.Exec(query, time.Now(), bl.level, bl.message)
+		if err != nil {
+			log.Printf("Error logging buffered message to system_logs: %v", err)
+		}
+	}
+	systemSQLBuffer = nil
 }
 
 // Logger is the standard logger instance used by the application.
@@ -88,9 +114,13 @@ func AppendToFile(format string, a ...interface{}) {
 }
 
 // AppendToSystemSQL writes a log entry to the system_logs table in the database.
+// If the database executor has not yet been injected, the message is buffered.
 func AppendToSystemSQL(level, message string) {
+	bufferMutex.Lock()
+	defer bufferMutex.Unlock()
 	if dbExecutor == nil {
-		fmt.Printf("DB not configured; skipping system SQL logging: level=%s, message=%s\n", level, message)
+		// Buffer the log message instead of printing "DB not configured..."
+		systemSQLBuffer = append(systemSQLBuffer, bufferedLog{level: level, message: message})
 		return
 	}
 	query := `INSERT INTO system_logs (timestamp, level, message) VALUES ($1, $2, $3)`

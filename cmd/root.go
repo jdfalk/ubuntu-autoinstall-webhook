@@ -19,7 +19,9 @@ type FileSystem interface {
 	Stat(name string) (os.FileInfo, error)
 	MkdirAll(path string, perm os.FileMode) error
 	WriteFile(filename string, data []byte, perm os.FileMode) error
+	ReadFile(filename string) ([]byte, error)
 	UserHomeDir() (string, error)
+	Remove(name string) error
 }
 
 // OsFs is a wrapper for the actual OS file system.
@@ -40,9 +42,19 @@ func (OsFs) WriteFile(filename string, data []byte, perm os.FileMode) error {
 	return os.WriteFile(filename, data, perm)
 }
 
+// ReadFile reads the contents of the file.
+func (OsFs) ReadFile(filename string) ([]byte, error) {
+	return os.ReadFile(filename)
+}
+
 // UserHomeDir returns the current user's home directory.
 func (OsFs) UserHomeDir() (string, error) {
 	return os.UserHomeDir()
+}
+
+// Remove removes the file with the given name.
+func (OsFs) Remove(name string) error {
+	return os.Remove(name)
 }
 
 // --- End File System Abstraction ---
@@ -86,7 +98,6 @@ func init() {
 }
 
 // keyExistsInContent checks if a key (with colon) exists anywhere in the provided content.
-// It returns true if the key followed by a colon is found.
 func keyExistsInContent(content, key string) bool {
 	return strings.Contains(content, key+":")
 }
@@ -112,9 +123,7 @@ func initConfig(fs FileSystem) {
 	viper.SetDefault("port", "5000")
 	viper.SetDefault("logDir", "/var/log/autoinstall-webhook")
 	viper.SetDefault("logFile", "autoinstall_report.log")
-	// New viper default for log level output.
 	viper.SetDefault("logLevel", "INFO")
-	// Database defaults – note that now the default for "enabled" is false.
 	viper.SetDefault("database.enabled", false)
 	viper.SetDefault("database.type", "postgres")
 	viper.SetDefault("database.host", "localhost")
@@ -142,14 +151,17 @@ func initConfig(fs FileSystem) {
 		logger.Errorf("Failed to process config file: %v", err)
 	}
 
-	// Re-read the config file so that Viper picks up the new defaults and organization.
-	if err := viper.ReadInConfig(); err != nil {
-		logger.Warningf("Error re-reading config file: %v", err)
+	// Force re-read of the processed config from our injected FS.
+	if data, err := fs.ReadFile(viper.ConfigFileUsed()); err == nil {
+		if err := viper.ReadConfig(strings.NewReader(string(data))); err != nil {
+			logger.Warningf("Error re-reading processed config file: %v", err)
+		} else {
+			logger.Infof("Successfully re-read processed config file")
+		}
 	} else {
-		logger.Infof("Re-loaded config file with updated settings")
+		logger.Warningf("Error reading processed config file: %v", err)
 	}
 
-	// DEBUG: Log all settings and the database.enabled value.
 	logger.Infof("All config settings: %#v", viper.AllSettings())
 	logger.Infof("Raw database.enabled: %#v", viper.Get("database.enabled"))
 	logger.Infof("Database enabled (bool): %v", viper.GetBool("database.enabled"))
@@ -160,7 +172,6 @@ func initConfig(fs FileSystem) {
 		os.Exit(1)
 	}
 
-	// Enable ENV variables (e.g. WEBHOOK_PORT, WEBHOOK_LOGDIR, etc.).
 	viper.AutomaticEnv()
 }
 
@@ -192,16 +203,16 @@ func deduplicateConsecutive(lines []string) []string {
 }
 
 // processConfigFile reads the existing config file (or creates a new one)
-// and appends any missing configuration options with default values, then
-// organizes the file into fixed sections.
+// using the provided FileSystem, appends any missing configuration options with default values,
+// and organizes the file into fixed sections.
 func processConfigFile(fs FileSystem) error {
 	configPath := viper.ConfigFileUsed()
 	if configPath == "" {
 		configPath = "config.yaml"
 	}
 
-	// Read existing config.
-	contentBytes, err := os.ReadFile(configPath)
+	// Read existing config using the injected FS.
+	contentBytes, err := fs.ReadFile(configPath)
 	existingContent := ""
 	if err == nil {
 		existingContent = string(contentBytes)
@@ -211,7 +222,6 @@ func processConfigFile(fs FileSystem) error {
 
 	var missingEntries []string
 	header := "# Missing configuration options (added automatically)"
-	// Check for missing flat keys.
 	if !keyExistsInContent(existingContent, "port") {
 		missingEntries = append(missingEntries, "# port: 25000")
 	}
@@ -221,7 +231,6 @@ func processConfigFile(fs FileSystem) error {
 	if !keyExistsInContent(existingContent, "logFile") {
 		missingEntries = append(missingEntries, "# logFile: \"autoinstall_report.log\"")
 	}
-	// For database, check if the block exists; if not, add a nested block.
 	if !strings.Contains(existingContent, "database:") {
 		missingEntries = append(missingEntries, "# Database Configuration")
 		missingEntries = append(missingEntries, "database:")
@@ -237,7 +246,6 @@ func processConfigFile(fs FileSystem) error {
 		missingEntries = append(missingEntries, "  max_idle_conns: 10")
 		missingEntries = append(missingEntries, "  conn_max_lifetime: 3600")
 	}
-	// Other keys.
 	if !keyExistsInContent(existingContent, "ipxe_folder") {
 		missingEntries = append(missingEntries, "# ipxe_folder: \"/var/www/html/ipxe\"")
 	}
@@ -256,8 +264,6 @@ func processConfigFile(fs FileSystem) error {
 		combinedContent = existingContent
 	}
 
-	// Organize the config file using fixed sections.
-	// Treat "database" as one block.
 	knownKeys := map[string]bool{
 		"port":                      true,
 		"logDir":                    true,
@@ -302,7 +308,6 @@ func processConfigFile(fs FileSystem) error {
 			i++
 			continue
 		}
-		// Handle the database block as a single unit.
 		if strings.HasPrefix(trimmed, "database:") {
 			blk := ConfigBlock{
 				Key:      "database",
@@ -311,7 +316,6 @@ func processConfigFile(fs FileSystem) error {
 			}
 			pendingComments = nil
 			i++
-			// Capture following indented lines as part of the database block.
 			for i < len(lines) {
 				nextLine := lines[i]
 				if nextLine != strings.TrimLeft(nextLine, " ") && strings.TrimSpace(nextLine) != "" {
@@ -324,7 +328,6 @@ func processConfigFile(fs FileSystem) error {
 			blocks["database"] = blk
 			continue
 		}
-		// Process flat keys.
 		if line == strings.TrimLeft(line, " ") && strings.Contains(trimmed, ":") {
 			parts := strings.SplitN(trimmed, ":", 2)
 			key := strings.TrimSpace(parts[0])
@@ -336,7 +339,6 @@ func processConfigFile(fs FileSystem) error {
 					Lines:    []string{line},
 				}
 				pendingComments = nil
-				// Capture subsequent indented lines.
 				for i++; i < len(lines); i++ {
 					nextLine := lines[i]
 					if nextLine != strings.TrimLeft(nextLine, " ") && strings.TrimSpace(nextLine) != "" {
@@ -355,7 +357,6 @@ func processConfigFile(fs FileSystem) error {
 		i++
 	}
 
-	// Define sections.
 	type Section struct {
 		Header string
 		Keys   []string
@@ -380,18 +381,15 @@ func processConfigFile(fs FileSystem) error {
 						outputLines = append(outputLines, comm)
 					}
 				}
-				// Replace loop with a single append operation.
 				outputLines = append(outputLines, blk.Lines...)
 			}
 		}
 		outputLines = append(outputLines, "")
 	}
 
-	// Remove any consecutive duplicate lines.
 	finalLines := deduplicateConsecutive(outputLines)
 	organizedContent := strings.Join(finalLines, "\n")
 
-	// Write the organized config file using candidate locations.
 	if err := writeFileToCandidateLocations(fs, filepath.Base(configPath), []byte(organizedContent)); err != nil {
 		return err
 	}
@@ -403,18 +401,14 @@ func processConfigFile(fs FileSystem) error {
 func writeFileToCandidateLocations(fs FileSystem, fileToCheck string, data []byte) error {
 	var candidates []string
 
-	// Candidate 1: directory of the config file (if available).
 	if configPath := viper.ConfigFileUsed(); configPath != "" {
 		configDir := filepath.Dir(configPath)
 		candidates = append(candidates, filepath.Join(configDir, fileToCheck))
 	}
-	// Candidate 2: current directory under "ubuntu-autoinstall-webhook".
 	candidates = append(candidates, filepath.Join(".", "ubuntu-autoinstall-webhook", fileToCheck))
-	// Candidate 3: user's home directory under ubuntu-autoinstall-webhook.
 	if homeDir, err := fs.UserHomeDir(); err == nil {
 		candidates = append(candidates, filepath.Join(homeDir, "ubuntu-autoinstall-webhook", fileToCheck))
 	}
-	// Candidate 4: temporary directory under ubuntu-autoinstall-webhook.
 	candidates = append(candidates, filepath.Join(os.TempDir(), "ubuntu-autoinstall-webhook", fileToCheck))
 
 	var lastErr error
@@ -441,13 +435,11 @@ func ensureFolderExists(fs FileSystem, path string) bool {
 			return false
 		}
 	}
-	// Try writing a temporary file.
 	testFile := filepath.Join(path, ".tmp")
 	if err := fs.WriteFile(testFile, []byte{}, 0644); err != nil {
 		return false
 	}
-	// Remove the temporary file.
-	os.Remove(testFile)
+	fs.Remove(testFile)
 	return true
 }
 
@@ -470,21 +462,17 @@ func validatePaths(fs FileSystem) error {
 	keys := []string{"logDir", "ipxe_folder", "boot_customization_folder", "cloud_init_folder"}
 	for _, key := range keys {
 		originalPath := viper.GetString(key)
-		// Check for illegal sequences in the original path.
 		if strings.Contains(originalPath, "..") || strings.Contains(originalPath, "~") || strings.Contains(originalPath, "//") {
 			return fmt.Errorf("invalid path %s for key %s: contains illegal characters or sequences", originalPath, key)
 		}
 
 		base := filepath.Base(originalPath)
-		// Candidate 2: current working directory.
 		cand2 := filepath.Join(".", "ubuntu-autoinstall-webhook", base)
-		// Candidate 3: user's home directory.
 		home, err := fs.UserHomeDir()
 		if err != nil {
 			home = "."
 		}
 		cand3 := filepath.Join(home, "ubuntu-autoinstall-webhook", base)
-		// Candidate 4: temporary directory.
 		cand4 := filepath.Join(os.TempDir(), "ubuntu-autoinstall-webhook", base)
 
 		available, err := getAvailableFolder(fs, originalPath, cand2, cand3, cand4)

@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ConfigEditorComponent } from './config-editor.component';
 
 describe('ConfigEditorComponent', () => {
@@ -8,9 +7,15 @@ describe('ConfigEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ConfigEditorComponent]
+      // If you’re using a standalone component approach, or if you’re
+      // using a module-based approach, ensure all needed imports are here.
+      imports: [
+        // The component itself
+        ConfigEditorComponent
+        // Possibly MatToolbarModule, MatButtonModule, FormsModule, etc. if testing those.
+      ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(ConfigEditorComponent);
     component = fixture.componentInstance;

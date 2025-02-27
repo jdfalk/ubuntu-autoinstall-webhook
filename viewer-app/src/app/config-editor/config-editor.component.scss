@@ -1,14 +1,30 @@
 // config-editor.component.scss
+
+// Original container styling
 .config-editor-container {
     padding: 20px;
     background-color: #fff;
 
     h2 {
-        margin-bottom: 10px;
-        color: #333;
+      margin-bottom: 10px;
+      color: #333;
     }
 
     ngx-monaco-editor {
-        display: block;
+      display: block;
+      height: 500px; // You can set a specific height so the editor is visible
     }
-}
+  }
+
+  // Optional styling for the new toolbars
+  .top-toolbar {
+    // Top bar styling if needed
+  }
+
+  .menu-toolbar {
+    // Second bar with buttons
+  }
+
+  .editor-toolbar {
+    // Third bar for "Configuration Editor"
+  }
