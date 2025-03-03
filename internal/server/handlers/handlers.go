@@ -15,11 +15,12 @@ import (
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/ipxe"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/logger"
 	"github.com/spf13/viper"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/types"
 )
 
 // LogWriter defines an interface for logging events.
 type LogWriter interface {
-	Write(event Event) error
+	Write(event types.Event) error
 }
 
 // FileLogWriter is the production implementation that writes JSON logs to a file.
@@ -28,7 +29,7 @@ type FileLogWriter struct {
 }
 
 // Write writes the event as JSON to a file determined by its SourceIP.
-func (w *FileLogWriter) Write(event Event) error {
+func (w *FileLogWriter) Write(event types.Event) error {
 	ipFilename := formatIPFilename(event.SourceIP)
 	logFilePath := filepath.Join(w.LogDir, ipFilename)
 
@@ -65,28 +66,6 @@ var FileLogger LogWriter = &FileLogWriter{
 	}(),
 }
 
-// File represents an optional file entry in the event payload.
-type File struct {
-	Content  string `json:"content"`  // Base64 encoded content
-	Path     string `json:"path"`     // File path
-	Encoding string `json:"encoding"` // Encoding format (e.g., base64)
-}
-
-// Event represents the webhook payload structure.
-type Event struct {
-	Origin      string  `json:"origin"`
-	Timestamp   float64 `json:"timestamp"`
-	EventType   string  `json:"event_type"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Result      string  `json:"result,omitempty"` // Some events may have a "result"
-	Files       []File  `json:"files,omitempty"`  // Optional files attribute
-	SourceIP    string  `json:"source_ip"`        // IP of the client
-	Status      string  `json:"status,omitempty"`
-	Progress    int     `json:"progress,omitempty"`
-	Message     string  `json:"message,omitempty"`
-}
-
 // WebhookHandler processes incoming webhook events.
 func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -96,7 +75,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	clientIP := getClientIP(r)
 
-	var event Event
+	var event types.Event
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
@@ -104,7 +83,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	event.SourceIP = clientIP
 
 	timestamp := time.Unix(int64(event.Timestamp), 0).Format(time.RFC3339)
-	logger.Infof("%s - Event: %+v", timestamp, event)
+	logger.Infof("%s - types.Event: %+v", timestamp, event)
 
 	if err := FileLogger.Write(event); err != nil {
 		logger.Errorf("Error logging to file: %v", err)
