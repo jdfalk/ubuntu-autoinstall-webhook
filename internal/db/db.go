@@ -267,7 +267,13 @@ func GetLatestIPXEConfig(macAddress, phase string) (IpxeConfig, error) {
 func SaveClientLog(event interface{}) {
 	e, ok := event.(map[string]interface{})
 	if !ok {
-		logger.Errorf("SaveClientLog: invalid event format")
+		// Attempt to marshal the event for logging
+		receivedEvent, err := json.Marshal(event)
+		if err != nil {
+			receivedEvent = []byte(fmt.Sprintf("%+v", event))
+		}
+		expectedFormat := `{"source_ip": "string", "timestamp": "float64", "origin": "string", "description": "string", "name": "string", "result": "string (optional)", "event_type": "string", "files": "array (optional)"}`
+		logger.Errorf("SaveClientLog: invalid event format. Received: %s. Expected: %s", string(receivedEvent), expectedFormat)
 		return
 	}
 	// Extract required fields.
@@ -292,7 +298,13 @@ func SaveClientLog(event interface{}) {
 func SaveClientStatus(event interface{}) {
 	e, ok := event.(map[string]interface{})
 	if !ok {
-		logger.Errorf("SaveClientStatus: invalid event format")
+		// Attempt to marshal the event for logging
+		receivedEvent, err := json.Marshal(event)
+		if err != nil {
+			receivedEvent = []byte(fmt.Sprintf("%+v", event))
+		}
+		expectedFormat := `{"source_ip": "string", "status": "string", "progress": "float64", "message": "string"}`
+		logger.Errorf("SaveClientStatus: invalid event format. Received: %s. Expected: %s", string(receivedEvent), expectedFormat)
 		return
 	}
 	sourceIP, _ := e["source_ip"].(string)
@@ -325,38 +337,6 @@ func CloseDB() error {
 	return nil
 }
 
-// --- Type definitions for log queries ---
-
-// ClientLogDetail provides detailed information for a client log.
-type ClientLogDetail struct {
-	ID          int
-	ClientID    string
-	Timestamp   time.Time
-	Origin      string
-	Description string
-	Name        string
-	Result      string
-	EventType   string
-	Files       string
-	CreatedAt   time.Time
-}
-
-// IpxeConfig represents an iPXE configuration.
-type IpxeConfig struct {
-	ID        int
-	ClientID  string
-	Config    string
-	CreatedAt time.Time
-}
-
-// CloudInitConfig represents a cloud-init configuration.
-type CloudInitConfig struct {
-	ID         int
-	ClientID   string
-	MacAddress string
-	UserData   string
-	CreatedAt  time.Time
-}
 
 // --- DB Query Functions ---
 
