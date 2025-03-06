@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/mock"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/types"
 )
 
 var mockDB *sql.DB
@@ -30,7 +31,7 @@ type MockLogWriter struct {
 	mock.Mock
 }
 
-func (m *MockLogWriter) Write(event handlers.Event) error {
+func (m *MockLogWriter) Write(event types.Event) error {
 	args := m.Called(event)
 	return args.Error(0)
 }
@@ -90,7 +91,7 @@ func TestWebhookHandler_Success(t *testing.T) {
 	handlers.FileLogger = mockLogger
 
 	// Create an event. (Note: SourceIP will be derived from r.RemoteAddr.)
-	event := handlers.Event{
+	event :=  types.Event{
 		Origin:      "curtin",
 		Timestamp:   float64(time.Now().Unix()),
 		EventType:   "finish",
@@ -115,7 +116,7 @@ func TestWebhookHandler_Success(t *testing.T) {
 	expected := event
 	expected.SourceIP = "192.168.1.1"
 	mockLogger.
-		On("Write", mock.MatchedBy(func(e handlers.Event) bool {
+		On("Write", mock.MatchedBy(func(e  types.Event) bool {
 			return e.Origin == expected.Origin &&
 				e.EventType == expected.EventType &&
 				e.Name == expected.Name &&
@@ -171,7 +172,7 @@ func TestWebhookHandler_StatusUpdate(t *testing.T) {
 	mockLogger := new(MockLogWriter)
 	handlers.FileLogger = mockLogger
 
-	event := handlers.Event{
+	event :=  types.Event{
 		Origin:      "curtin",
 		Timestamp:   float64(time.Now().Unix()),
 		EventType:   "status",
@@ -195,7 +196,7 @@ func TestWebhookHandler_StatusUpdate(t *testing.T) {
 	expected := event
 	expected.SourceIP = "192.168.1.2"
 	mockLogger.
-		On("Write", mock.MatchedBy(func(e handlers.Event) bool {
+		On("Write", mock.MatchedBy(func(e  types.Event) bool {
 			return e.Origin == expected.Origin &&
 				e.EventType == expected.EventType &&
 				e.Name == expected.Name &&

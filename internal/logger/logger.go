@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/types"
 )
 
 // DBExecutor defines the minimal interface required to execute SQL commands.
@@ -67,19 +68,6 @@ func init() {
 	Logger = log.New(os.Stdout, "APP_LOG: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
-// Event represents a log event with optional fields for client logging.
-type Event struct {
-	Origin      string  `json:"origin"`
-	Timestamp   float64 `json:"timestamp"`
-	EventType   string  `json:"event_type"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Result      string  `json:"result"`
-	Status      string  `json:"status"`
-	Progress    int     `json:"progress"`
-	Message     string  `json:"message"`
-	SourceIP    string  `json:"source_ip"`
-}
 
 /*
 AppendToFile constructs a formatted log entry and appends it to a log file.
@@ -131,7 +119,7 @@ func AppendToSystemSQL(level, message string) {
 }
 
 // AppendToClientLogsSQL writes an event to the client_logs table in the database.
-func AppendToClientLogsSQL(event Event) {
+func AppendToClientLogsSQL(event  types.Event) {
 	if dbExecutor == nil {
 		fmt.Printf("DB not configured; skipping client logs: %+v\n", event)
 		return
@@ -159,7 +147,7 @@ func AppendToClientLogsSQL(event Event) {
 }
 
 // AppendToClientStatusSQL writes or updates the client status in the client_status table.
-func AppendToClientStatusSQL(event Event) {
+func AppendToClientStatusSQL(event  types.Event) {
 	if dbExecutor == nil {
 		fmt.Printf("DB not configured; skipping client status update: %+v\n", event)
 		return
@@ -188,7 +176,7 @@ func LogSystem(level, format string, a ...interface{}) {
 
 // LogClient logs a client event by writing to the file and to the client_logs and client_status tables.
 func LogClient(eventType, format string, a ...interface{}) {
-	event := Event{
+	event :=  types.Event{
 		EventType: eventType,
 		Message:   fmt.Sprintf(format, a...),
 	}

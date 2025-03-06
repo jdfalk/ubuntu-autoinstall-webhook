@@ -132,3 +132,34 @@ type ServerLog struct {
 	Message   string    `json:"message"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// ClientLogDetail provides detailed information for a client log.
+type ClientLogDetail struct {
+	ID          int
+	ClientID    string
+	Timestamp   time.Time
+	Origin      string
+	Description string
+	Name        string
+	Result      string
+	EventType   string
+	Files       string
+	CreatedAt   time.Time
+}
+
+// IpxeConfig represents an iPXE configuration.
+type IpxeConfig struct {
+	ID        int
+	ClientID  string
+	Config    string
+	CreatedAt time.Time
+}
+
+// CloudInitConfig represents a cloud-init configuration.
+type CloudInitConfig struct {
+	ID         int
+	ClientID   string
+	MacAddress string
+	UserData   string
+	CreatedAt  time.Time
+}
