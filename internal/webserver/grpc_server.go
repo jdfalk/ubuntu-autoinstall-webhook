@@ -15,20 +15,20 @@ type grpcServer struct {
 	pb.UnimplementedInstallServiceServer
 }
 
-// ReportStatus handles the ReportStatus RPC.
+// ReportStatus implements the ReportStatus RPC.
 func (s *grpcServer) ReportStatus(ctx context.Context, req *pb.StatusRequest) (*pb.StatusResponse, error) {
 	fmt.Printf("Received status update from %s: %d%% - %s\n", req.Hostname, req.Progress, req.Message)
 	return &pb.StatusResponse{Acknowledged: true}, nil
 }
 
-// StartGRPCServer starts the gRPC server on the specified port.
-func StartGRPCServer(port string) error {
-	lis, err := net.Listen("tcp", port)
+// StartGRPCServer starts a gRPC server on the provided address.
+func StartGRPCServer(address string) error {
+	lis, err := net.Listen("tcp", address)
 	if err != nil {
-		return fmt.Errorf("failed to listen on %s: %w", port, err)
+		return fmt.Errorf("failed to listen on %s: %w", address, err)
 	}
-	srv := grpc.NewServer()
-	pb.RegisterInstallServiceServer(srv, &grpcServer{})
-	fmt.Println("gRPC server is listening on", port)
-	return srv.Serve(lis)
+	server := grpc.NewServer()
+	pb.RegisterInstallServiceServer(server, &grpcServer{})
+	fmt.Printf("gRPC server is listening on %s\n", address)
+	return server.Serve(lis)
 }
