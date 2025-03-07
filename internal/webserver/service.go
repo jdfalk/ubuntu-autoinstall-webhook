@@ -7,32 +7,42 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// Service implements the WebServer interface.
-type Service struct{}
-
-// NewService creates a new webserver service.
-func NewService() *Service {
-	return &Service{}
+// Service defines the WebServer interface.
+type Service interface {
+	Start() error
+	Stop() error
 }
 
-// Start launches the gRPC server and the HTTP gateway.
-func (s *Service) Start() error {
-	// Start gRPC server in a goroutine.
+// service implements the WebServer interface.
+type service struct {
+	// You can add fields for graceful shutdown, logging, etc.
+}
+
+// NewService creates and returns a new WebServer service instance.
+func NewService() Service {
+	return &service{}
+}
+
+// Start starts the gRPC server and HTTP gateway.
+func (s *service) Start() error {
+	grpcAddress := ":50051"
+	// Start the gRPC server in a separate goroutine.
 	go func() {
-		if err := StartGRPCServer(":50051"); err != nil {
+		if err := StartGRPCServer(grpcAddress); err != nil {
 			fmt.Println("Error starting gRPC server:", err)
 		}
 	}()
 
-	// Allow time for the gRPC server to start.
+	// Wait a moment for the gRPC server to start.
 	time.Sleep(1 * time.Second)
 
+	// Set up the HTTP gateway.
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -40,16 +50,18 @@ func (s *Service) Start() error {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	// Register the gRPC server endpoint with the HTTP gateway.
-	if err := pb.RegisterInstallServiceHandlerFromEndpoint(ctx, mux, "localhost:50051", opts); err != nil {
+	if err := pb.RegisterInstallServiceHandlerFromEndpoint(ctx, mux, grpcAddress, opts); err != nil {
 		return fmt.Errorf("failed to register gRPC gateway: %w", err)
 	}
 
-	fmt.Println("HTTP gateway is listening on :8080")
-	return http.ListenAndServe(":8080", mux)
+	httpAddress := ":8080"
+	fmt.Printf("HTTP gateway is listening on %s\n", httpAddress)
+	return http.ListenAndServe(httpAddress, mux)
 }
 
-// Stop is a stub for graceful shutdown.
-func (s *Service) Stop() error {
+// Stop stops the webserver gracefully (stub implementation).
+func (s *service) Stop() error {
 	fmt.Println("Stopping webserver")
+	// TODO: Implement graceful shutdown logic.
 	return nil
 }

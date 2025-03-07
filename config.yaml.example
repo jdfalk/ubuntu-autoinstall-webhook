@@ -1,0 +1,80 @@
+# config.yaml.example
+# This is an example configuration file for ubuntu-autoinstall-webhook.
+# Copy this file to config.yaml and modify settings as needed.
+
+# ---------------------------
+# General Settings
+# ---------------------------
+environment: development  # Options: development, staging, production
+
+# ---------------------------
+# Database Configuration
+# ---------------------------
+database:
+  type: sqlite  # Options: sqlite, cockroachdb
+  sqlite:
+    path: "./data/database.sqlite"  # Path to the SQLite database file.
+  cockroachdb:
+    host: "localhost"               # CockroachDB host.
+    port: 26257                     # CockroachDB port.
+    user: "root"                    # Database user.
+    password: "example"             # Database password.
+    database: "autoinstall"         # Database name.
+
+# ---------------------------
+# File Editor Service Configuration
+# ---------------------------
+file_editor:
+  base_path: "/var/www/html/ipxe/boot"        # Directory where IPXE boot files are stored.
+  cloud_init_base_path: "/var/www/html/cloud-init"  # Base directory for cloud-init files.
+  hostname_symlink: true                      # If true, create symlinks for hostnames to MAC address directories.
+
+# ---------------------------
+# Configuration Service
+# ---------------------------
+configuration:
+  refresh_interval: 30  # Interval (in seconds) to poll for configuration changes.
+
+# ---------------------------
+# Webserver Configuration
+# ---------------------------
+webserver:
+  http_port: 8080      # Port for HTTP gateway (grpc-gateway).
+  grpc_port: 50051     # Port for gRPC server.
+  secure: false        # Set to true to enable TLS.
+  auth:
+    method: static     # Options: static, oauth2, database
+    static:
+      users:
+        - username: admin
+          password: admin123
+          role: admin
+        - username: user
+          password: user123
+          role: user
+
+# ---------------------------
+# Certificate Issuer Configuration
+# ---------------------------
+cert_issuer:
+  use_cert_manager: false               # Use cert-manager if running in Kubernetes.
+  client_certificate_validity: "24h"    # Validity duration for client certificates.
+  server_certificate_validity: "90d"    # Validity duration for server certificates.
+
+# ---------------------------
+# DNSMasq Watcher Configuration
+# ---------------------------
+dnsmasq_watcher:
+  log_source: journald   # Options: file, journald, kubernetes
+  poll_interval: 30      # Interval (in seconds) to poll for new logs or changes.
+
+# ---------------------------
+# Logging Settings
+# ---------------------------
+logging:
+  level: info            # Options: debug, info, warn, error
+
+# ---------------------------
+# Additional Settings
+# ---------------------------
+# Add any additional configuration options required by your microservices below.
