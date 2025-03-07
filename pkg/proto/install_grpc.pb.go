@@ -26,9 +26,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Service for installation status updates.
+// InstallService defines the service for installation status updates.
 type InstallServiceClient interface {
-	// Report installation status from the client.
+	// ReportStatus receives status updates from the client.
 	ReportStatus(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 }
 
@@ -54,9 +54,9 @@ func (c *installServiceClient) ReportStatus(ctx context.Context, in *StatusReque
 // All implementations must embed UnimplementedInstallServiceServer
 // for forward compatibility.
 //
-// Service for installation status updates.
+// InstallService defines the service for installation status updates.
 type InstallServiceServer interface {
-	// Report installation status from the client.
+	// ReportStatus receives status updates from the client.
 	ReportStatus(context.Context, *StatusRequest) (*StatusResponse, error)
 	mustEmbedUnimplementedInstallServiceServer()
 }

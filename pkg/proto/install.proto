@@ -4,13 +4,20 @@ package install;
 
 option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto;proto";
 
-// Service for installation status updates.
+import "google/api/annotations.proto";
+
+// InstallService defines the service for installation status updates.
 service InstallService {
-  // Report installation status from the client.
-  rpc ReportStatus(StatusRequest) returns (StatusResponse);
+  // ReportStatus receives status updates from the client.
+  rpc ReportStatus(StatusRequest) returns (StatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/install/status"
+      body: "*"
+    };
+  }
 }
 
-// Request message for status reporting.
+// StatusRequest is the request message for reporting installation status.
 message StatusRequest {
   string hostname = 1;
   string ip_address = 2;
@@ -18,7 +25,7 @@ message StatusRequest {
   string message = 4;
 }
 
-// Response message.
+// StatusResponse is the response message acknowledging the status update.
 message StatusResponse {
   bool acknowledged = 1;
 }
