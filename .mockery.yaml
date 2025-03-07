@@ -1,11 +1,14 @@
-with-expecter: True
-inpackage: True
-dir: "{{.InterfaceDir}}"
+with-expecter: true
+inpackage: false
+dir: "{{.InterfaceDir}}/mocks"
 mockname: "Mock{{.InterfaceName}}"
-outpkg: "{{.PackageName}}"
+outpkg: "mocks"
 filename: "mock_{{.InterfaceName}}.go"
-all: True
+all: false
+resolve-type-alias: false
+disable-version-string: true
+issue-845-fix: true
 packages:
   github.com/jdfalk/ubuntu-autoinstall-webhook:
     config:
-      recursive: True
+      recursive: true
