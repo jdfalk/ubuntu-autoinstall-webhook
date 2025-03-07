@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package install;
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto;proto";
+
+// Service for installation status updates.
+service InstallService {
+  // Report installation status from the client.
+  rpc ReportStatus(StatusRequest) returns (StatusResponse);
+}
+
+// Request message for status reporting.
+message StatusRequest {
+  string hostname = 1;
+  string ip_address = 2;
+  int32 progress = 3;
+  string message = 4;
+}
+
+// Response message.
+message StatusResponse {
+  bool acknowledged = 1;
+}
