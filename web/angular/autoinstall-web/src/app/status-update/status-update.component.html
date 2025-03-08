@@ -1,0 +1,3 @@
+<h2>Status Update</h2>
+<button mat-raised-button color="accent" (click)="sendStatus()">Send Status Update</button>
+<p *ngIf="response">Response: {{ response | json }}</p>
