@@ -1,0 +1,10 @@
+<h2>Configuration Editor</h2>
+<div>
+  <ngx-monaco-editor
+    [options]="{theme: 'vs-dark', language: 'yaml'}"
+    [(ngModel)]="configContent"
+    style="height:500px;">
+  </ngx-monaco-editor>
+</div>
+<button mat-raised-button color="primary" (click)="saveConfig()">Save Configuration</button>
+<p>{{ message }}</p>
