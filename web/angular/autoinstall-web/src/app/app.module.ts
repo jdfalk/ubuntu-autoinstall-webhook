@@ -15,28 +15,31 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
+import { CommonModule, JsonPipe } from '@angular/common';
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        DashboardComponent,
-        ConfigEditorComponent,
-        StatusUpdateComponent,
-        LayoutComponent
-    ],
-    imports: [
-        BrowserModule,
-        AppRoutingModule,
-        BrowserAnimationsModule,
-        HttpClientModule,
-        FormsModule,
-        MonacoEditorModule.forRoot(),
-        MatToolbarModule,
-        MatSidenavModule,
-        MatListModule,
-        MatButtonModule
-    ],
-    providers: [],
-    bootstrap: [AppComponent]
+  declarations: [
+    AppComponent,
+    DashboardComponent,
+    ConfigEditorComponent,
+    StatusUpdateComponent,
+    LayoutComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    FormsModule,
+    MonacoEditorModule.forRoot(),
+    MatToolbarModule,
+    MatSidenavModule,
+    MatListModule,
+    MatButtonModule,
+    CommonModule,
+    JsonPipe
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }

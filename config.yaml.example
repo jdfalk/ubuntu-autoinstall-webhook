@@ -1,80 +1,79 @@
-# config.yaml.example
-# This is an example configuration file for ubuntu-autoinstall-webhook.
-# Copy this file to config.yaml and modify settings as needed.
+# Ubuntu Autoinstall Webhook Configuration
 
-# ---------------------------
-# General Settings
-# ---------------------------
-environment: development  # Options: development, staging, production
+# Server settings
+server:
+  host: "0.0.0.0"
+  port: 8080
 
-# ---------------------------
-# Database Configuration
-# ---------------------------
+# Database settings
 database:
-  type: sqlite  # Options: sqlite, cockroachdb
-  sqlite:
-    path: "./data/database.sqlite"  # Path to the SQLite database file.
+  type: "sqlite3"  # Options: sqlite3, cockroachdb
+  sqlite3:
+    path: "/var/lib/ubuntu-autoinstall-webhook/database.sqlite"
   cockroachdb:
-    host: "localhost"               # CockroachDB host.
-    port: 26257                     # CockroachDB port.
-    user: "root"                    # Database user.
-    password: "example"             # Database password.
-    database: "autoinstall"         # Database name.
+    host: "localhost"
+    port: 26257
+    database: "ubuntu_autoinstall"
+    user: "root"
+    ssl_mode: "disable"
 
-# ---------------------------
-# File Editor Service Configuration
-# ---------------------------
-file_editor:
-  base_path: "/var/www/html/ipxe/boot"        # Directory where IPXE boot files are stored.
-  cloud_init_base_path: "/var/www/html/cloud-init"  # Base directory for cloud-init files.
-  hostname_symlink: true                      # If true, create symlinks for hostnames to MAC address directories.
+# File paths
+paths:
+  ipxe_boot: "/var/www/html/ipxe/boot/"
+  cloud_init: "/var/www/html/cloud-init/"
 
-# ---------------------------
-# Configuration Service
-# ---------------------------
-configuration:
-  refresh_interval: 30  # Interval (in seconds) to poll for configuration changes.
+# Authentication
+auth:
+  grpc:
+    mutual_tls: false
+    preshared_secret: ""
+    ip_matching: []
+    mac_matching: []
 
-# ---------------------------
-# Webserver Configuration
-# ---------------------------
-webserver:
-  http_port: 8080      # Port for HTTP gateway (grpc-gateway).
-  grpc_port: 50051     # Port for gRPC server.
-  secure: false        # Set to true to enable TLS.
-  auth:
-    method: static     # Options: static, oauth2, database
-    static:
-      users:
-        - username: admin
-          password: admin123
-          role: admin
-        - username: user
-          password: user123
-          role: user
+# RBAC
+rbac:
+  roles:
+    - name: "admin"
+      permissions: ["logging", "ide", "configuration"]
+    - name: "user"
+      permissions: ["logging"]
 
-# ---------------------------
-# Certificate Issuer Configuration
-# ---------------------------
-cert_issuer:
-  use_cert_manager: false               # Use cert-manager if running in Kubernetes.
-  client_certificate_validity: "24h"    # Validity duration for client certificates.
-  server_certificate_validity: "90d"    # Validity duration for server certificates.
+# Observability
+observability:
+  tracing:
+    enabled: true
+    exporter: "jaeger"
+    jaeger:
+      endpoint: "http://localhost:14268/api/traces"
+  metrics:
+    enabled: true
+    port: 9090
+  logging:
+    level: "info"
+    format: "json"
 
-# ---------------------------
-# DNSMasq Watcher Configuration
-# ---------------------------
+# Kubernetes
+kubernetes:
+  enabled: false
+  namespace: "default"
+  configmap_name: "ubuntu-autoinstall-webhook-config"
+  lease_name: "ubuntu-autoinstall-webhook-lease"
+
+# DNSMasq Watcher
 dnsmasq_watcher:
-  log_source: journald   # Options: file, journald, kubernetes
-  poll_interval: 30      # Interval (in seconds) to poll for new logs or changes.
+  log_source: "file"  # Options: file, journald, kubernetes
+  log_path: "/var/log/dnsmasq.log"
+  poll_interval: 5  # seconds
 
-# ---------------------------
-# Logging Settings
-# ---------------------------
-logging:
-  level: info            # Options: debug, info, warn, error
-
-# ---------------------------
-# Additional Settings
-# ---------------------------
-# Add any additional configuration options required by your microservices below.
+# Microservices
+microservices:
+  file_editor:
+    enabled: true
+  database:
+    enabled: true
+  configuration:
+    enabled: true
+  dnsmasq_watcher:
+    enabled: true
+  webserver:
+    enabled: true
