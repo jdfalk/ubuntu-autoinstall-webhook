@@ -1,36 +1,86 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
+# Go
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-
-# Test binary, built with `go test -c`
 *.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-# Go workspace file
 go.work
-go.work.sum
 
-# env file
-.env
+# Angular / JavaScript
+node_modules/
+/dist
+/tmp
+/out-tsc
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
 
-ubuntu-autoinstall-webhook-linux
-ubuntu-autoinstall-webhook-mac
-ubuntu-autoinstall-webhook
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
 
-!*.sql
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 
+# Binary
+/ubuntu-autoinstall-webhook
+
+# Config
 config.yaml
-*.bak
 
-.config.yaml
+# Additional ignores for Go
+/vendor/
+*.prof
+
+# Additional ignores for Angular
+/.sass-cache
+/connect.lock
+/libpeerconnection.log
+
+# Additional ignores for VSCode
+.history
+
+# Additional ignores for macOS
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Ignore any local configuration files
+*.local.yaml
+*.local.yml
+
+# Ignore any log files
+*.log
+
+# Ignore any temporary files
+*.tmp
+*~
+
+# Ignore any backup files
+*.bak
+*.backup
