@@ -1,0 +1,335 @@
+<!-- filepath: /web/angular/autoinstall-web/src/app/components/config/config.component.html -->
+<div class="config-container">
+    <h1>Application Configuration</h1>
+
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading configuration...</p>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="error-message">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error }}</p>
+    </div>
+
+    <!-- Configuration form -->
+    <div *ngIf="!isLoading && !error" class="config-form">
+        <mat-tab-group [(selectedIndex)]="sections.indexOf(activeSection)"
+            (selectedIndexChange)="setActiveSection(sections[$event])">
+            <!-- Server settings -->
+            <mat-tab label="Server">
+                <div class="tab-content">
+                    <h2>Server Settings</h2>
+                    <form [formGroup]="configForm">
+                        <div class="form-row">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Host</mat-label>
+                                <input matInput formControlName="serverHost" placeholder="0.0.0.0">
+                                <mat-hint>IP address to listen on</mat-hint>
+                                <mat-error *ngIf="getControl('serverHost')?.hasError('required')">
+                                    Host is required
+                                </mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>Port</mat-label>
+                                <input matInput formControlName="serverPort" type="number" placeholder="8080">
+                                <mat-hint>Port to listen on</mat-hint>
+                                <mat-error *ngIf="getControl('serverPort')?.hasError('required')">
+                                    Port is required
+                                </mat-error>
+                                <mat-error
+                                    *ngIf="getControl('serverPort')?.hasError('min') || getControl('serverPort')?.hasError('max')">
+                                    Port must be between 1 and 65535
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-row">
+                            <mat-slide-toggle formControlName="enableHttps">
+                                Enable HTTPS
+                            </mat-slide-toggle>
+                        </div>
+
+                        <div class="form-row https-settings" *ngIf="configForm.get('enableHttps')?.value">
+                            <mat-form-field appearance="outline">
+                                <mat-label>HTTPS Certificate Path</mat-label>
+                                <input matInput formControlName="httpsCertPath">
+                                <mat-hint>Path to SSL/TLS certificate file</mat-hint>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline">
+                                <mat-label>HTTPS Key Path</mat-label>
+                                <input matInput formControlName="httpsKeyPath">
+                                <mat-hint>Path to SSL/TLS private key file</mat-hint>
+                            </mat-form-field>
+                        </div>
+                    </form>
+                </div>
+            </mat-tab>
+
+            <!-- Database settings -->
+            <mat-tab label="Database">
+                <div class="tab-content">
+                    <h2>Database Settings</h2>
+                    <form [formGroup]="configForm">
+                        <div class="form-row">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Database Type</mat-label>
+                                <mat-select formControlName="dbType">
+                                    <mat-option value="sqlite3">SQLite3</mat-option>
+                                    <mat-option value="cockroachdb">CockroachDB</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- SQLite3 specific settings -->
+                        <div *ngIf="configForm.get('dbType')?.value === 'sqlite3'">
+                            <div class="form-row">
+                                <mat-form-field appearance="outline" class="full-width">
+                                    <mat-label>SQLite3 Database Path</mat-label>
+                                    <input matInput formControlName="sqlitePath">
+                                    <mat-hint>Path to SQLite database file</mat-hint>
+                                </mat-form-field>
+                            </div>
+                        </div>
+
+                        <!-- CockroachDB specific settings -->
+                        <div *ngIf="configForm.get('dbType')?.value === 'cockroachdb'">
+                            <div class="form-row">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Host</mat-label>
+                                    <input matInput formControlName="cockroachHost" placeholder="localhost">
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Port</mat-label>
+                                    <input matInput formControlName="cockroachPort" type="number" placeholder="26257">
+                                </mat-form-field>
+                            </div>
+
+                            <div class="form-row">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Database Name</mat-label>
+                                    <input matInput formControlName="cockroachDb" placeholder="ubuntu_autoinstall">
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Username</mat-label>
+                                    <input matInput formControlName="cockroachUser" placeholder="root">
+                                </mat-form-field>
+                            </div>
+
+                            <div class="form-row">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>SSL Mode</mat-label>
+                                    <mat-select formControlName="cockroachSslMode">
+                                        <mat-option value="disable">Disable</mat-option>
+                                        <mat-option value="require">Require</mat-option>
+                                        <mat-option value="verify-ca">Verify CA</mat-option>
+                                        <mat-option value="verify-full">Verify Full</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </mat-tab>
+
+            <!-- Authentication settings -->
+            <mat-tab label="Authentication">
+                <div class="tab-content">
+                    <h2>Authentication Settings</h2>
+                    <form [formGroup]="configForm">
+                        <!-- Static auth -->
+                        <div class="auth-section">
+                            <h3>Static Authentication</h3>
+                            <div class="form-row">
+                                <mat-slide-toggle formControlName="staticAuthEnabled">
+                                    Enable Static Authentication
+                                </mat-slide-toggle>
+                            </div>
+                            <div *ngIf="configForm.get('staticAuthEnabled')?.value" formArrayName="staticUsers">
+                                <div *ngFor="let user of staticUsersArray.controls; let i = index" [formGroupName]="i"
+                                    class="user-item">
+                                    <div class="form-row">
+                                        <mat-form-field appearance="outline">
+                                            <mat-label>Username</mat-label>
+                                            <input matInput formControlName="username">
+                                        </mat-form-field>
+
+                                        <mat-form-field appearance="outline">
+                                            <mat-label>Password</mat-label>
+                                            <input matInput formControlName="password" type="password">
+                                        </mat-form-field>
+
+                                        <mat-form-field appearance="outline">
+                                            <mat-label>Roles</mat-label>
+                                            <mat-select formControlName="roles" multiple>
+                                                <mat-option value="admin">Admin</mat-option>
+                                                <mat-option value="user">User</mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+
+                                        <button mat-icon-button color="warn" type="button"
+                                            (click)="removeStaticUser(i)">
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button mat-button color="primary" type="button" (click)="addStaticUser()">
+                                    <mat-icon>add</mat-icon> Add User
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- OAuth -->
+                        <div class="auth-section">
+                            <h3>OAuth Authentication</h3>
+                            <div class="form-row">
+                                <mat-slide-toggle formControlName="oauthEnabled">
+                                    Enable OAuth Authentication
+                                </mat-slide-toggle>
+                            </div>
+
+                            <div *ngIf="configForm.get('oauthEnabled')?.value">
+                                <div class="form-row">
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Provider Type</mat-label>
+                                        <mat-select formControlName="oauthProviderType">
+                                            <mat-option value="generic">Generic OIDC</mat-option>
+                                            <mat-option value="google">Google</mat-option>
+                                            <mat-option value="github">GitHub</mat-option>
+                                            <mat-option value="azure">Azure AD</mat-option>
+                                            <mat-option value="okta">Okta</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+
+                                <div class="form-row">
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Client ID</mat-label>
+                                        <input matInput formControlName="oauthClientId">
+                                    </mat-form-field>
+
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Client Secret</mat-label>
+                                        <input matInput formControlName="oauthClientSecret" type="password">
+                                    </mat-form-field>
+                                </div>
+
+                                <div class="form-row" *ngIf="configForm.get('oauthProviderType')?.value === 'generic'">
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Auth URL</mat-label>
+                                        <input matInput formControlName="oauthAuthUrl">
+                                    </mat-form-field>
+
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Token URL</mat-label>
+                                        <input matInput formControlName="oauthTokenUrl">
+                                    </mat-form-field>
+                                </div>
+
+                                <div class="form-row">
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Role Attribute</mat-label>
+                                        <input matInput formControlName="oauthRoleAttribute" placeholder="groups">
+                                        <mat-hint>OIDC claim attribute that contains roles</mat-hint>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LDAP auth -->
+                        <div class="auth-section">
+                            <h3>LDAP Authentication</h3>
+                            <div class="form-row">
+                                <mat-slide-toggle formControlName="ldapEnabled">
+                                    Enable LDAP Authentication
+                                </mat-slide-toggle>
+                            </div>
+
+                            <div *ngIf="configForm.get('ldapEnabled')?.value">
+                                <div class="form-row">
+                                    <mat-form-field appearance="outline" class="full-width">
+                                        <mat-label>LDAP Server URL</mat-label>
+                                        <input matInput formControlName="ldapServerUrl"
+                                            placeholder="ldap://ldap.example.com:389">
+                                    </mat-form-field>
+                                </div>
+
+                                <div class="form-row">
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Bind DN</mat-label>
+                                        <input matInput formControlName="ldapBindDn"
+                                            placeholder="cn=admin,dc=example,dc=com">
+                                    </mat-form-field>
+
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Bind Password</mat-label>
+                                        <input matInput formControlName="ldapBindPassword" type="password">
+                                    </mat-form-field>
+                                </div>
+
+                                <div class="form-row">
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Search Base</mat-label>
+                                        <input matInput formControlName="ldapSearchBase"
+                                            placeholder="dc=example,dc=com">
+                                    </mat-form-field>
+                                </div>
+
+                                <div class="form-row">
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>User Filter</mat-label>
+                                        <input matInput formControlName="ldapUserFilter" placeholder="(uid=%s)">
+                                    </mat-form-field>
+
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Group Filter</mat-label>
+                                        <input matInput formControlName="ldapGroupFilter" placeholder="(memberUid=%s)">
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </mat-tab>
+
+            <!-- Path settings -->
+            <mat-tab label="Paths">
+                <div class="tab-content">
+                    <h2>File Path Settings</h2>
+                    <form [formGroup]="configForm">
+                        <div class="form-row">
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>iPXE Boot Path</mat-label>
+                                <input matInput formControlName="ipxeBootPath">
+                                <mat-hint>Directory for iPXE boot files</mat-hint>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-row">
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Cloud-Init Path</mat-label>
+                                <input matInput formControlName="cloudInitPath">
+                                <mat-hint>Directory for cloud-init files</mat-hint>
+                            </mat-form-field>
+                        </div>
+                    </form>
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+
+        <div class="actions">
+            <button mat-button (click)="resetForm()">Reset</button>
+            <button mat-raised-button color="primary" (click)="saveConfig()"
+                [disabled]="configForm.invalid || isSaving">
+                <mat-spinner *ngIf="isSaving" diameter="20"></mat-spinner>
+                <span *ngIf="!isSaving">Save Configuration</span>
+            </button>
+        </div>
+    </div>
+</div>

@@ -7,7 +7,7 @@ server:
 
 # Database settings
 database:
-  type: "sqlite3"  # Options: sqlite3, cockroachdb
+  type: "sqlite3" # Options: sqlite3, cockroachdb
   sqlite3:
     path: "/var/lib/ubuntu-autoinstall-webhook/database.sqlite"
   cockroachdb:
@@ -24,6 +24,45 @@ paths:
 
 # Authentication
 auth:
+  # Control which authentication methods are enabled
+  methods:
+    static:
+      enabled: true # Set to false in production
+      users:
+        - username: "admin"
+          password: "admin123"
+          roles: ["admin"]
+        - username: "user"
+          password: "user123"
+          roles: ["user"]
+
+    oauth:
+      enabled: false # Set to true in production
+      provider_type: "generic" # Options: generic, google, github, azure, okta
+      client_id: ""
+      client_secret: ""
+      auth_url: "https://your-auth-server.com/oauth/authorize"
+      token_url: "https://your-auth-server.com/oauth/token"
+      userinfo_url: "https://your-auth-server.com/userinfo"
+      redirect_url: "http://localhost:8080/auth/callback"
+      scopes: ["openid", "profile", "email"]
+      role_attribute: "groups" # OIDC attribute that contains roles
+
+    database:
+      enabled: false # Set to true if using database auth
+      # Uses the configured database from the database section
+      password_hashing: "bcrypt" # Options: bcrypt, argon2id
+
+    ldap:
+      enabled: false # Set to true if using LDAP auth
+      server_url: "ldap://your-ldap-server:389"
+      bind_dn: "cn=admin,dc=example,dc=com"
+      bind_password: ""
+      search_base: "dc=example,dc=com"
+      user_filter: "(uid=%s)"
+      group_filter: "(memberUid=%s)"
+      role_attribute: "cn"
+
   grpc:
     mutual_tls: false
     preshared_secret: ""
@@ -61,9 +100,9 @@ kubernetes:
 
 # DNSMasq Watcher
 dnsmasq_watcher:
-  log_source: "file"  # Options: file, journald, kubernetes
+  log_source: "file" # Options: file, journald, kubernetes
   log_path: "/var/log/dnsmasq.log"
-  poll_interval: 5  # seconds
+  poll_interval: 5 # seconds
 
 # Microservices
 microservices:
