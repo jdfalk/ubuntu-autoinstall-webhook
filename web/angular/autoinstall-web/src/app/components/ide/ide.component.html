@@ -1,0 +1,50 @@
+<!-- filepath: /web/angular/autoinstall-web/src/app/components/ide/ide.component.html -->
+<div class="ide-container">
+    <h1>Configuration Editor</h1>
+
+    <div class="toolbar">
+        <mat-form-field appearance="outline">
+            <mat-label>Config Type</mat-label>
+            <mat-select [(value)]="configType" (selectionChange)="onConfigTypeChange()">
+                <mat-option value="ipxe">iPXE Boot Script</mat-option>
+                <mat-option value="cloud-init">Cloud-Init Files</mat-option>
+                <mat-option value="app">Application Config</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Configuration</mat-label>
+            <mat-select [(value)]="configName" (selectionChange)="loadConfig($event.value)" [disabled]="isLoading">
+                <mat-option *ngFor="let config of availableConfigs" [value]="config">
+                    {{ config }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <div class="spacer"></div>
+
+        <button mat-raised-button color="primary" (click)="saveConfig()" [disabled]="isSaving">
+            <mat-icon>save</mat-icon>
+            {{ isSaving ? 'Saving...' : 'Save' }}
+        </button>
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading configuration...</p>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="error-message">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error }}</p>
+    </div>
+
+    <!-- Monaco Editor -->
+    <div *ngIf="!isLoading && !error" class="editor-container">
+        <app-monaco-editor [code]="configContent" [language]="configLanguage" [readOnly]="false"
+            (init)="onEditorInit($event)">
+        </app-monaco-editor>
+    </div>
+</div>

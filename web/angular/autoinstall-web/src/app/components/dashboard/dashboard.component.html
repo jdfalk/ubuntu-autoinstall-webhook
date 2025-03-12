@@ -1,0 +1,131 @@
+<div class="dashboard-container">
+    <h1>Dashboard</h1>
+
+    <div class="refresh-bar">
+        <button mat-mini-fab color="primary" (click)="loadDashboardData()" matTooltip="Refresh Dashboard">
+            <mat-icon>refresh</mat-icon>
+        </button>
+        <span class="auto-refresh">Auto-refreshes every 30 seconds</span>
+    </div>
+
+    <!-- Loading spinner -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading dashboard data...</p>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="error-message">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error }}</p>
+    </div>
+
+    <!-- Dashboard content -->
+    <div *ngIf="!loading && !error" class="dashboard-content">
+        <!-- Stats cards -->
+        <div class="stats-grid">
+            <mat-card class="stat-card" [ngClass]="{'active': stats.activeSystems > 0}"
+                (click)="navigateTo('/systems')">
+                <mat-icon>computer</mat-icon>
+                <div class="stat-value">{{ stats.activeSystems }}</div>
+                <div class="stat-label">Active Systems</div>
+            </mat-card>
+
+            <mat-card class="stat-card" [ngClass]="{'warning': stats.pendingApprovals > 0}"
+                (click)="navigateTo('/approval')">
+                <mat-icon>pending_actions</mat-icon>
+                <div class="stat-value">{{ stats.pendingApprovals }}</div>
+                <div class="stat-label">Pending Approvals</div>
+            </mat-card>
+
+            <mat-card class="stat-card" [ngClass]="{'error': stats.failedInstalls > 0}"
+                (click)="navigateTo('/install-status')">
+                <mat-icon>error_outline</mat-icon>
+                <div class="stat-value">{{ stats.failedInstalls }}</div>
+                <div class="stat-label">Failed Installs</div>
+            </mat-card>
+
+            <mat-card class="stat-card" (click)="navigateTo('/systems')">
+                <mat-icon>devices</mat-icon>
+                <div class="stat-value">{{ stats.totalSystems }}</div>
+                <div class="stat-label">Total Systems</div>
+            </mat-card>
+        </div>
+
+        <!-- Quick Actions -->
+        <mat-card class="quick-actions-card">
+            <mat-card-header>
+                <mat-card-title>Quick Actions</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="action-buttons">
+                    <button mat-raised-button color="primary" (click)="navigateTo('/systems')">
+                        <mat-icon>list</mat-icon> View All Systems
+                    </button>
+
+                    <button mat-raised-button color="accent" (click)="navigateTo('/ide')" *ngIf="isAdmin">
+                        <mat-icon>code</mat-icon> Edit Templates
+                    </button>
+
+                    <button mat-raised-button color="accent" (click)="navigateTo('/config')" *ngIf="isAdmin">
+                        <mat-icon>settings</mat-icon> Configuration
+                    </button>
+
+                    <button mat-raised-button color="warn" (click)="navigateTo('/logs')" *ngIf="isAdmin">
+                        <mat-icon>receipt_long</mat-icon> View Logs
+                    </button>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Recent Events -->
+        <mat-card class="recent-events-card">
+            <mat-card-header>
+                <mat-card-title>Recent Events</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <table mat-table [dataSource]="recentEvents" class="events-table">
+                    <!-- Time Column -->
+                    <ng-container matColumnDef="time">
+                        <th mat-header-cell *matHeaderCellDef>Time</th>
+                        <td mat-cell *matCellDef="let event">{{ formatEventTime(event.timestamp) }}</td>
+                    </ng-container>
+
+                    <!-- Hostname Column -->
+                    <ng-container matColumnDef="hostname">
+                        <th mat-header-cell *matHeaderCellDef>Hostname</th>
+                        <td mat-cell *matCellDef="let event">{{ event.hostname }}</td>
+                    </ng-container>
+
+                    <!-- Event Type Column -->
+                    <ng-container matColumnDef="eventType">
+                        <th mat-header-cell *matHeaderCellDef>Event</th>
+                        <td mat-cell *matCellDef="let event">
+                            <span [class]="'event-badge event-' + event.eventType.toLowerCase()">
+                                {{ event.eventType }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Message Column -->
+                    <ng-container matColumnDef="message">
+                        <th mat-header-cell *matHeaderCellDef>Message</th>
+                        <td mat-cell *matCellDef="let event">{{ event.message }}</td>
+                    </ng-container>
+
+                    <!-- Table Setup -->
+                    <tr mat-header-row *matHeaderRowDef="['time', 'hostname', 'eventType', 'message']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['time', 'hostname', 'eventType', 'message'];"></tr>
+                </table>
+
+                <div *ngIf="recentEvents.length === 0" class="no-events">
+                    No recent events
+                </div>
+
+                <button mat-button color="primary" (click)="navigateTo('/logs')" class="view-all-button">
+                    View All Events
+                </button>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

@@ -1,0 +1,87 @@
+<!-- filepath: /Users/jdfalk/repos/github.com/jdfalk/ubuntu-autoinstall-webhook/web/angular/autoinstall-web/src/app/components/systems/systems.component.html -->
+<div class="container">
+    <h1>Systems</h1>
+
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title>
+                <div class="header-row">
+                    <h2>All Systems</h2>
+                    <button mat-raised-button color="primary" (click)="loadSystems()">
+                        <mat-icon>refresh</mat-icon> Refresh
+                    </button>
+                </div>
+            </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+            <div *ngIf="loading" class="loading-spinner">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Loading systems...</p>
+            </div>
+
+            <div *ngIf="error" class="error-message">
+                <mat-icon color="warn">error</mat-icon>
+                <p>{{ error }}</p>
+            </div>
+
+            <table mat-table [dataSource]="systems" class="systems-table"
+                *ngIf="!loading && !error && systems.length > 0">
+                <ng-container matColumnDef="hostname">
+                    <th mat-header-cell *matHeaderCellDef>Hostname</th>
+                    <td mat-cell *matCellDef="let system">{{ system.hostname }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="macAddress">
+                    <th mat-header-cell *matHeaderCellDef>MAC Address</th>
+                    <td mat-cell *matCellDef="let system">{{ system.macAddress }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="ipAddress">
+                    <th mat-header-cell *matHeaderCellDef>IP Address</th>
+                    <td mat-cell *matCellDef="let system">{{ system.ipAddress }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <td mat-cell *matCellDef="let system">
+                        <span [class]="'status-badge status-' + system.status.toLowerCase()">
+                            {{ system.status }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="lastSeen">
+                    <th mat-header-cell *matHeaderCellDef>Last Seen</th>
+                    <td mat-cell *matCellDef="let system">{{ system.lastSeen | date:'medium' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let system">
+                        <button mat-icon-button matTooltip="View Logs" (click)="viewLogs(system)">
+                            <mat-icon>article</mat-icon>
+                        </button>
+                        <button mat-icon-button matTooltip="Edit iPXE Config" (click)="editConfig(system)">
+                            <mat-icon>code</mat-icon>
+                        </button>
+                        <button mat-icon-button matTooltip="Edit Cloud-Init Config" (click)="editCloudInit(system)">
+                            <mat-icon>cloud</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row
+                    *matHeaderRowDef="['hostname', 'macAddress', 'ipAddress', 'status', 'lastSeen', 'actions']"></tr>
+                <tr mat-row
+                    *matRowDef="let row; columns: ['hostname', 'macAddress', 'ipAddress', 'status', 'lastSeen', 'actions'];">
+                </tr>
+            </table>
+
+            <div *ngIf="!loading && !error && systems.length === 0" class="empty-state">
+                <mat-icon>devices</mat-icon>
+                <p>No systems found.</p>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>
