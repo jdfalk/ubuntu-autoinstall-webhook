@@ -557,9 +557,9 @@ func (s *Service) DeleteCloudInitDir(ctx context.Context, macOrHostname string) 
 	}
 
 	// Check if this is a MAC address or hostname
-	normalizedInput := s.normalizeMacAddress(macOrHostname)
-	macDir := filepath.Join(s.cloudInitDir, normalizedInput)
-	macInstallDir := filepath.Join(s.cloudInitDir, normalizedInput+"_install")
+	normalizedMac := s.normalizeMacAddress(macOrHostname)
+	macDir := filepath.Join(s.cloudInitDir, normalizedMac)
+	macInstallDir := filepath.Join(s.cloudInitDir, normalizedMac+"_install")
 
 	// First try as a MAC address
 	if _, err := s.fs.Stat(macDir); err == nil {
@@ -573,21 +573,26 @@ func (s *Service) DeleteCloudInitDir(ctx context.Context, macOrHostname string) 
 
 		// Check for symlinks to this MAC directory
 		for _, dir := range dirs {
-			if dir.Mode()&os.ModeSymlink != 0 {
-				linkPath := filepath.Join(s.cloudInitDir, dir.Name())
+			// Skip if not a symlink
+			if lstater, ok := s.fs.(afero.Lstater); ok {
+				info, _, err := lstater.LstatIfPossible(filepath.Join(s.cloudInitDir, dir.Name()))
+				if err != nil || info.Mode()&os.ModeSymlink == 0 {
+					continue
+				}
 
-				// Use the Symlinker interface to read the link
+				// It's a symlink, read its target
 				if linkReader, ok := s.fs.(afero.LinkReader); ok {
-					target, err := linkReader.ReadlinkIfPossible(linkPath)
+					target, err := linkReader.ReadlinkIfPossible(filepath.Join(s.cloudInitDir, dir.Name()))
 					if err != nil {
 						continue
 					}
 
 					// If this symlink points to our MAC directory, remove it
-					if target == macDir || target == macInstallDir {
-						if err := s.fs.Remove(linkPath); err != nil {
+					// Handle that target might contain full path in case of BasePathFs
+					if strings.HasSuffix(target, macDir) || strings.HasSuffix(target, macInstallDir) {
+						if err := s.fs.Remove(filepath.Join(s.cloudInitDir, dir.Name())); err != nil {
 							span.RecordError(err)
-							return fmt.Errorf("failed to remove symlink %s: %w", linkPath, err)
+							return fmt.Errorf("failed to remove symlink: %w", err)
 						}
 					}
 				}
@@ -600,7 +605,7 @@ func (s *Service) DeleteCloudInitDir(ctx context.Context, macOrHostname string) 
 			return fmt.Errorf("failed to remove directory %s: %w", macDir, err)
 		}
 
-		if err := s.fs.RemoveAll(macInstallDir); err != nil {
+		if err := s.fs.RemoveAll(macInstallDir); err != nil && !os.IsNotExist(err) {
 			span.RecordError(err)
 			return fmt.Errorf("failed to remove directory %s: %w", macInstallDir, err)
 		}
@@ -613,88 +618,87 @@ func (s *Service) DeleteCloudInitDir(ctx context.Context, macOrHostname string) 
 	hostnameLink := filepath.Join(s.cloudInitDir, macOrHostname)
 	hostnameInstallLink := filepath.Join(s.cloudInitDir, macOrHostname+"_install")
 
-	// Check if hostname symlink exists using Lstater interface
-	var linkInfo os.FileInfo
-	var err error
+	// Check if hostname symlink exists
 	if lstater, ok := s.fs.(afero.Lstater); ok {
-		linkInfo, _, err = lstater.LstatIfPossible(hostnameLink)
-	} else {
-		// Fall back to regular Stat if Lstat is not available
-		linkInfo, err = s.fs.Stat(hostnameLink)
-	}
-	if err == nil && linkInfo.Mode()&os.ModeSymlink != 0 {
-		// Read the target of the symlink
-		if linkReader, ok := s.fs.(afero.LinkReader); ok {
-			target, err := linkReader.ReadlinkIfPossible(hostnameLink)
-			if err != nil {
-				span.RecordError(err)
-				return fmt.Errorf("failed to read symlink %s: %w", hostnameLink, err)
-			}
+		linkInfo, _, err := lstater.LstatIfPossible(hostnameLink)
+		if err == nil && linkInfo.Mode()&os.ModeSymlink != 0 {
+			// Found a symlink - get the MAC directory it points to
+			if linkReader, ok := s.fs.(afero.LinkReader); ok {
+				targetPath, err := linkReader.ReadlinkIfPossible(hostnameLink)
+				if err != nil {
+					span.RecordError(err)
+					return fmt.Errorf("failed to read symlink %s: %w", hostnameLink, err)
+				}
 
-			// Remove the hostname symlinks
-			if err := s.fs.Remove(hostnameLink); err != nil && !os.IsNotExist(err) {
-				span.RecordError(err)
-				return fmt.Errorf("failed to remove symlink %s: %w", hostnameLink, err)
-			}
+				// Extract the MAC directory name from the target path
+				macDirName := filepath.Base(targetPath)
+				macDir = filepath.Join(s.cloudInitDir, macDirName)
+				macInstallDir = filepath.Join(s.cloudInitDir, macDirName+"_install")
 
-			if err := s.fs.Remove(hostnameInstallLink); err != nil && !os.IsNotExist(err) {
-				span.RecordError(err)
-				// Just log this error as the install symlink may not exist
-			}
+				// Remove hostname symlinks
+				if err := s.fs.Remove(hostnameLink); err != nil && !os.IsNotExist(err) {
+					span.RecordError(err)
+					return fmt.Errorf("failed to remove symlink %s: %w", hostnameLink, err)
+				}
 
-			// Check if there are other symlinks to the same MAC
-			dirs, err := afero.ReadDir(s.fs, s.cloudInitDir)
-			if err != nil {
-				span.RecordError(err)
-				return fmt.Errorf("failed to read cloud-init directory: %w", err)
-			}
+				if err := s.fs.Remove(hostnameInstallLink); err != nil && !os.IsNotExist(err) {
+					span.RecordError(err)
+					// Just log this error as the install symlink may not exist
+				}
 
-			// Count symlinks pointing to the same MAC directory
-			var linkCount int
-			for _, dir := range dirs {
-				if dir.Mode()&os.ModeSymlink != 0 {
-					// Skip the hostname we're currently deleting
-					if dir.Name() == macOrHostname ||
-						dir.Name() == macOrHostname+"_install" {
+				// Check if any other symlinks point to this MAC directory
+				otherSymlinksExist := false
+
+				dirs, err := afero.ReadDir(s.fs, s.cloudInitDir)
+				if err != nil {
+					span.RecordError(err)
+					return fmt.Errorf("failed to read cloud-init directory: %w", err)
+				}
+
+				for _, entry := range dirs {
+					// Skip non-symlinks or the ones we're deleting
+					if entry.Name() == macOrHostname || entry.Name() == macOrHostname+"_install" {
 						continue
 					}
 
-					linkPath := filepath.Join(s.cloudInitDir, dir.Name())
-					linkTarget, err := linkReader.ReadlinkIfPossible(linkPath)
+					entryInfo, _, err := lstater.LstatIfPossible(filepath.Join(s.cloudInitDir, entry.Name()))
+					if err != nil || entryInfo.Mode()&os.ModeSymlink == 0 {
+						continue
+					}
+
+					// It's a symlink, check if it points to our MAC directory
+					entryTarget, err := linkReader.ReadlinkIfPossible(filepath.Join(s.cloudInitDir, entry.Name()))
 					if err != nil {
 						continue
 					}
 
-					if linkTarget == target {
-						linkCount++
+					// Use base name comparison to handle path prefix differences
+					if filepath.Base(entryTarget) == macDirName {
+						otherSymlinksExist = true
+						break
 					}
 				}
-			}
 
-			// If no other symlinks point to this MAC, remove the MAC directories too
-			if linkCount == 0 {
-				// Extract the last component of the target path which is the MAC directory
-				macDirName := filepath.Base(target)
-				macDir := filepath.Join(s.cloudInitDir, macDirName)
-				macInstallDir := filepath.Join(s.cloudInitDir, macDirName+"_install")
+				// If no other symlinks point to the MAC directory, delete it
+				if !otherSymlinksExist {
+					if err := s.fs.RemoveAll(macDir); err != nil && !os.IsNotExist(err) {
+						span.RecordError(err)
+						return fmt.Errorf("failed to remove directory %s: %w", macDir, err)
+					}
 
-				if err := s.fs.RemoveAll(macDir); err != nil && !os.IsNotExist(err) {
-					span.RecordError(err)
-					return fmt.Errorf("failed to remove directory %s: %w", macDir, err)
+					if err := s.fs.RemoveAll(macInstallDir); err != nil && !os.IsNotExist(err) {
+						span.RecordError(err)
+						return fmt.Errorf("failed to remove directory %s: %w", macInstallDir, err)
+					}
 				}
 
-				if err := s.fs.RemoveAll(macInstallDir); err != nil && !os.IsNotExist(err) {
-					span.RecordError(err)
-					return fmt.Errorf("failed to remove directory %s: %w", macInstallDir, err)
-				}
+				span.AddEvent("Hostname symlinks removed successfully")
+				return nil
 			}
-
-			span.AddEvent("Hostname symlinks removed successfully")
-			return nil
 		}
 	}
 
-	err = fmt.Errorf("no cloud-init directory or symlink found for %s", macOrHostname)
+	err := fmt.Errorf("no cloud-init directory or symlink found for %s", macOrHostname)
 	span.RecordError(err)
 	return err
 }
