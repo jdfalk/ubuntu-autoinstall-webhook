@@ -2,6 +2,7 @@
 package cmd
 
 import (
+    "context"
     "fmt"
 
     "github.com/spf13/cobra"
@@ -17,12 +18,12 @@ var fileEditorCmd = &cobra.Command{
         // Example: Retrieve a configuration value
         baseDir := viper.GetString("file_editor.base_dir")
         fmt.Println("File editor base directory:", baseDir)
-
         // Instantiate the file-editor service.
         feService := fileeditor.NewService()
         // For example, call a method (stubbed for now).
-        if err := feService.WriteIpxeFile("AA:BB:CC:DD:EE:FF", []byte("#!ipxe\necho Booting...")); err != nil {
+        if err := feService.WriteIpxeFile(context.Background(), "AA:BB:CC:DD:EE:FF", []byte("#!ipxe\necho Booting...")); err != nil {
             return err
+        }
         }
         fmt.Println("File-editor microservice started successfully.")
         return nil
