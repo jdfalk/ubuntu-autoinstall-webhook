@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// TaskService manages background tasks and job queues
+service TaskService {
+  // CreateTask creates a new task
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
+
+  // GetTask retrieves task status
+  rpc GetTask(GetTaskRequest) returns (GetTaskResponse);
+
+  // CancelTask cancels a running task
+  rpc CancelTask(CancelTaskRequest) returns (CancelTaskResponse);
+
+  // ListTasks lists tasks with filtering
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+
+  // GetTaskLog retrieves task execution log
+  rpc GetTaskLog(GetTaskLogRequest) returns (GetTaskLogResponse);
+
+  // WatchTask streams task updates
+  rpc WatchTask(WatchTaskRequest) returns (stream TaskUpdate);
+}
+
+// Task represents a background task
+message Task {
+  string id = 1;
+  string name = 2;
+  TaskType type = 3;
+  TaskStatus status = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+  double progress = 8; // 0-100
+  string created_by = 9;
+  string status_message = 10;
+  string error = 11;
+  map<string, string> parameters = 12;
+  map<string, string> result = 13;
+  int32 retry_count = 14;
+  string resource_id = 15;
+  string resource_type = 16;
+}
+
+enum TaskType {
+  TASK_TYPE_UNKNOWN = 0;
+  TASK_TYPE_INSTALLATION = 1;
+  TASK_TYPE_CERTIFICATE_RENEWAL = 2;
+  TASK_TYPE_BACKUP = 3;
+  TASK_TYPE_RESTORE = 4;
+  TASK_TYPE_HEALTH_CHECK = 5;
+  TASK_TYPE_SYNC = 6;
+  TASK_TYPE_CLEANUP = 7;
+  TASK_TYPE_IMPORT = 8;
+  TASK_TYPE_EXPORT = 9;
+}
+
+enum TaskStatus {
+  TASK_STATUS_UNKNOWN = 0;
+  TASK_STATUS_PENDING = 1;
+  TASK_STATUS_RUNNING = 2;
+  TASK_STATUS_COMPLETED = 3;
+  TASK_STATUS_FAILED = 4;
+  TASK_STATUS_CANCELLED = 5;
+  TASK_STATUS_WAITING = 6;
+}
+
+message TaskUpdate {
+  string id = 1;
+  TaskStatus status = 2;
+  double progress = 3;
+  string status_message = 4;
+  string error = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  map<string, string> result = 7;
+}
+
+message CreateTaskRequest {
+  string name = 1;
+  TaskType type = 2;
+  map<string, string> parameters = 3;
+  bool run_immediately = 4;
+  string resource_id = 5;
+  string resource_type = 6;
+}
+
+message CreateTaskResponse {
+  Task task = 1;
+}
+
+message GetTaskRequest {
+  string id = 1;
+}
+
+message GetTaskResponse {
+  Task task = 1;
+}
+
+message CancelTaskRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+message CancelTaskResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListTasksRequest {
+  TaskType type = 1;
+  TaskStatus status = 2;
+  google.protobuf.Timestamp since = 3;
+  string created_by = 4;
+  string resource_id = 5;
+  string resource_type = 6;
+  int32 page_size = 7;
+  string page_token = 8;
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message GetTaskLogRequest {
+  string id = 1;
+}
+
+message GetTaskLogResponse {
+  string log_content = 1;
+}
+
+message WatchTaskRequest {
+  string id = 1;
+}
