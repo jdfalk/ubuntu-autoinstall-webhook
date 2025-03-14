@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
+	pb "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -22,7 +22,7 @@ import (
 var (
 	serverAddr   string
 	apiKeyFile   string
-	apiKey       string
+	certAdminApiKey string
 	insecureConn bool
 	timeout      time.Duration
 	outputFormat string
@@ -100,7 +100,7 @@ func init() {
 	// Add common flags
 	certAdminCmd.PersistentFlags().StringVar(&serverAddr, "server", "localhost:8443", "Certificate server address")
 	certAdminCmd.PersistentFlags().StringVar(&apiKeyFile, "api-key-file", "", "Path to API key file")
-	certAdminCmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key (if not using file)")
+	certAdminCmd.PersistentFlags().StringVar(&certAdminApiKey, "api-key", "", "API key (if not using file)")
 	certAdminCmd.PersistentFlags().BoolVar(&insecureConn, "insecure", false, "Use insecure connection")
 	certAdminCmd.PersistentFlags().DurationVar(&timeout, "timeout", 30*time.Second, "Request timeout")
 	certAdminCmd.PersistentFlags().StringVar(&outputFormat, "format", "text", "Output format: text, json, or pem")
@@ -152,16 +152,16 @@ func setupClient(cmd *cobra.Command, args []string) error {
 	}
 
 	// Load API key if specified from file
-	if apiKey == "" && apiKeyFile != "" {
+	if certAdminApiKey == "" && apiKeyFile != "" {
 		data, err := os.ReadFile(apiKeyFile)
 		if err != nil {
 			return fmt.Errorf("failed to read API key file: %w", err)
 		}
-		apiKey = strings.TrimSpace(string(data))
+		certAdminApiKey = strings.TrimSpace(string(data))
 	}
 
 	// Skip API key check for certain commands that don't require auth
-	if cmd.CalledAs() != "get-ca" && apiKey == "" {
+	if cmd.CalledAs() != "get-ca" && certAdminApiKey == "" {
 		return fmt.Errorf("API key is required")
 	}
 
@@ -169,7 +169,7 @@ func setupClient(cmd *cobra.Command, args []string) error {
 }
 
 // getGRPCClient creates a new gRPC client connection
-func getGRPCClient() (*grpc.ClientConn, proto.CertAdminServiceClient, error) {
+func getGRPCClient() (*grpc.ClientConn, pb.CertAdminServiceClient, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -190,14 +190,14 @@ func getGRPCClient() (*grpc.ClientConn, proto.CertAdminServiceClient, error) {
 		return nil, nil, fmt.Errorf("failed to connect to server: %w", err)
 	}
 
-	client := proto.NewCertAdminServiceClient(conn)
+	client := pb.NewCertAdminServiceClient(conn)
 	return conn, client, nil
 }
 
 // createAuthContext creates an authenticated context
 func createAuthContext(ctx context.Context) context.Context {
-	if apiKey != "" {
-		return metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+apiKey)
+	if certAdminApiKey != "" {
+		return metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+certAdminApiKey)
 	}
 	return ctx
 }
@@ -228,7 +228,7 @@ func getCACertificate(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// No authentication needed for CA certificate
-	res, err := client.GetCACertificate(ctx, &proto.GetCACertificateRequest{})
+	res, err := client.GetCACertificate(ctx, &pb.GetCACertificateRequest{})
 	if err != nil {
 		return fmt.Errorf("failed to get CA certificate: %w", err)
 	}
@@ -264,7 +264,7 @@ func issueCertificate(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req := &proto.IssueCertificateRequest{
+	req := &pb.IssueCertificateRequest{
 		Csr:        csrData,
 		CommonName: commonName,
 		Org:        org,
@@ -305,7 +305,7 @@ func renewCertificate(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req := &proto.RenewCertificateRequest{
+	req := &pb.RenewCertificateRequest{
 		Certificate: certData,
 	}
 
@@ -362,7 +362,7 @@ func createAPIKey(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req := &proto.CreateAPIKeyRequest{
+	req := &pb.CreateAPIKeyRequest{
 		Name:        name,
 		Description: description,
 	}
@@ -415,7 +415,7 @@ func revokeAPIKey(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req := &proto.RevokeAPIKeyRequest{
+	req := &pb.RevokeAPIKeyRequest{
 		Name: name,
 	}
 
@@ -443,7 +443,7 @@ func init() {
 
 	// Add common flags
 	certAdminCmd.PersistentFlags().StringVar(&serverAddr, "server", "localhost:9443", "Server address")
-	certAdminCmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key for authentication")
+	certAdminCmd.PersistentFlags().StringVar(&certAdminApiKey, "api-key", "", "API key for authentication")
 	certAdminCmd.PersistentFlags().StringVar(&outputFormat, "format", "text", "Output format: text, json, or pem")
 	certAdminCmd.PersistentFlags().StringVar(&outputFile, "output", "", "Output file path (default: stdout)")
 
@@ -483,7 +483,7 @@ func getCertificateInfo(cmd *cobra.Command, args []string) error {
 	defer conn.Close()
 
 	// Call service
-	res, err := client.GetCertificateInfo(ctx, &proto.GetCertificateInfoRequest{
+	res, err := client.GetCertificateInfo(ctx, &pb.GetCertificateInfoRequest{
 		SerialNumber: serialNumber,
 	})
 	if err != nil {

@@ -369,3 +369,5 @@ func extractSerialNumber(certPEM []byte) (string, error) {
 
 	return cert.SerialNumber.String(), nil
 }
+
+// API key management methods - these will need to be added to the proto file if we want to expose them via gRPC
