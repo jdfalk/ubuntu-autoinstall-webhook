@@ -1,0 +1,113 @@
+// pkg/proto/cert.proto
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// CertService manages certificates for secure communication
+service CertService {
+  // GetCACertificate retrieves the CA certificate
+  rpc GetCACertificate(GetCACertificateRequest) returns (GetCACertificateResponse);
+
+  // IssueCertificate issues a new certificate based on CSR
+  rpc IssueCertificate(IssueCertificateRequest) returns (IssueCertificateResponse);
+
+  // RevokeCertificate revokes an existing certificate
+  rpc RevokeCertificate(RevokeCertificateRequest) returns (RevokeCertificateResponse);
+
+  // ListCertificates lists all issued certificates
+  rpc ListCertificates(ListCertificatesRequest) returns (ListCertificatesResponse);
+
+  // GetCertificateInfo gets detailed information about a certificate
+  rpc GetCertificateInfo(GetCertificateInfoRequest) returns (GetCertificateInfoResponse);
+
+  // RenewCertificate renews an existing certificate
+  rpc RenewCertificate(RenewCertificateRequest) returns (RenewCertificateResponse);
+}
+
+// GetCACertificateRequest is an empty request
+message GetCACertificateRequest {}
+
+// GetCACertificateResponse contains the CA certificate
+message GetCACertificateResponse {
+  string certificate_pem = 1;
+}
+
+// IssueCertificateRequest contains the CSR and client info
+message IssueCertificateRequest {
+  string csr_pem = 1;
+  map<string, string> client_info = 2;
+}
+
+// IssueCertificateResponse contains the issued certificate
+message IssueCertificateResponse {
+  string certificate_pem = 1;
+  string serial_number = 2;
+}
+
+// RevokeCertificateRequest contains the serial number or fingerprint
+message RevokeCertificateRequest {
+  string serial_number = 1;
+  string revocation_reason = 2;
+}
+
+// RevokeCertificateResponse contains the result of revocation
+message RevokeCertificateResponse {
+  bool success = 1;
+  google.protobuf.Timestamp revocation_time = 2;
+}
+
+// Certificate information returned by listing or info requests
+message CertificateInfo {
+  string serial_number = 1;
+  string subject_name = 2;
+  string issued_to = 3;
+  google.protobuf.Timestamp issued_at = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  bool revoked = 6;
+  string certificate_pem = 7; // Optional - may be omitted in list responses
+  repeated string sans = 8; // Subject Alternative Names
+  map<string, string> metadata = 9; // Additional certificate metadata
+}
+
+// ListCertificatesRequest contains optional filtering criteria
+message ListCertificatesRequest {
+  bool include_revoked = 1;
+  bool include_expired = 2;
+  string filter_by_subject = 3;
+  int32 max_results = 4;
+  string page_token = 5;
+}
+
+// ListCertificatesResponse contains a list of certificates
+message ListCertificatesResponse {
+  repeated CertificateInfo certificates = 1;
+  string next_page_token = 2;
+  int32 total_certificates = 3;
+}
+
+// GetCertificateInfoRequest identifies a certificate to query
+message GetCertificateInfoRequest {
+  string serial_number = 1;
+}
+
+// GetCertificateInfoResponse contains detailed certificate info
+message GetCertificateInfoResponse {
+  CertificateInfo certificate = 1;
+}
+
+// RenewCertificateRequest for renewing an existing certificate
+message RenewCertificateRequest {
+  string serial_number = 1;
+  string certificate_pem = 2;
+}
+
+// RenewCertificateResponse contains the renewed certificate
+message RenewCertificateResponse {
+  string certificate_pem = 1;
+  string serial_number = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}

@@ -1,0 +1,192 @@
+// pkg/proto/inventory.proto
+// This file defines the Inventory service for managing server inventory
+// and hardware details. It includes messages for registering, retrieving,
+// updating, deleting, and listing servers, as well as reporting hardware
+// details. The service is designed to be used in a gRPC context, with
+// appropriate request and response messages. The Server message includes
+// fields for server metadata, status, hardware information, and tags.
+// The HardwareInfo message contains details about the server's hardware,
+// including CPU, memory, storage, and network interfaces. The syntax is
+// proto3, and the package is defined as "proto".
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// InventoryService manages server inventory
+service InventoryService {
+  // RegisterServer registers a new server
+  rpc RegisterServer(RegisterServerRequest) returns (RegisterServerResponse);
+
+  // GetServer retrieves server details
+  rpc GetServer(GetServerRequest) returns (GetServerResponse);
+
+  // UpdateServer updates server information
+  rpc UpdateServer(UpdateServerRequest) returns (UpdateServerResponse);
+
+  // DeleteServer removes a server from inventory
+  rpc DeleteServer(DeleteServerRequest) returns (DeleteServerResponse);
+
+  // ListServers lists all servers in inventory
+  rpc ListServers(ListServersRequest) returns (ListServersResponse);
+
+  // ReportHardware reports hardware details for a server
+  rpc ReportHardware(ReportHardwareRequest) returns (ReportHardwareResponse);
+}
+
+// Server represents a physical or virtual server
+message Server {
+  string id = 1;
+  string hostname = 2;
+  string description = 3;
+  string asset_tag = 4;
+  string serial_number = 5;
+  string mac_address = 6;
+  string ip_address = 7;
+  ServerStatus status = 8;
+  google.protobuf.Timestamp registered_at = 9;
+  google.protobuf.Timestamp last_seen = 10;
+  map<string, string> tags = 11;
+  HardwareInfo hardware = 12;
+  string location = 13;
+  map<string, string> metadata = 14;
+}
+
+// ServerStatus represents the current status of a server
+enum ServerStatus {
+  SERVER_STATUS_UNKNOWN = 0;
+  SERVER_STATUS_OFFLINE = 1;
+  SERVER_STATUS_ONLINE = 2;
+  SERVER_STATUS_PROVISIONING = 3;
+  SERVER_STATUS_MAINTENANCE = 4;
+  SERVER_STATUS_RESERVED = 5;
+  SERVER_STATUS_DECOMMISSIONED = 6;
+}
+
+// HardwareInfo contains details about server hardware
+message HardwareInfo {
+  string manufacturer = 1;
+  string model = 2;
+  string bios_version = 3;
+  CPUInfo cpu = 4;
+  MemoryInfo memory = 5;
+  repeated StorageInfo storage_devices = 6;
+  repeated NetworkInfo network_interfaces = 7;
+}
+
+// CPUInfo contains CPU details
+message CPUInfo {
+  string model = 1;
+  int32 cores = 2;
+  int32 threads = 3;
+  double speed_ghz = 4;
+  string architecture = 5;
+}
+
+// MemoryInfo contains memory details
+message MemoryInfo {
+  int64 total_bytes = 1;
+  int32 dimms = 2;
+  string type = 3; // DDR4, DDR5, etc.
+}
+
+// StorageInfo contains storage device details
+message StorageInfo {
+  string device_path = 1;
+  string model = 2;
+  string serial = 3;
+  int64 size_bytes = 4;
+  string type = 5; // SSD, HDD, NVMe
+}
+
+// NetworkInfo contains network interface details
+message NetworkInfo {
+  string interface_name = 1;
+  string mac_address = 2;
+  repeated string ip_addresses = 3;
+  int32 speed_mbps = 4;
+  bool is_management = 5; // IPMI, iDRAC, iLO, etc.
+}
+
+// RegisterServerRequest for registering a new server
+message RegisterServerRequest {
+  string hostname = 1;
+  string description = 2;
+  string asset_tag = 3;
+  string serial_number = 4;
+  string mac_address = 5;
+  string ip_address = 6;
+  map<string, string> tags = 7;
+  string location = 8;
+}
+
+// RegisterServerResponse contains the registered server info
+message RegisterServerResponse {
+  Server server = 1;
+}
+
+// GetServerRequest for retrieving server details
+message GetServerRequest {
+  string id = 1;
+}
+
+// GetServerResponse contains server details
+message GetServerResponse {
+  Server server = 1;
+}
+
+// UpdateServerRequest for updating server information
+message UpdateServerRequest {
+  string id = 1;
+  string hostname = 2;
+  string description = 3;
+  string asset_tag = 4;
+  string ip_address = 5;
+  ServerStatus status = 6;
+  map<string, string> tags = 7;
+  string location = 8;
+  map<string, string> metadata = 9;
+}
+
+// UpdateServerResponse contains the updated server info
+message UpdateServerResponse {
+  Server server = 1;
+}
+
+// DeleteServerRequest for removing a server
+message DeleteServerRequest {
+  string id = 1;
+  bool force = 2; // Force deletion even if server is active
+}
+
+// DeleteServerResponse contains the result of deletion
+message DeleteServerResponse {
+  bool success = 1;
+}
+
+// ListServersRequest for listing servers
+message ListServersRequest {
+  string filter_by_hostname = 1;
+  map<string, string> filter_by_tags = 2;
+  ServerStatus filter_by_status = 3;
+  string filter_by_location = 4;
+}
+
+// ListServersResponse contains a list of servers
+message ListServersResponse {
+  repeated Server servers = 1;
+}
+
+// ReportHardwareRequest for reporting hardware details
+message ReportHardwareRequest {
+  string server_id = 1;
+  HardwareInfo hardware = 2;
+}
+
+// ReportHardwareResponse contains the updated server info
+message ReportHardwareResponse {
+  Server server = 1;
+}

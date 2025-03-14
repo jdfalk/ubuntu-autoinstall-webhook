@@ -1,0 +1,167 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// NotificationService manages notifications and alerts
+service NotificationService {
+  // CreateNotification creates a new notification
+  rpc CreateNotification(CreateNotificationRequest) returns (CreateNotificationResponse);
+
+  // GetNotification retrieves a notification
+  rpc GetNotification(GetNotificationRequest) returns (GetNotificationResponse);
+
+  // ListNotifications lists notifications
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+
+  // MarkAsRead marks notifications as read
+  rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse);
+
+  // DeleteNotification deletes a notification
+  rpc DeleteNotification(DeleteNotificationRequest) returns (DeleteNotificationResponse);
+
+  // ConfigureChannel configures a notification channel
+  rpc ConfigureChannel(ConfigureChannelRequest) returns (ConfigureChannelResponse);
+
+  // TestChannel tests a notification channel
+  rpc TestChannel(TestChannelRequest) returns (TestChannelResponse);
+
+  // GetChannels lists configured notification channels
+  rpc GetChannels(GetChannelsRequest) returns (GetChannelsResponse);
+}
+
+// Notification represents a notification
+message Notification {
+  string id = 1;
+  string title = 2;
+  string message = 3;
+  NotificationType type = 4;
+  NotificationPriority priority = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  string target_user_id = 8;
+  string resource_id = 9;
+  string resource_type = 10;
+  string action_url = 11;
+  bool read = 12;
+}
+
+enum NotificationType {
+  NOTIFICATION_TYPE_UNKNOWN = 0;
+  NOTIFICATION_TYPE_INFO = 1;
+  NOTIFICATION_TYPE_SUCCESS = 2;
+  NOTIFICATION_TYPE_WARNING = 3;
+  NOTIFICATION_TYPE_ERROR = 4;
+  NOTIFICATION_TYPE_SYSTEM = 5;
+}
+
+enum NotificationPriority {
+  NOTIFICATION_PRIORITY_UNKNOWN = 0;
+  NOTIFICATION_PRIORITY_LOW = 1;
+  NOTIFICATION_PRIORITY_MEDIUM = 2;
+  NOTIFICATION_PRIORITY_HIGH = 3;
+  NOTIFICATION_PRIORITY_CRITICAL = 4;
+}
+
+message NotificationChannel {
+  string id = 1;
+  string name = 2;
+  ChannelType type = 3;
+  map<string, string> config = 4;
+  bool enabled = 5;
+  repeated string event_types = 6;
+  NotificationPriority min_priority = 7;
+}
+
+enum ChannelType {
+  CHANNEL_TYPE_UNKNOWN = 0;
+  CHANNEL_TYPE_EMAIL = 1;
+  CHANNEL_TYPE_SLACK = 2;
+  CHANNEL_TYPE_WEBHOOK = 3;
+  CHANNEL_TYPE_SMS = 4;
+  CHANNEL_TYPE_PAGERDUTY = 5;
+}
+
+message CreateNotificationRequest {
+  string title = 1;
+  string message = 2;
+  NotificationType type = 3;
+  NotificationPriority priority = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  string target_user_id = 6;
+  string resource_id = 7;
+  string resource_type = 8;
+  string action_url = 9;
+}
+
+message CreateNotificationResponse {
+  Notification notification = 1;
+}
+
+message GetNotificationRequest {
+  string id = 1;
+}
+
+message GetNotificationResponse {
+  Notification notification = 1;
+}
+
+message ListNotificationsRequest {
+  string user_id = 1;
+  bool unread_only = 2;
+  NotificationType type = 3;
+  NotificationPriority min_priority = 4;
+  google.protobuf.Timestamp since = 5;
+  int32 page_size = 6;
+  string page_token = 7;
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message MarkAsReadRequest {
+  repeated string notification_ids = 1;
+  string user_id = 2;
+}
+
+message MarkAsReadResponse {
+  int32 marked_count = 1;
+}
+
+message DeleteNotificationRequest {
+  string id = 1;
+}
+
+message DeleteNotificationResponse {
+  bool success = 1;
+}
+
+message ConfigureChannelRequest {
+  NotificationChannel channel = 1;
+}
+
+message ConfigureChannelResponse {
+  NotificationChannel channel = 1;
+}
+
+message TestChannelRequest {
+  string channel_id = 1;
+  string test_message = 2;
+}
+
+message TestChannelResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetChannelsRequest {}
+
+message GetChannelsResponse {
+  repeated NotificationChannel channels = 1;
+}

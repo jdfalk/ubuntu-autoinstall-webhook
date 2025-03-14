@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: proto/certadmin.proto
+// source: pkg/proto/certadmin.proto
 
-package certadmin
+package proto
 
 import (
 	context "context"
@@ -19,37 +19,29 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CertAdmin_Login_FullMethodName                 = "/certadmin.CertAdmin/Login"
-	CertAdmin_GetCA_FullMethodName                 = "/certadmin.CertAdmin/GetCA"
-	CertAdmin_IssueCertificate_FullMethodName      = "/certadmin.CertAdmin/IssueCertificate"
-	CertAdmin_RenewCertificate_FullMethodName      = "/certadmin.CertAdmin/RenewCertificate"
-	CertAdmin_RevokeCertificate_FullMethodName     = "/certadmin.CertAdmin/RevokeCertificate"
-	CertAdmin_ListCertificates_FullMethodName      = "/certadmin.CertAdmin/ListCertificates"
-	CertAdmin_GetCertificateDetails_FullMethodName = "/certadmin.CertAdmin/GetCertificateDetails"
-	CertAdmin_GetServerMetrics_FullMethodName      = "/certadmin.CertAdmin/GetServerMetrics"
+	CertAdmin_GetCACertificate_FullMethodName   = "/proto.CertAdmin/GetCACertificate"
+	CertAdmin_IssueCertificate_FullMethodName   = "/proto.CertAdmin/IssueCertificate"
+	CertAdmin_RevokeCertificate_FullMethodName  = "/proto.CertAdmin/RevokeCertificate"
+	CertAdmin_ListCertificates_FullMethodName   = "/proto.CertAdmin/ListCertificates"
+	CertAdmin_GetCertificateInfo_FullMethodName = "/proto.CertAdmin/GetCertificateInfo"
 )
 
 // CertAdminClient is the client API for CertAdmin service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// CertAdmin service for certificate administration
+// CertAdmin service provides administrative access to the certificate infrastructure
 type CertAdminClient interface {
-	// Authentication
-	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	// GetCA retrieves the CA certificate
-	GetCA(ctx context.Context, in *GetCARequest, opts ...grpc.CallOption) (*GetCAResponse, error)
-	// IssueCertificate issues a certificate from a CSR
+	// GetCACertificate retrieves the CA certificate
+	GetCACertificate(ctx context.Context, in *GetCACertificateRequest, opts ...grpc.CallOption) (*GetCACertificateResponse, error)
+	// IssueCertificate issues a new certificate based on CSR
 	IssueCertificate(ctx context.Context, in *IssueCertificateRequest, opts ...grpc.CallOption) (*IssueCertificateResponse, error)
-	// RenewCertificate renews an existing certificate
-	RenewCertificate(ctx context.Context, in *RenewCertificateRequest, opts ...grpc.CallOption) (*RenewCertificateResponse, error)
-	// RevokeCertificate revokes a certificate
+	// RevokeCertificate revokes an existing certificate
 	RevokeCertificate(ctx context.Context, in *RevokeCertificateRequest, opts ...grpc.CallOption) (*RevokeCertificateResponse, error)
 	// ListCertificates lists all issued certificates
 	ListCertificates(ctx context.Context, in *ListCertificatesRequest, opts ...grpc.CallOption) (*ListCertificatesResponse, error)
-	// Admin operations
-	GetCertificateDetails(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*CertificateDetails, error)
-	GetServerMetrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ServerMetrics, error)
+	// GetCertificateInfo gets detailed information about a certificate
+	GetCertificateInfo(ctx context.Context, in *GetCertificateInfoRequest, opts ...grpc.CallOption) (*GetCertificateInfoResponse, error)
 }
 
 type certAdminClient struct {
@@ -60,20 +52,10 @@ func NewCertAdminClient(cc grpc.ClientConnInterface) CertAdminClient {
 	return &certAdminClient{cc}
 }
 
-func (c *certAdminClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+func (c *certAdminClient) GetCACertificate(ctx context.Context, in *GetCACertificateRequest, opts ...grpc.CallOption) (*GetCACertificateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LoginResponse)
-	err := c.cc.Invoke(ctx, CertAdmin_Login_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *certAdminClient) GetCA(ctx context.Context, in *GetCARequest, opts ...grpc.CallOption) (*GetCAResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetCAResponse)
-	err := c.cc.Invoke(ctx, CertAdmin_GetCA_FullMethodName, in, out, cOpts...)
+	out := new(GetCACertificateResponse)
+	err := c.cc.Invoke(ctx, CertAdmin_GetCACertificate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,16 +66,6 @@ func (c *certAdminClient) IssueCertificate(ctx context.Context, in *IssueCertifi
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(IssueCertificateResponse)
 	err := c.cc.Invoke(ctx, CertAdmin_IssueCertificate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *certAdminClient) RenewCertificate(ctx context.Context, in *RenewCertificateRequest, opts ...grpc.CallOption) (*RenewCertificateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RenewCertificateResponse)
-	err := c.cc.Invoke(ctx, CertAdmin_RenewCertificate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,20 +92,10 @@ func (c *certAdminClient) ListCertificates(ctx context.Context, in *ListCertific
 	return out, nil
 }
 
-func (c *certAdminClient) GetCertificateDetails(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*CertificateDetails, error) {
+func (c *certAdminClient) GetCertificateInfo(ctx context.Context, in *GetCertificateInfoRequest, opts ...grpc.CallOption) (*GetCertificateInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CertificateDetails)
-	err := c.cc.Invoke(ctx, CertAdmin_GetCertificateDetails_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *certAdminClient) GetServerMetrics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ServerMetrics, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ServerMetrics)
-	err := c.cc.Invoke(ctx, CertAdmin_GetServerMetrics_FullMethodName, in, out, cOpts...)
+	out := new(GetCertificateInfoResponse)
+	err := c.cc.Invoke(ctx, CertAdmin_GetCertificateInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -144,23 +106,18 @@ func (c *certAdminClient) GetServerMetrics(ctx context.Context, in *Empty, opts 
 // All implementations must embed UnimplementedCertAdminServer
 // for forward compatibility.
 //
-// CertAdmin service for certificate administration
+// CertAdmin service provides administrative access to the certificate infrastructure
 type CertAdminServer interface {
-	// Authentication
-	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	// GetCA retrieves the CA certificate
-	GetCA(context.Context, *GetCARequest) (*GetCAResponse, error)
-	// IssueCertificate issues a certificate from a CSR
+	// GetCACertificate retrieves the CA certificate
+	GetCACertificate(context.Context, *GetCACertificateRequest) (*GetCACertificateResponse, error)
+	// IssueCertificate issues a new certificate based on CSR
 	IssueCertificate(context.Context, *IssueCertificateRequest) (*IssueCertificateResponse, error)
-	// RenewCertificate renews an existing certificate
-	RenewCertificate(context.Context, *RenewCertificateRequest) (*RenewCertificateResponse, error)
-	// RevokeCertificate revokes a certificate
+	// RevokeCertificate revokes an existing certificate
 	RevokeCertificate(context.Context, *RevokeCertificateRequest) (*RevokeCertificateResponse, error)
 	// ListCertificates lists all issued certificates
 	ListCertificates(context.Context, *ListCertificatesRequest) (*ListCertificatesResponse, error)
-	// Admin operations
-	GetCertificateDetails(context.Context, *GetRequest) (*CertificateDetails, error)
-	GetServerMetrics(context.Context, *Empty) (*ServerMetrics, error)
+	// GetCertificateInfo gets detailed information about a certificate
+	GetCertificateInfo(context.Context, *GetCertificateInfoRequest) (*GetCertificateInfoResponse, error)
 	mustEmbedUnimplementedCertAdminServer()
 }
 
@@ -171,17 +128,11 @@ type CertAdminServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCertAdminServer struct{}
 
-func (UnimplementedCertAdminServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
-}
-func (UnimplementedCertAdminServer) GetCA(context.Context, *GetCARequest) (*GetCAResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCA not implemented")
+func (UnimplementedCertAdminServer) GetCACertificate(context.Context, *GetCACertificateRequest) (*GetCACertificateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCACertificate not implemented")
 }
 func (UnimplementedCertAdminServer) IssueCertificate(context.Context, *IssueCertificateRequest) (*IssueCertificateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IssueCertificate not implemented")
-}
-func (UnimplementedCertAdminServer) RenewCertificate(context.Context, *RenewCertificateRequest) (*RenewCertificateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RenewCertificate not implemented")
 }
 func (UnimplementedCertAdminServer) RevokeCertificate(context.Context, *RevokeCertificateRequest) (*RevokeCertificateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeCertificate not implemented")
@@ -189,11 +140,8 @@ func (UnimplementedCertAdminServer) RevokeCertificate(context.Context, *RevokeCe
 func (UnimplementedCertAdminServer) ListCertificates(context.Context, *ListCertificatesRequest) (*ListCertificatesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCertificates not implemented")
 }
-func (UnimplementedCertAdminServer) GetCertificateDetails(context.Context, *GetRequest) (*CertificateDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCertificateDetails not implemented")
-}
-func (UnimplementedCertAdminServer) GetServerMetrics(context.Context, *Empty) (*ServerMetrics, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetServerMetrics not implemented")
+func (UnimplementedCertAdminServer) GetCertificateInfo(context.Context, *GetCertificateInfoRequest) (*GetCertificateInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCertificateInfo not implemented")
 }
 func (UnimplementedCertAdminServer) mustEmbedUnimplementedCertAdminServer() {}
 func (UnimplementedCertAdminServer) testEmbeddedByValue()                   {}
@@ -216,38 +164,20 @@ func RegisterCertAdminServer(s grpc.ServiceRegistrar, srv CertAdminServer) {
 	s.RegisterService(&CertAdmin_ServiceDesc, srv)
 }
 
-func _CertAdmin_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LoginRequest)
+func _CertAdmin_GetCACertificate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCACertificateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CertAdminServer).Login(ctx, in)
+		return srv.(CertAdminServer).GetCACertificate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CertAdmin_Login_FullMethodName,
+		FullMethod: CertAdmin_GetCACertificate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CertAdminServer).Login(ctx, req.(*LoginRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CertAdmin_GetCA_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCARequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CertAdminServer).GetCA(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CertAdmin_GetCA_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CertAdminServer).GetCA(ctx, req.(*GetCARequest))
+		return srv.(CertAdminServer).GetCACertificate(ctx, req.(*GetCACertificateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -266,24 +196,6 @@ func _CertAdmin_IssueCertificate_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CertAdminServer).IssueCertificate(ctx, req.(*IssueCertificateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CertAdmin_RenewCertificate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RenewCertificateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CertAdminServer).RenewCertificate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CertAdmin_RenewCertificate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CertAdminServer).RenewCertificate(ctx, req.(*RenewCertificateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -324,38 +236,20 @@ func _CertAdmin_ListCertificates_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CertAdmin_GetCertificateDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRequest)
+func _CertAdmin_GetCertificateInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCertificateInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CertAdminServer).GetCertificateDetails(ctx, in)
+		return srv.(CertAdminServer).GetCertificateInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CertAdmin_GetCertificateDetails_FullMethodName,
+		FullMethod: CertAdmin_GetCertificateInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CertAdminServer).GetCertificateDetails(ctx, req.(*GetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CertAdmin_GetServerMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CertAdminServer).GetServerMetrics(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CertAdmin_GetServerMetrics_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CertAdminServer).GetServerMetrics(ctx, req.(*Empty))
+		return srv.(CertAdminServer).GetCertificateInfo(ctx, req.(*GetCertificateInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -364,24 +258,16 @@ func _CertAdmin_GetServerMetrics_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CertAdmin_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "certadmin.CertAdmin",
+	ServiceName: "proto.CertAdmin",
 	HandlerType: (*CertAdminServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Login",
-			Handler:    _CertAdmin_Login_Handler,
-		},
-		{
-			MethodName: "GetCA",
-			Handler:    _CertAdmin_GetCA_Handler,
+			MethodName: "GetCACertificate",
+			Handler:    _CertAdmin_GetCACertificate_Handler,
 		},
 		{
 			MethodName: "IssueCertificate",
 			Handler:    _CertAdmin_IssueCertificate_Handler,
-		},
-		{
-			MethodName: "RenewCertificate",
-			Handler:    _CertAdmin_RenewCertificate_Handler,
 		},
 		{
 			MethodName: "RevokeCertificate",
@@ -392,14 +278,10 @@ var CertAdmin_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CertAdmin_ListCertificates_Handler,
 		},
 		{
-			MethodName: "GetCertificateDetails",
-			Handler:    _CertAdmin_GetCertificateDetails_Handler,
-		},
-		{
-			MethodName: "GetServerMetrics",
-			Handler:    _CertAdmin_GetServerMetrics_Handler,
+			MethodName: "GetCertificateInfo",
+			Handler:    _CertAdmin_GetCertificateInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/certadmin.proto",
+	Metadata: "pkg/proto/certadmin.proto",
 }

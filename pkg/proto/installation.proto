@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+import "../../third_party/google/api/annotations.proto";
+
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// InstallationService manages OS installations
+service InstallationService {
+  // CreateInstallation starts a new OS installation
+  rpc CreateInstallation(CreateInstallationRequest) returns (CreateInstallationResponse);
+
+  // GetInstallation retrieves installation details
+  rpc GetInstallation(GetInstallationRequest) returns (GetInstallationResponse);
+
+  // UpdateInstallationStatus updates installation status
+  rpc UpdateInstallationStatus(UpdateInstallationStatusRequest) returns (UpdateInstallationStatusResponse);
+
+  // ListInstallations lists all installations
+  rpc ListInstallations(ListInstallationsRequest) returns (ListInstallationsResponse);
+
+  // CancelInstallation cancels an ongoing installation
+  rpc CancelInstallation(CancelInstallationRequest) returns (CancelInstallationResponse);
+
+  // GetInstallationLogs retrieves logs for an installation
+  rpc GetInstallationLogs(GetInstallationLogsRequest) returns (GetInstallationLogsResponse);
+
+  // ReportStatus receives status updates from the client
+  rpc ReportStatus(StatusRequest) returns (StatusResponse) {
+    option (google.api.http) = {
+      post: "/v1/install/status"
+      body: "*"
+    };
+  }
+}
+
+// Installation represents an OS installation
+message Installation {
+  string id = 1;
+  string server_id = 2;
+  string template_id = 3;
+  InstallationStatus status = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+  map<string, string> parameters = 8;
+  string initiated_by = 9;
+  string error_message = 10;
+  string autoinstall_url = 11;
+  string os_version = 12;
+}
+
+// InstallationStatus represents the current status of an installation
+enum InstallationStatus {
+  INSTALLATION_STATUS_UNKNOWN = 0;
+  INSTALLATION_STATUS_PENDING = 1;
+  INSTALLATION_STATUS_IN_PROGRESS = 2;
+  INSTALLATION_STATUS_COMPLETED = 3;
+  INSTALLATION_STATUS_FAILED = 4;
+  INSTALLATION_STATUS_CANCELLED = 5;
+}
+
+// InstallationLog represents a log entry for an installation
+message InstallationLog {
+  string installation_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  LogLevel level = 3;
+  string message = 4;
+  string source = 5; // Component that generated the log
+}
+
+// LogLevel for installation logs
+enum LogLevel {
+  LOG_LEVEL_UNKNOWN = 0;
+  LOG_LEVEL_DEBUG = 1;
+  LOG_LEVEL_INFO = 2;
+  LOG_LEVEL_WARNING = 3;
+  LOG_LEVEL_ERROR = 4;
+  LOG_LEVEL_CRITICAL = 5;
+}
+
+// CreateInstallationRequest for starting a new installation
+message CreateInstallationRequest {
+  string server_id = 1;
+  string template_id = 2;
+  map<string, string> parameters = 3;
+  string os_version = 4;
+}
+
+// CreateInstallationResponse contains the created installation
+message CreateInstallationResponse {
+  Installation installation = 1;
+}
+
+// GetInstallationRequest for retrieving installation details
+message GetInstallationRequest {
+  string id = 1;
+}
+
+// GetInstallationResponse contains installation details
+message GetInstallationResponse {
+  Installation installation = 1;
+}
+
+// UpdateInstallationStatusRequest for updating installation status
+message UpdateInstallationStatusRequest {
+  string id = 1;
+  InstallationStatus status = 2;
+  string error_message = 3;
+  map<string, string> metadata = 4;
+}
+
+// UpdateInstallationStatusResponse contains the updated installation
+message UpdateInstallationStatusResponse {
+  Installation installation = 1;
+}
+
+// ListInstallationsRequest for listing installations
+message ListInstallationsRequest {
+  string filter_by_server_id = 1;
+  InstallationStatus filter_by_status = 2;
+  google.protobuf.Timestamp filter_after = 3;
+  google.protobuf.Timestamp filter_before = 4;
+}
+
+// ListInstallationsResponse contains a list of installations
+message ListInstallationsResponse {
+  repeated Installation installations = 1;
+}
+
+// CancelInstallationRequest for cancelling an installation
+message CancelInstallationRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+// CancelInstallationResponse contains the result of cancellation
+message CancelInstallationResponse {
+  bool success = 1;
+  Installation installation = 2;
+}
+
+// GetInstallationLogsRequest for retrieving installation logs
+message GetInstallationLogsRequest {
+  string installation_id = 1;
+  LogLevel min_level = 2;
+  google.protobuf.Timestamp after = 3;
+  int32 max_entries = 4;
+}
+
+// GetInstallationLogsResponse contains installation logs
+message GetInstallationLogsResponse {
+  repeated InstallationLog logs = 1;
+}
+
+// StatusRequest is the request message for reporting installation status.
+message StatusRequest {
+  string hostname = 1;
+  string ip_address = 2;
+  int32 progress = 3;
+  string message = 4;
+}
+
+// StatusResponse is the response message acknowledging the status update.
+message StatusResponse {
+  bool acknowledged = 1;
+}

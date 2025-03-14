@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// NetworkService manages network configurations for installations
+service NetworkService {
+  // GetNetworkConfig retrieves network configuration for a machine
+  rpc GetNetworkConfig(GetNetworkConfigRequest) returns (GetNetworkConfigResponse);
+
+  // UpdateNetworkConfig updates network configuration
+  rpc UpdateNetworkConfig(UpdateNetworkConfigRequest) returns (UpdateNetworkConfigResponse);
+
+  // DetectNetworkInterfaces detects network interfaces on a machine
+  rpc DetectNetworkInterfaces(DetectNetworkInterfacesRequest) returns (DetectNetworkInterfacesResponse);
+}
+
+// NetworkConfig represents a complete network configuration
+message NetworkConfig {
+  string id = 1;
+  string name = 2;
+  NetworkVersion version = 3;
+  repeated NetworkInterface interfaces = 4;
+  repeated NameServer nameservers = 5;
+  string search_domain = 6;
+  map<string, string> metadata = 7;
+}
+
+enum NetworkVersion {
+  NETWORK_VERSION_UNKNOWN = 0;
+  NETWORK_VERSION_NETPLAN_V2 = 1;
+  NETWORK_VERSION_NETPLAN_V3 = 2;
+  NETWORK_VERSION_ENI = 3; // Legacy interfaces format
+}
+
+message NetworkInterface {
+  string name = 1;
+  NetworkInterfaceType type = 2;
+  bool dhcp = 3;
+  string mac_address = 4;
+  repeated string addresses = 5; // CIDR notation
+  string gateway = 6;
+  repeated string routes = 7;
+  int32 mtu = 8;
+  bool match_mac = 9;
+  string vlan_id = 10;
+  string vlan_link = 11;
+  string bond_master = 12;
+  repeated string bond_slaves = 13;
+  BondMode bond_mode = 14;
+}
+
+enum NetworkInterfaceType {
+  INTERFACE_TYPE_UNKNOWN = 0;
+  INTERFACE_TYPE_PHYSICAL = 1;
+  INTERFACE_TYPE_VLAN = 2;
+  INTERFACE_TYPE_BOND = 3;
+  INTERFACE_TYPE_BRIDGE = 4;
+}
+
+enum BondMode {
+  BOND_MODE_UNKNOWN = 0;
+  BOND_MODE_BALANCE_RR = 1;
+  BOND_MODE_ACTIVE_BACKUP = 2;
+  BOND_MODE_BALANCE_XOR = 3;
+  BOND_MODE_BROADCAST = 4;
+  BOND_MODE_802_3AD = 5;
+  BOND_MODE_BALANCE_TLB = 6;
+  BOND_MODE_BALANCE_ALB = 7;
+}
+
+message NameServer {
+  repeated string addresses = 1;
+  repeated string search = 2;
+}
+
+message GetNetworkConfigRequest {
+  string machine_id = 1;
+}
+
+message GetNetworkConfigResponse {
+  NetworkConfig config = 1;
+}
+
+message UpdateNetworkConfigRequest {
+  string machine_id = 1;
+  NetworkConfig config = 2;
+}
+
+message UpdateNetworkConfigResponse {
+  NetworkConfig config = 1;
+}
+
+message DetectNetworkInterfacesRequest {
+  string machine_id = 1;
+}
+
+message DetectNetworkInterfacesResponse {
+  repeated NetworkInterface interfaces = 1;
+}

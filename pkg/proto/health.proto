@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// HealthService monitors system health and status
+service HealthService {
+  // GetSystemStatus retrieves overall system status
+  rpc GetSystemStatus(GetSystemStatusRequest) returns (GetSystemStatusResponse);
+
+  // GetComponentStatus retrieves status of a specific component
+  rpc GetComponentStatus(GetComponentStatusRequest) returns (GetComponentStatusResponse);
+
+  // ListComponentStatuses lists status of all components
+  rpc ListComponentStatuses(ListComponentStatusesRequest) returns (ListComponentStatusesResponse);
+
+  // GetMetrics retrieves system metrics
+  rpc GetMetrics(GetMetricsRequest) returns (GetMetricsResponse);
+
+  // GetSystemInfo retrieves system information
+  rpc GetSystemInfo(GetSystemInfoRequest) returns (GetSystemInfoResponse);
+}
+
+// SystemStatus represents overall system status
+message SystemStatus {
+  HealthState health = 1;
+  string message = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  int32 uptime_seconds = 4;
+}
+
+// ComponentStatus represents status of a system component
+message ComponentStatus {
+  string name = 1;
+  HealthState health = 2;
+  string message = 3;
+  google.protobuf.Timestamp last_check = 4;
+  map<string, string> details = 5;
+}
+
+// HealthState represents the health state of a component
+enum HealthState {
+  HEALTH_STATE_UNKNOWN = 0;
+  HEALTH_STATE_HEALTHY = 1;
+  HEALTH_STATE_DEGRADED = 2;
+  HEALTH_STATE_UNHEALTHY = 3;
+  HEALTH_STATE_MAINTENANCE = 4;
+}
+
+// Metrics represents system performance metrics
+message Metrics {
+  google.protobuf.Timestamp timestamp = 1;
+  double cpu_usage_percent = 2;
+  int64 memory_used_bytes = 3;
+  int64 memory_total_bytes = 4;
+  int64 disk_used_bytes = 5;
+  int64 disk_total_bytes = 6;
+  int32 active_connections = 7;
+  int32 requests_per_second = 8;
+  int32 avg_response_time_ms = 9;
+  map<string, double> component_metrics = 10;
+}
+
+// SystemInfo represents system information
+message SystemInfo {
+  string version = 1;
+  google.protobuf.Timestamp start_time = 2;
+  string hostname = 3;
+  string environment = 4;
+  repeated string features = 5;
+  map<string, string> build_info = 6;
+  map<string, string> config = 7;
+}
+
+// GetSystemStatusRequest for retrieving overall system status
+message GetSystemStatusRequest {}
+
+// GetSystemStatusResponse contains overall system status
+message GetSystemStatusResponse {
+  SystemStatus status = 1;
+}
+
+// GetComponentStatusRequest for retrieving status of a specific component
+message GetComponentStatusRequest {
+  string component_name = 1;
+}
+
+// GetComponentStatusResponse contains component status
+message GetComponentStatusResponse {
+  ComponentStatus status = 1;
+}
+
+// ListComponentStatusesRequest for listing status of all components
+message ListComponentStatusesRequest {}
+
+// ListComponentStatusesResponse contains status of all components
+message ListComponentStatusesResponse {
+  repeated ComponentStatus statuses = 1;
+  SystemStatus system_status = 2;
+}
+
+// GetMetricsRequest for retrieving system metrics
+message GetMetricsRequest {
+  repeated string include_metrics = 1; // Empty means all metrics
+}
+
+// GetMetricsResponse contains system metrics
+message GetMetricsResponse {
+  Metrics metrics = 1;
+}
+
+// GetSystemInfoRequest for retrieving system information
+message GetSystemInfoRequest {}
+
+// GetSystemInfoResponse contains system information
+message GetSystemInfoResponse {
+  SystemInfo info = 1;
+}
