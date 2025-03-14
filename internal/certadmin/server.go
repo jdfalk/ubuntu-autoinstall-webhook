@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/certissuer"
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/proto/certadmin"
 	pb "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -38,7 +37,6 @@ var (
 
 // Server implements the gRPC CertAdmin service
 type Server struct {
-	certadmin.UnimplementedCertAdminServiceServer
 	pb.UnimplementedCertAdminServer
 	certIssuer      certissuer.CertIssuer
 	apiKeys         map[string]apiKeyInfo
@@ -118,7 +116,7 @@ func (s *Server) Start(listenAddr string) error {
 	}
 
 	grpcServer := grpc.NewServer(s.serverOptions...)
-	certadmin.RegisterCertAdminServiceServer(grpcServer, s)
+	pb.RegisterCertAdminServer(grpcServer, s)
 
 	// Enable reflection for tools like grpcurl
 	reflection.Register(grpcServer)
@@ -178,7 +176,7 @@ func (s *Server) authInterceptor(ctx context.Context, req interface{}, info *grp
 }
 
 // GetServerInfo returns information about the server
-func (s *Server) GetServerInfo(ctx context.Context, _ *emptypb.Empty) (*certadmin.ServerInfoResponse, error) {
+func (s *Server) GetServerInfo(ctx context.Context, _ *emptypb.Empty) (*pb.ServerInfoResponse, error) {
 	// Get information about the client
 	clientInfo := "unknown"
 	if p, ok := peer.FromContext(ctx); ok {
@@ -186,7 +184,7 @@ func (s *Server) GetServerInfo(ctx context.Context, _ *emptypb.Empty) (*certadmi
 	}
 
 	// Build server info
-	serverInfo := &certadmin.ServerInfoResponse{
+	serverInfo := &pb.ServerInfoResponse{
 		ServerVersion: "1.0.0",
 		ApiVersion:    "v1",
 		ClientAddress: clientInfo,
@@ -198,19 +196,19 @@ func (s *Server) GetServerInfo(ctx context.Context, _ *emptypb.Empty) (*certadmi
 }
 
 // GetCACertificate retrieves the CA certificate
-func (s *Server) GetCACertificate(ctx context.Context, _ *emptypb.Empty) (*certadmin.CACertificateResponse, error) {
+func (s *Server) GetCACertificate(ctx context.Context, _ *emptypb.Empty) (*pb.CACertificateResponse, error) {
 	caCert, err := s.certIssuer.GetRootCA(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get CA certificate: %v", err)
 	}
 
-	return &certadmin.CACertificateResponse{
+	return &pb.CACertificateResponse{
 		Certificate: caCert,
 	}, nil
 }
 
 // IssueCertificate issues a new certificate from a CSR
-func (s *Server) IssueCertificate(ctx context.Context, req *certadmin.IssueCertificateRequest) (*certadmin.CertificateResponse, error) {
+func (s *Server) IssueCertificate(ctx context.Context, req *pb.IssueCertificateRequest) (*pb.CertificateResponse, error) {
 	if req.Csr == nil || len(req.Csr) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "CSR is required")
 	}
@@ -231,13 +229,13 @@ func (s *Server) IssueCertificate(ctx context.Context, req *certadmin.IssueCerti
 		return nil, status.Errorf(codes.Internal, "failed to issue certificate: %v", err)
 	}
 
-	return &certadmin.CertificateResponse{
+	return &pb.CertificateResponse{
 		Certificate: cert,
 	}, nil
 }
 
 // RenewCertificate renews an existing certificate
-func (s *Server) RenewCertificate(ctx context.Context, req *certadmin.RenewCertificateRequest) (*certadmin.CertificateResponse, error) {
+func (s *Server) RenewCertificate(ctx context.Context, req *pb.RenewCertificateRequest) (*pb.CertificateResponse, error) {
 	if req.Certificate == nil || len(req.Certificate) == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "certificate is required")
 	}
@@ -247,17 +245,17 @@ func (s *Server) RenewCertificate(ctx context.Context, req *certadmin.RenewCerti
 		return nil, status.Errorf(codes.Internal, "failed to renew certificate: %v", err)
 	}
 
-	return &certadmin.CertificateResponse{
+	return &pb.CertificateResponse{
 		Certificate: renewedCert,
 	}, nil
 }
 
 // ListCertificates lists all issued certificates
-func (s *Server) ListCertificates(ctx context.Context, _ *emptypb.Empty) (*certadmin.ListCertificatesResponse, error) {
+func (s *Server) ListCertificates(ctx context.Context, _ *emptypb.Empty) (*pb.ListCertificatesResponse, error) {
 	// This would require additional functionality in the certIssuer interface
 	// For now, return a placeholder
-	return &certadmin.ListCertificatesResponse{
-		Certificates: []*certadmin.CertificateInfo{
+	return &pb.ListCertificatesResponse{
+		Certificates: []*pb.CertificateInfo{
 			{
 				SerialNumber: "placeholder",
 				Subject:      "placeholder",
@@ -270,14 +268,14 @@ func (s *Server) ListCertificates(ctx context.Context, _ *emptypb.Empty) (*certa
 }
 
 // RevokeCertificate revokes a certificate
-func (s *Server) RevokeCertificate(ctx context.Context, req *certadmin.RevokeCertificateRequest) (*emptypb.Empty, error) {
+func (s *Server) RevokeCertificate(ctx context.Context, req *pb.RevokeCertificateRequest) (*emptypb.Empty, error) {
 	// This would require additional functionality in the certIssuer interface
 	// For now, return a placeholder
 	return &emptypb.Empty{}, nil
 }
 
 // CreateAPIKey creates a new API key
-func (s *Server) CreateAPIKey(ctx context.Context, req *certadmin.CreateAPIKeyRequest) (*certadmin.APIKeyResponse, error) {
+func (s *Server) CreateAPIKey(ctx context.Context, req *pb.CreateAPIKeyRequest) (*pb.APIKeyResponse, error) {
 	if req.Name == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "name is required")
 	}
@@ -303,7 +301,7 @@ func (s *Server) CreateAPIKey(ctx context.Context, req *certadmin.CreateAPIKeyRe
 		log.Printf("Warning: Failed to save API keys: %v", err)
 	}
 
-	return &certadmin.APIKeyResponse{
+	return &pb.APIKeyResponse{
 		Name:        keyInfo.Name,
 		Key:         apiKey,
 		CreatedAt:   timestamppb.New(keyInfo.CreatedAt),
@@ -312,13 +310,13 @@ func (s *Server) CreateAPIKey(ctx context.Context, req *certadmin.CreateAPIKeyRe
 }
 
 // ListAPIKeys lists all API keys
-func (s *Server) ListAPIKeys(ctx context.Context, _ *emptypb.Empty) (*certadmin.ListAPIKeysResponse, error) {
+func (s *Server) ListAPIKeys(ctx context.Context, _ *emptypb.Empty) (*pb.ListAPIKeysResponse, error) {
 	s.apiKeysMutex.RLock()
 	defer s.apiKeysMutex.RUnlock()
 
-	keys := make([]*certadmin.APIKeyInfo, 0, len(s.apiKeys))
+	keys := make([]*pb.APIKeyInfo, 0, len(s.apiKeys))
 	for _, keyInfo := range s.apiKeys {
-		keys = append(keys, &certadmin.APIKeyInfo{
+		keys = append(keys, &pb.APIKeyInfo{
 			Name:        keyInfo.Name,
 			CreatedAt:   timestamppb.New(keyInfo.CreatedAt),
 			LastUsedAt:  timestamppb.New(keyInfo.LastUsedAt),
@@ -326,13 +324,13 @@ func (s *Server) ListAPIKeys(ctx context.Context, _ *emptypb.Empty) (*certadmin.
 		})
 	}
 
-	return &certadmin.ListAPIKeysResponse{
+	return &pb.ListAPIKeysResponse{
 		Keys: keys,
 	}, nil
 }
 
 // RevokeAPIKey revokes an API key
-func (s *Server) RevokeAPIKey(ctx context.Context, req *certadmin.RevokeAPIKeyRequest) (*emptypb.Empty, error) {
+func (s *Server) RevokeAPIKey(ctx context.Context, req *pb.RevokeAPIKeyRequest) (*emptypb.Empty, error) {
 	if req.Name == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "name is required")
 	}
@@ -524,11 +522,17 @@ func (s *Server) GetCertificateInfo(ctx context.Context, req *pb.GetCertificateI
 	// In a real implementation, this would query the certificate store
 	// For now, return a placeholder certificate
 	now := time.Now()
+	certInfo := &pb.CertificateInfo{
+		SerialNumber:   req.SerialNumber,
+		SubjectName:    "CN=placeholder.example.com",
+		IssuedTo:       "placeholder",
+		IssuedAt:       now.Add(-24 * time.Hour).Format(time.RFC3339),
+		ExpiresAt:      now.AddDate(1, 0, 0).Format(time.RFC3339),
+		Revoked:        false,
+		CertificatePem: "-----BEGIN CERTIFICATE-----\nPlaceholder\n-----END CERTIFICATE-----",
+	}
+
 	return &pb.GetCertificateInfoResponse{
-		SerialNumber: req.SerialNumber,
-		Subject:      "placeholder-subject",
-		Issuer:       "placeholder-issuer",
-		NotBefore:    timestamppb.New(now),
-		NotAfter:     timestamppb.New(now.Add(365 * 24 * time.Hour)),
+		Certificate: certInfo,
 	}, nil
 }
