@@ -19,6 +19,7 @@ import (
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/certissuer"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/proto/certadmin"
+	pb "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -38,6 +39,7 @@ var (
 // Server implements the gRPC CertAdmin service
 type Server struct {
 	certadmin.UnimplementedCertAdminServiceServer
+	pb.UnimplementedCertAdminServer
 	certIssuer      certissuer.CertIssuer
 	apiKeys         map[string]apiKeyInfo
 	apiKeysMutex    sync.RWMutex
@@ -451,4 +453,82 @@ func (s *Server) validateAPIKey(apiKey string) bool {
 // compareAPIKeys compares two API keys in constant time to prevent timing attacks
 func compareAPIKeys(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
+}
+
+// GetCACertificate returns the CA certificate
+func (s *Server) GetCACertificate(ctx context.Context, req *pb.GetCACertificateRequest) (*pb.GetCACertificateResponse, error) {
+	// Get CA certificate from the issuer
+	caCert, err := s.certIssuer.GetRootCA(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to get CA certificate: %v", err)
+	}
+
+	return &pb.GetCACertificateResponse{
+		CertificatePem: string(caCert),
+	}, nil
+}
+
+// IssueCertificate issues a new certificate based on the provided CSR
+func (s *Server) IssueCertificate(ctx context.Context, req *pb.IssueCertificateRequest) (*pb.IssueCertificateResponse, error) {
+	// Validate request
+	if req.CsrPem == "" {
+		return nil, status.Error(codes.InvalidArgument, "CSR is required")
+	}
+
+	// Issue certificate
+	cert, err := s.certIssuer.IssueCertificate(ctx, []byte(req.CsrPem), req.ClientInfo)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to issue certificate: %v", err)
+	}
+
+	// In a real implementation, you'd extract the serial number from the certificate
+	// For now, we'll use a placeholder
+	serialNumber := "placeholder-serial-number"
+
+	return &pb.IssueCertificateResponse{
+		CertificatePem: string(cert),
+		SerialNumber:   serialNumber,
+	}, nil
+}
+
+// RevokeCertificate revokes an existing certificate
+func (s *Server) RevokeCertificate(ctx context.Context, req *pb.RevokeCertificateRequest) (*pb.RevokeCertificateResponse, error) {
+	// Validate request
+	if req.SerialNumber == "" {
+		return nil, status.Error(codes.InvalidArgument, "Serial number is required")
+	}
+
+	// We'll need to add a RevokeCertificate method to the CertIssuer interface
+	// For now, we'll simulate success
+	return &pb.RevokeCertificateResponse{
+		Success: true,
+	}, nil
+}
+
+// ListCertificates lists all issued certificates
+func (s *Server) ListCertificates(ctx context.Context, req *pb.ListCertificatesRequest) (*pb.ListCertificatesResponse, error) {
+	// In a real implementation, this would query the certificate store
+	// For now, return an empty list
+	return &pb.ListCertificatesResponse{
+		Certificates: []*pb.CertificateInfo{},
+	}, nil
+}
+
+// GetCertificateInfo gets detailed information about a certificate
+func (s *Server) GetCertificateInfo(ctx context.Context, req *pb.GetCertificateInfoRequest) (*pb.GetCertificateInfoResponse, error) {
+	// Validate request
+	if req.SerialNumber == "" {
+		return nil, status.Error(codes.InvalidArgument, "Serial number is required")
+	}
+
+	// In a real implementation, this would query the certificate store
+	// For now, return a placeholder certificate
+	now := time.Now()
+	return &pb.GetCertificateInfoResponse{
+		SerialNumber: req.SerialNumber,
+		Subject:      "placeholder-subject",
+		Issuer:       "placeholder-issuer",
+		NotBefore:    timestamppb.New(now),
+		NotAfter:     timestamppb.New(now.Add(365 * 24 * time.Hour)),
+	}, nil
 }

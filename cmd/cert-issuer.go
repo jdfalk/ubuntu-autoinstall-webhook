@@ -3,9 +3,10 @@ package cmd
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -16,25 +17,42 @@ import (
 
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/certadmin"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/certissuer"
+	pb "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
 
 var (
-	certStoragePath   string
-	httpListenAddr    string
-	grpcListenAddr    string
-	adminAPIKey       string
-	tlsCertFile       string
-	tlsKeyFile        string
-	enableGRPCReflect bool
+	certStoragePath string
+	httpListenAddr  string
+	grpcListenAddr  string
+	apiKey          string
+	generateApiKey  bool
 )
 
 var certIssuerCmd = &cobra.Command{
 	Use:   "cert-issuer",
-	Short: "Starts the cert-issuer microservice with HTTP API and gRPC admin interface",
+	Short: "Starts the cert-issuer microservice",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		// Generate API key if requested
+		if generateApiKey {
+			key, err := generateRandomAPIKey(32)
+			if err != nil {
+				return fmt.Errorf("failed to generate API key: %w", err)
+			}
+			fmt.Printf("Generated API key: %s\n", key)
+			// Store this key for use
+			apiKey = key
+		}
+
+		// Validate that we have an API key
+		if apiKey == "" {
+			return fmt.Errorf("API key is required, either provide one with --api-key or generate one with --generate-api-key")
+		}
+
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("Starting cert-issuer microservice...")
 
@@ -53,56 +71,45 @@ var certIssuerCmd = &cobra.Command{
 		// Create certificate service
 		certService := certissuer.NewService(certStoragePath)
 
-		// Store the admin API key if provided
-		if adminAPIKey == "" {
-			adminAPIKey = os.Getenv("CERT_ADMIN_API_KEY")
-			if adminAPIKey == "" {
-				// Generate a random API key if not provided
-				adminAPIKey = generateRandomAPIKey(32)
-				fmt.Printf("Generated admin API key: %s\n", adminAPIKey)
-				fmt.Println("Store this key securely for future admin operations!")
-			}
+		// Setup API keys
+		apiKeys := map[string]string{
+			apiKey: "admin", // Use provided or generated API key
 		}
 
 		// Start HTTP server
-		httpServer, httpErrCh := startHTTPServer(certService, httpListenAddr)
+		httpServer := startHTTPServer(certService, httpListenAddr)
 
 		// Start gRPC server
-		grpcServer, grpcErrCh := startGRPCServer(certService, grpcListenAddr)
+		grpcServer, grpcListener := startGRPCServer(certService, apiKeys, grpcListenAddr)
 
-		// Wait for interrupt signal or server errors
+		// Wait for interrupt or termination signal
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+		<-stop
 
-		select {
-		case err := <-httpErrCh:
-			fmt.Printf("HTTP server error: %v\n", err)
-			return err
-		case err := <-grpcErrCh:
-			fmt.Printf("gRPC server error: %v\n", err)
-			return err
-		case <-stop:
-			fmt.Println("Shutting down servers...")
+		fmt.Println("Shutting down servers...")
 
-			// Gracefully stop the HTTP server
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
+		// Graceful shutdown
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 
-			if err := httpServer.Shutdown(ctx); err != nil {
-				fmt.Printf("Error shutting down HTTP server: %v\n", err)
-			}
-
-			// Gracefully stop the gRPC server
-			grpcServer.GracefulStop()
+		// Stop HTTP server
+		if err := httpServer.Shutdown(ctx); err != nil {
+			fmt.Printf("Error shutting down HTTP server: %v\n", err)
 		}
+
+		// Stop gRPC server
+		grpcServer.GracefulStop()
+		grpcListener.Close()
 
 		fmt.Println("Servers stopped gracefully")
 		return nil
 	},
 }
 
-func startHTTPServer(certService certissuer.CertIssuer, listenAddr string) (*http.Server, chan error) {
-	// Create HTTP mux and handlers (same code as before)
+// startHTTPServer starts the HTTP API server
+func startHTTPServer(certService certissuer.CertIssuer, addr string) *http.Server {
+	// Create HTTP router
 	mux := http.NewServeMux()
 
 	// Handler for CA certificate requests
@@ -129,7 +136,7 @@ func startHTTPServer(certService certissuer.CertIssuer, listenAddr string) (*htt
 			return
 		}
 
-		// Parse the request body to get CSR and client info
+		// Parse the request body
 		var req struct {
 			CSR        string            `json:"csr"`
 			ClientInfo map[string]string `json:"client_info"`
@@ -140,7 +147,6 @@ func startHTTPServer(certService certissuer.CertIssuer, listenAddr string) (*htt
 			return
 		}
 
-		// Validate input
 		if req.CSR == "" {
 			http.Error(w, "CSR is required", http.StatusBadRequest)
 			return
@@ -157,47 +163,9 @@ func startHTTPServer(certService certissuer.CertIssuer, listenAddr string) (*htt
 			return
 		}
 
-		// Return the certificate
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{
 			"certificate": string(cert),
-		})
-	})
-
-	// Handler for certificate renewal
-	mux.HandleFunc("/api/v1/renew", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		// Parse the request body to get the certificate
-		var req struct {
-			Certificate string `json:"certificate"`
-		}
-
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to parse request: %v", err), http.StatusBadRequest)
-			return
-		}
-
-		// Validate input
-		if req.Certificate == "" {
-			http.Error(w, "Certificate is required", http.StatusBadRequest)
-			return
-		}
-
-		// Renew certificate
-		renewedCert, err := certService.RenewCertificate(r.Context(), []byte(req.Certificate))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to renew certificate: %v", err), http.StatusBadRequest)
-			return
-		}
-
-		// Return the renewed certificate
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"certificate": string(renewedCert),
 		})
 	})
 
@@ -207,112 +175,72 @@ func startHTTPServer(certService certissuer.CertIssuer, listenAddr string) (*htt
 		w.Write([]byte(`{"status":"ok"}`))
 	})
 
-	// Create an HTTP server
+	// Create and start HTTP server
 	server := &http.Server{
-		Addr:         listenAddr,
+		Addr:         addr,
 		Handler:      mux,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
-	// Start the server in a goroutine
-	errCh := make(chan error, 1)
 	go func() {
-		fmt.Printf("HTTP server listening on %s\n", listenAddr)
-		errCh <- server.ListenAndServe()
+		fmt.Printf("HTTP server listening on %s\n", addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Printf("HTTP server error: %v\n", err)
+		}
 	}()
 
-	return server, errCh
+	return server
 }
 
-func startGRPCServer(certService certissuer.CertIssuer, listenAddr string) (*grpc.Server, chan error) {
-	errCh := make(chan error, 1)
+// startGRPCServer starts the gRPC server
+func startGRPCServer(certService certissuer.CertIssuer, apiKeys map[string]string, addr string) (*grpc.Server, net.Listener) {
+	// Create authentication interceptor
+	authInterceptor := certadmin.NewAuthInterceptor(apiKeys)
 
-	// Create a listener for the gRPC server
-	listener, err := net.Listen("tcp", listenAddr)
+	// Create gRPC server with authentication
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(authInterceptor.Unary()),
+	)
+
+	// Register the CertAdmin service
+	certAdminServer := certadmin.NewServer(certService, apiKeys)
+	pb.RegisterCertAdminServer(grpcServer, certAdminServer)
+
+	// Enable reflection for easier client development
+	reflection.Register(grpcServer)
+
+	// Listen on the specified port
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		errCh <- fmt.Errorf("failed to listen on %s: %w", listenAddr, err)
-		return nil, errCh
+		panic(fmt.Sprintf("failed to listen on %s: %v", addr, err))
 	}
 
-	var opts []grpc.ServerOption
-
-	// Add TLS if certificate and key files are provided
-	if tlsCertFile != "" && tlsKeyFile != "" {
-		fmt.Printf("Using TLS for gRPC with cert=%s, key=%s\n", tlsCertFile, tlsKeyFile)
-		creds, err := credentials.NewServerTLSFromFile(tlsCertFile, tlsKeyFile)
-		if err != nil {
-			errCh <- fmt.Errorf("failed to load TLS credentials: %w", err)
-			return nil, errCh
-		}
-		opts = append(opts, grpc.Creds(creds))
-	} else {
-		fmt.Println("Warning: gRPC server running without TLS")
-	}
-
-	// Add authentication interceptor
-	opts = append(opts, grpc.UnaryInterceptor(authInterceptor))
-
-	// Create a gRPC server with the options
-	grpcServer := grpc.NewServer(opts...)
-
-	// Create and register the admin service
-	adminService := certadmin.NewServer(certService)
-	certadmin.RegisterCertAdminServer(grpcServer, adminService)
-
-	// Enable reflection if requested
-	if enableGRPCReflect {
-		fmt.Println("Enabling gRPC reflection (useful for debugging)")
-		reflection.Register(grpcServer)
-	}
-
-	// Start the gRPC server in a goroutine
+	// Start gRPC server
 	go func() {
-		fmt.Printf("gRPC server listening on %s\n", listenAddr)
-		if err := grpcServer.Serve(listener); err != nil {
-			errCh <- fmt.Errorf("gRPC server error: %w", err)
+		fmt.Printf("gRPC server listening on %s\n", addr)
+		if err := grpcServer.Serve(lis); err != nil {
+			fmt.Printf("gRPC server error: %v\n", err)
 		}
 	}()
 
-	return grpcServer, errCh
+	return grpcServer, lis
 }
 
-// Authentication interceptor for gRPC
-func authInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	// Extract authentication from request
-	var authMsg *certadmin.Auth
-
-	// Check for auth field in various request types
-	switch v := req.(type) {
-	case *certadmin.GetCARequest:
-		authMsg = v.Auth
-	case *certadmin.IssueCertificateRequest:
-		authMsg = v.Auth
-	case *certadmin.RenewCertificateRequest:
-		authMsg = v.Auth
-	case *certadmin.RevokeCertificateRequest:
-		authMsg = v.Auth
-	case *certadmin.ListCertificatesRequest:
-		authMsg = v.Auth
+// generateRandomAPIKey creates a secure random API key
+func generateRandomAPIKey(length int) (string, error) {
+	// Generate random bytes
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
 	}
 
-	// Validate the API key
-	if authMsg == nil || authMsg.ApiKey != adminAPIKey {
-		return nil, grpc.Errorf(grpc.Code(401), "unauthorized: invalid API key")
-	}
+	// Encode to base64
+	key := base64.URLEncoding.EncodeToString(bytes)
+	// Remove any padding
+	key = key[:length]
 
-	// Proceed with the request
-	return handler(ctx, req)
-}
-
-// Helper function to generate a random API key
-func generateRandomAPIKey(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
+	return key, nil
 }
 
 func init() {
@@ -320,10 +248,8 @@ func init() {
 
 	// Add command-line flags
 	certIssuerCmd.Flags().StringVar(&certStoragePath, "cert-path", "", "Path to store certificates (default: ~/.autoinstall-webhook/certificates)")
-	certIssuerCmd.Flags().StringVar(&httpListenAddr, "http-listen", ":8443", "Address to listen on for HTTP certificate requests")
-	certIssuerCmd.Flags().StringVar(&grpcListenAddr, "grpc-listen", ":8444", "Address to listen on for gRPC admin requests")
-	certIssuerCmd.Flags().StringVar(&adminAPIKey, "admin-api-key", "", "API key for admin operations (will generate one if not provided)")
-	certIssuerCmd.Flags().StringVar(&tlsCertFile, "tls-cert", "", "TLS certificate file for gRPC server")
-	certIssuerCmd.Flags().StringVar(&tlsKeyFile, "tls-key", "", "TLS key file for gRPC server")
-	certIssuerCmd.Flags().BoolVar(&enableGRPCReflect, "grpc-reflect", false, "Enable gRPC reflection (useful for debugging)")
+	certIssuerCmd.Flags().StringVar(&httpListenAddr, "http-listen", ":8443", "Address to listen on for HTTP requests")
+	certIssuerCmd.Flags().StringVar(&grpcListenAddr, "grpc-listen", ":9443", "Address to listen on for gRPC requests")
+	certIssuerCmd.Flags().StringVar(&apiKey, "api-key", "", "API key for authenticating admin requests")
+	certIssuerCmd.Flags().BoolVar(&generateApiKey, "generate-api-key", false, "Generate and print a random API key")
 }

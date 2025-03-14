@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// CertAdmin service provides administrative access to the certificate infrastructure
+service CertAdmin {
+  // GetCACertificate retrieves the CA certificate
+  rpc GetCACertificate(GetCACertificateRequest) returns (GetCACertificateResponse);
+
+  // IssueCertificate issues a new certificate based on CSR
+  rpc IssueCertificate(IssueCertificateRequest) returns (IssueCertificateResponse);
+
+  // RevokeCertificate revokes an existing certificate
+  rpc RevokeCertificate(RevokeCertificateRequest) returns (RevokeCertificateResponse);
+
+  // ListCertificates lists all issued certificates
+  rpc ListCertificates(ListCertificatesRequest) returns (ListCertificatesResponse);
+
+  // GetCertificateInfo gets detailed information about a certificate
+  rpc GetCertificateInfo(GetCertificateInfoRequest) returns (GetCertificateInfoResponse);
+}
+
+// GetCACertificateRequest is an empty request
+message GetCACertificateRequest {}
+
+// GetCACertificateResponse contains the CA certificate
+message GetCACertificateResponse {
+  string certificate_pem = 1;
+}
+
+// IssueCertificateRequest contains the CSR and client info
+message IssueCertificateRequest {
+  string csr_pem = 1;
+  map<string, string> client_info = 2;
+}
+
+// IssueCertificateResponse contains the issued certificate
+message IssueCertificateResponse {
+  string certificate_pem = 1;
+  string serial_number = 2;
+}
+
+// RevokeCertificateRequest contains the serial number or fingerprint
+message RevokeCertificateRequest {
+  string serial_number = 1;
+}
+
+// RevokeCertificateResponse contains the result of revocation
+message RevokeCertificateResponse {
+  bool success = 1;
+}
+
+// Certificate information returned by listing or info requests
+message CertificateInfo {
+  string serial_number = 1;
+  string subject_name = 2;
+  string issued_to = 3;
+  string issued_at = 4; // RFC 3339 timestamp
+  string expires_at = 5; // RFC 3339 timestamp
+  bool revoked = 6;
+  string certificate_pem = 7; // Optional - may be omitted in list responses
+}
+
+// ListCertificatesRequest contains optional filtering criteria
+message ListCertificatesRequest {
+  bool include_revoked = 1;
+  bool include_expired = 2;
+}
+
+// ListCertificatesResponse contains a list of certificates
+message ListCertificatesResponse {
+  repeated CertificateInfo certificates = 1;
+}
+
+// GetCertificateInfoRequest identifies a certificate to query
+message GetCertificateInfoRequest {
+  string serial_number = 1;
+}
+
+// GetCertificateInfoResponse contains detailed certificate info
+message GetCertificateInfoResponse {
+  CertificateInfo certificate = 1;
+}
