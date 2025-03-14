@@ -4,7 +4,7 @@ package install;
 
 option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto;proto";
 
-import "google/api/annotations.proto";
+import "third_party/google/api/annotations.proto";
 
 // InstallService defines the service for installation status updates.
 service InstallService {

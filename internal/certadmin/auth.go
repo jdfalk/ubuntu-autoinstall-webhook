@@ -4,21 +4,12 @@ package certadmin
 import (
 	"context"
 	"strings"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
-
-// For enhanced auditing and security
-type apiKeyInfo struct {
-	Username    string
-	LastUsed    time.Time
-	CreatedAt   time.Time
-	Description string
-}
 
 // AuthInterceptor provides authentication for gRPC endpoints
 type AuthInterceptor struct {

@@ -238,8 +238,17 @@ func startGRPCServer(certService certissuer.CertIssuer, apiKeys map[string]strin
 		grpc.UnaryInterceptor(authInterceptor.Unary()),
 	)
 
-	// Register the CertAdmin service
-	certAdminServer := certadmin.NewServer(certService, apiKeys)
+	// Create config directory for API keys
+	configDir := filepath.Join(certStoragePath, "../admin")
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		panic(fmt.Sprintf("failed to create config directory: %v", err))
+	}
+
+	// Register the CertAdmin service - update to match your actual server constructor
+	certAdminServer, err := certadmin.NewServer(certService, configDir, "", "")
+	if err != nil {
+		panic(fmt.Sprintf("failed to create cert admin server: %v", err))
+	}
 	pb.RegisterCertAdminServer(grpcServer, certAdminServer)
 
 	// Enable reflection for easier client development
