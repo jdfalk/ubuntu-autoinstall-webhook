@@ -169,6 +169,41 @@ func startHTTPServer(certService certissuer.CertIssuer, addr string) *http.Serve
 		})
 	})
 
+	// Handler for certificate renewal
+	mux.HandleFunc("/api/v1/renew", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Parse the request body
+		var req struct {
+			Certificate string `json:"certificate"`
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to parse request: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		if req.Certificate == "" {
+			http.Error(w, "Certificate is required", http.StatusBadRequest)
+			return
+		}
+
+		// Renew certificate
+		renewedCert, err := certService.RenewCertificate(r.Context(), []byte(req.Certificate))
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to renew certificate: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"certificate": string(renewedCert),
+		})
+	})
+
 	// Simple health check endpoint
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -237,8 +272,10 @@ func generateRandomAPIKey(length int) (string, error) {
 
 	// Encode to base64
 	key := base64.URLEncoding.EncodeToString(bytes)
-	// Remove any padding
-	key = key[:length]
+	// Trim to the requested length
+	if len(key) > length {
+		key = key[:length]
+	}
 
 	return key, nil
 }

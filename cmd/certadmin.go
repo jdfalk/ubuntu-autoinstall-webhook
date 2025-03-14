@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -24,6 +25,8 @@ var (
 	apiKey       string
 	insecureConn bool
 	timeout      time.Duration
+	outputFormat string
+	outputFile   string
 )
 
 // Main certadmin command
@@ -100,6 +103,8 @@ func init() {
 	certAdminCmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key (if not using file)")
 	certAdminCmd.PersistentFlags().BoolVar(&insecureConn, "insecure", false, "Use insecure connection")
 	certAdminCmd.PersistentFlags().DurationVar(&timeout, "timeout", 30*time.Second, "Request timeout")
+	certAdminCmd.PersistentFlags().StringVar(&outputFormat, "format", "text", "Output format: text, json, or pem")
+	certAdminCmd.PersistentFlags().StringVar(&outputFile, "output", "", "Output file path (default: stdout)")
 
 	// Add commands
 	certAdminCmd.AddCommand(getCACmd)
@@ -195,6 +200,18 @@ func createAuthContext(ctx context.Context) context.Context {
 		return metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+apiKey)
 	}
 	return ctx
+}
+
+// writeOutput writes output to the specified file or stdout
+func writeOutput(data []byte) error {
+	if outputFile == "" {
+		// Write to stdout
+		_, err := os.Stdout.Write(data)
+		return err
+	}
+
+	// Write to file
+	return ioutil.WriteFile(outputFile, data, 0644)
 }
 
 // getCACertificate gets the CA certificate
@@ -410,4 +427,101 @@ func revokeAPIKey(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("API key %s revoked\n", name)
 	return nil
+}
+
+// getCertInfoCmd represents the getCertInfo command
+var getCertInfoCmd = &cobra.Command{
+	Use:   "info [serial-number]",
+	Short: "Get certificate info",
+	Long:  `Gets detailed information about a certificate.`,
+	Args:  cobra.ExactArgs(1), // Serial number
+	RunE:  getCertificateInfo,
+}
+
+func init() {
+	rootCmd.AddCommand(certAdminCmd)
+
+	// Add common flags
+	certAdminCmd.PersistentFlags().StringVar(&serverAddr, "server", "localhost:9443", "Server address")
+	certAdminCmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key for authentication")
+	certAdminCmd.PersistentFlags().StringVar(&outputFormat, "format", "text", "Output format: text, json, or pem")
+	certAdminCmd.PersistentFlags().StringVar(&outputFile, "output", "", "Output file path (default: stdout)")
+
+	// Add subcommands
+	certAdminCmd.AddCommand(getCACmd)
+	certAdminCmd.AddCommand(issueCmd)
+	certAdminCmd.AddCommand(revokeAPIKeyCmd)
+	certAdminCmd.AddCommand(listCmd)
+	certAdminCmd.AddCommand(getCertInfoCmd)
+
+	// Add flags to issueCert command
+	issueCmd.Flags().StringP("common-name", "c", "", "Common name for the certificate")
+	issueCmd.Flags().StringP("organization", "o", "", "Organization for the certificate")
+	issueCmd.Flags().StringP("sans", "s", "", "Subject Alternative Names (comma-separated)")
+
+	// Add flags to list command
+	listCmd.Flags().Bool("include-revoked", false, "Include revoked certificates")
+	listCmd.Flags().Bool("include-expired", false, "Include expired certificates")
+}
+
+// getCertificateInfo implements the info command
+func getCertificateInfo(cmd *cobra.Command, args []string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Add authentication to context
+	ctx = createAuthContext(ctx)
+
+	// Get serial number
+	serialNumber := args[0]
+
+	// Create client
+	client, conn, err := getGRPCClient()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	// Call service
+	res, err := client.GetCertificateInfo(ctx, &proto.GetCertificateInfoRequest{
+		SerialNumber: serialNumber,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get certificate info: %v", err)
+	}
+
+	cert := res.Certificate
+
+	// Format output based on requested format
+	var output []byte
+	switch outputFormat {
+	case "json":
+		output = []byte(fmt.Sprintf(
+			"{\n  \"serial_number\": \"%s\",\n  \"subject\": \"%s\",\n  "+
+				"\"issued_to\": \"%s\",\n  \"issued_at\": \"%s\",\n  "+
+				"\"expires_at\": \"%s\",\n  \"revoked\": %v,\n  "+
+				"\"certificate\": \"%s\"\n}",
+			cert.SerialNumber, cert.SubjectName, cert.IssuedTo,
+			cert.IssuedAt, cert.ExpiresAt, cert.Revoked,
+			strings.ReplaceAll(cert.CertificatePem, "\n", "\\n")))
+	case "pem":
+		output = []byte(cert.CertificatePem)
+	case "text":
+		var sb strings.Builder
+		sb.WriteString("Certificate Information:\n")
+		sb.WriteString(fmt.Sprintf("  Serial Number: %s\n", cert.SerialNumber))
+		sb.WriteString(fmt.Sprintf("  Subject: %s\n", cert.SubjectName))
+		sb.WriteString(fmt.Sprintf("  Issued To: %s\n", cert.IssuedTo))
+		sb.WriteString(fmt.Sprintf("  Issued At: %s\n", cert.IssuedAt))
+		sb.WriteString(fmt.Sprintf("  Expires At: %s\n", cert.ExpiresAt))
+		sb.WriteString(fmt.Sprintf("  Revoked: %v\n", cert.Revoked))
+		sb.WriteString("\nCertificate:\n")
+		sb.WriteString(cert.CertificatePem)
+		output = []byte(sb.String())
+	default:
+		return fmt.Errorf("unknown output format: %s", outputFormat)
+	}
+
+	// Write output
+	return writeOutput(output)
 }

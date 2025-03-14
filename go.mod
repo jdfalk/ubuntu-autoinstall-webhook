@@ -3,7 +3,6 @@ module github.com/jdfalk/ubuntu-autoinstall-webhook
 go 1.24.0
 
 require (
-	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
 	github.com/spf13/afero v1.12.0
 	github.com/spf13/cobra v1.9.1
