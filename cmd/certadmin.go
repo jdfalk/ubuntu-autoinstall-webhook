@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/proto/certadmin"
+	"github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -164,7 +164,7 @@ func setupClient(cmd *cobra.Command, args []string) error {
 }
 
 // getGRPCClient creates a new gRPC client connection
-func getGRPCClient() (*grpc.ClientConn, certadmin.CertAdminServiceClient, error) {
+func getGRPCClient() (*grpc.ClientConn, proto.CertAdminServiceClient, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -185,7 +185,7 @@ func getGRPCClient() (*grpc.ClientConn, certadmin.CertAdminServiceClient, error)
 		return nil, nil, fmt.Errorf("failed to connect to server: %w", err)
 	}
 
-	client := certadmin.NewCertAdminServiceClient(conn)
+	client := proto.NewCertAdminServiceClient(conn)
 	return conn, client, nil
 }
 
@@ -211,7 +211,7 @@ func getCACertificate(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// No authentication needed for CA certificate
-	res, err := client.GetCACertificate(ctx, &emptypb.Empty{})
+	res, err := client.GetCACertificate(ctx, &proto.GetCACertificateRequest{})
 	if err != nil {
 		return fmt.Errorf("failed to get CA certificate: %w", err)
 	}
@@ -247,7 +247,7 @@ func issueCertificate(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req := &certadmin.IssueCertificateRequest{
+	req := &proto.IssueCertificateRequest{
 		Csr:        csrData,
 		CommonName: commonName,
 		Org:        org,
@@ -288,7 +288,7 @@ func renewCertificate(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req := &certadmin.RenewCertificateRequest{
+	req := &proto.RenewCertificateRequest{
 		Certificate: certData,
 	}
 
@@ -345,7 +345,7 @@ func createAPIKey(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req := &certadmin.CreateAPIKeyRequest{
+	req := &proto.CreateAPIKeyRequest{
 		Name:        name,
 		Description: description,
 	}
@@ -398,7 +398,7 @@ func revokeAPIKey(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req := &certadmin.RevokeAPIKeyRequest{
+	req := &proto.RevokeAPIKeyRequest{
 		Name: name,
 	}
 
