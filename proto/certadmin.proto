@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package certadmin;
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/internal/certadmin";
+
+// CertAdmin service for certificate administration
+service CertAdmin {
+  // Authentication
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  // GetCA retrieves the CA certificate
+  rpc GetCA(GetCARequest) returns (GetCAResponse) {}
+
+  // IssueCertificate issues a certificate from a CSR
+  rpc IssueCertificate(IssueCertificateRequest) returns (IssueCertificateResponse) {}
+
+  // RenewCertificate renews an existing certificate
+  rpc RenewCertificate(RenewCertificateRequest) returns (RenewCertificateResponse) {}
+
+  // RevokeCertificate revokes a certificate
+  rpc RevokeCertificate(RevokeCertificateRequest) returns (RevokeCertificateResponse) {}
+
+  // ListCertificates lists all issued certificates
+  rpc ListCertificates(ListCertificatesRequest) returns (ListCertificatesResponse) {}
+
+  // Admin operations
+  rpc GetCertificateDetails(GetRequest) returns (CertificateDetails);
+  rpc GetServerMetrics(Empty) returns (ServerMetrics);
+}
+
+// Authentication message included in all requests
+message Auth {
+  string api_key = 1;
+}
+
+message Empty {}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string token = 1;
+  int64 expires_at = 2;
+}
+
+message GetCARequest {
+  Auth auth = 1;
+}
+
+message GetCAResponse {
+  bytes certificate = 1;
+}
+
+message IssueCertificateRequest {
+  Auth auth = 1;
+  bytes csr = 2;
+  map<string, string> client_info = 3;
+}
+
+message IssueCertificateResponse {
+  bytes certificate = 1;
+  string serial_number = 2;
+  string subject = 3;
+  string expires_at = 4;
+}
+
+message RenewCertificateRequest {
+  Auth auth = 1;
+  bytes certificate = 2;
+}
+
+message RenewCertificateResponse {
+  bytes certificate = 1;
+  string serial_number = 2;
+  string expires_at = 3;
+}
+
+message RevokeCertificateRequest {
+  Auth auth = 1;
+  string serial_number = 2;
+}
+
+message RevokeCertificateResponse {
+  bool success = 1;
+}
+
+message Certificate {
+  string serial_number = 1;
+  string subject = 2;
+  string issued_at = 3;
+  string expires_at = 4;
+  bool is_revoked = 5;
+}
+
+message ListCertificatesRequest {
+  Auth auth = 1;
+  bool include_revoked = 2;
+}
+
+message ListCertificatesResponse {
+  repeated Certificate certificates = 1;
+}
+
+message ListRequest {
+  bool include_revoked = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListResponse {
+  repeated CertificateSummary certificates = 1;
+  int32 total_count = 2;
+}
+
+message CertificateSummary {
+  string serial_number = 1;
+  string issued_to = 2;
+  int64 expires_at = 3;
+  bool is_revoked = 4;
+}
+
+message GetRequest {
+  string serial_number = 1;
+}
+
+message CertificateDetails {
+  string serial_number = 1;
+  string issued_to = 2;
+  string subject = 3;
+  int64 issued_at = 4;
+  int64 expires_at = 5;
+  bool is_revoked = 6;
+  repeated string dns_names = 7;
+  repeated string ip_addresses = 8;
+  string certificate = 9;
+}
+
+message ServerMetrics {
+  int32 total_certificates = 1;
+  int32 active_certificates = 2;
+  int32 revoked_certificates = 3;
+  int64 server_started_at = 4;
+}
