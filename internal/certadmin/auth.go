@@ -4,12 +4,21 @@ package certadmin
 import (
 	"context"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
+
+// For enhanced auditing and security
+type apiKeyInfo struct {
+	Username    string
+	LastUsed    time.Time
+	CreatedAt   time.Time
+	Description string
+}
 
 // AuthInterceptor provides authentication for gRPC endpoints
 type AuthInterceptor struct {
@@ -29,6 +38,11 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
+		// Skip authentication for health checks or other public endpoints
+		if isPublicEndpoint(info.FullMethod) {
+			return handler(ctx, req)
+		}
+
 		// Authenticate the request
 		username, err := i.authenticate(ctx)
 		if err != nil {
@@ -37,6 +51,9 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		// Add username to the context for auditing or logging
 		ctx = context.WithValue(ctx, "username", username)
+
+		// Log the API access (in a production system, you'd use proper logging)
+		// fmt.Printf("[%s] User %s accessed %s\n", time.Now().Format(time.RFC3339), username, info.FullMethod)
 
 		// Proceed with the request
 		return handler(ctx, req)
@@ -69,4 +86,20 @@ func (i *AuthInterceptor) authenticate(ctx context.Context) (string, error) {
 	}
 
 	return username, nil
+}
+
+// isPublicEndpoint determines if an endpoint should be accessible without authentication
+func isPublicEndpoint(fullMethod string) bool {
+	// Example: Allow health check endpoints without authentication
+	publicEndpoints := []string{
+		"/grpc.health.v1.Health/",
+		// Add other public endpoints as needed
+	}
+
+	for _, endpoint := range publicEndpoints {
+		if strings.HasPrefix(fullMethod, endpoint) {
+			return true
+		}
+	}
+	return false
 }

@@ -7,7 +7,12 @@ option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
 // CertAdmin service provides administrative access to the certificate infrastructure
 service CertAdmin {
   // GetCACertificate retrieves the CA certificate
-  rpc GetCACertificate(GetCACertificateRequest) returns (GetCACertificateResponse);
+  rpc GetCACertificate(GetCACertificateRequest) returns (GetCACertificateResponse) {
+    // If you need HTTP annotations, add them like this:
+    // option (google.api.http) = {
+    //   get: "/api/v1/ca"
+    // };
+  }
 
   // IssueCertificate issues a new certificate based on CSR
   rpc IssueCertificate(IssueCertificateRequest) returns (IssueCertificateResponse);
