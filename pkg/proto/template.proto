@@ -1,0 +1,156 @@
+// pkg/proto/template.proto
+// This file defines the TemplateService for managing autoinstall templates.
+// It includes messages for creating, retrieving, updating, deleting, and listing templates,
+// as well as validating and rendering templates with parameters.
+// The service is designed to be used in a gRPC context, with appropriate request and response messages.
+// The Template message includes fields for metadata, content, and parameters,
+// while TemplateParameter defines the structure of parameters that can be used in templates.
+// The file also imports the google/protobuf/timestamp.proto for handling timestamps.
+// The syntax is proto3, and the package is defined as "proto".
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// TemplateService manages autoinstall templates
+service TemplateService {
+  // CreateTemplate creates a new autoinstall template
+  rpc CreateTemplate(CreateTemplateRequest) returns (CreateTemplateResponse);
+
+  // GetTemplate retrieves an autoinstall template
+  rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse);
+
+  // UpdateTemplate updates an existing template
+  rpc UpdateTemplate(UpdateTemplateRequest) returns (UpdateTemplateResponse);
+
+  // DeleteTemplate deletes a template
+  rpc DeleteTemplate(DeleteTemplateRequest) returns (DeleteTemplateResponse);
+
+  // ListTemplates lists all templates
+  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse);
+
+  // ValidateTemplate validates a template
+  rpc ValidateTemplate(ValidateTemplateRequest) returns (ValidateTemplateResponse);
+
+  // RenderTemplate renders a template with parameters
+  rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse);
+}
+
+// Template represents an autoinstall template
+message Template {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string content = 4; // YAML content
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  string created_by = 7;
+  int32 version = 8;
+  map<string, string> tags = 9;
+  map<string, TemplateParameter> parameters = 10;
+}
+
+// TemplateParameter defines a parameter for a template
+message TemplateParameter {
+  string name = 1;
+  string description = 2;
+  string default_value = 3;
+  bool required = 4;
+  string type = 5; // string, number, boolean, etc.
+  repeated string allowed_values = 6; // For enum-type parameters
+  string validation_regex = 7; // For string validation
+}
+
+// CreateTemplateRequest for creating a new template
+message CreateTemplateRequest {
+  string name = 1;
+  string description = 2;
+  string content = 3; // YAML content
+  map<string, string> tags = 4;
+  map<string, TemplateParameter> parameters = 5;
+}
+
+// CreateTemplateResponse contains the created template
+message CreateTemplateResponse {
+  Template template = 1;
+}
+
+// GetTemplateRequest for retrieving a template
+message GetTemplateRequest {
+  string id = 1;
+  int32 version = 2; // Optional, if omitted returns latest
+}
+
+// GetTemplateResponse contains the requested template
+message GetTemplateResponse {
+  Template template = 1;
+}
+
+// UpdateTemplateRequest for updating a template
+message UpdateTemplateRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string content = 4;
+  map<string, string> tags = 5;
+  map<string, TemplateParameter> parameters = 6;
+}
+
+// UpdateTemplateResponse contains the updated template
+message UpdateTemplateResponse {
+  Template template = 1;
+}
+
+// DeleteTemplateRequest for deleting a template
+message DeleteTemplateRequest {
+  string id = 1;
+}
+
+// DeleteTemplateResponse contains the result of deletion
+message DeleteTemplateResponse {
+  bool success = 1;
+}
+
+// ListTemplatesRequest for listing templates
+message ListTemplatesRequest {
+  string filter_by_name = 1;
+  map<string, string> filter_by_tags = 2;
+}
+
+// ListTemplatesResponse contains a list of templates
+message ListTemplatesResponse {
+  repeated Template templates = 1;
+}
+
+// ValidateTemplateRequest for validating a template
+message ValidateTemplateRequest {
+  string content = 1;
+}
+
+// ValidationError represents an error in template validation
+message ValidationError {
+  string path = 1; // JSON path to the error
+  string message = 2;
+  int32 line = 3;
+  int32 column = 4;
+}
+
+// ValidateTemplateResponse contains validation results
+message ValidateTemplateResponse {
+  bool valid = 1;
+  repeated ValidationError errors = 2;
+}
+
+// RenderTemplateRequest for rendering a template
+message RenderTemplateRequest {
+  string template_id = 1;
+  map<string, string> parameters = 2;
+}
+
+// RenderTemplateResponse contains the rendered template
+message RenderTemplateResponse {
+  string rendered_content = 1;
+}

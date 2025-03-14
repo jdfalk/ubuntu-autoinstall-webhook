@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// StorageService manages storage configurations for installations
+service StorageService {
+  // GetStorageConfig retrieves storage configuration for a machine
+  rpc GetStorageConfig(GetStorageConfigRequest) returns (GetStorageConfigResponse);
+
+  // UpdateStorageConfig updates storage configuration
+  rpc UpdateStorageConfig(UpdateStorageConfigRequest) returns (UpdateStorageConfigResponse);
+
+  // DetectStorageDevices detects storage devices on a machine
+  rpc DetectStorageDevices(DetectStorageDevicesRequest) returns (DetectStorageDevicesResponse);
+}
+
+// StorageConfig represents a storage configuration
+message StorageConfig {
+  string id = 1;
+  string name = 2;
+  StorageType type = 3;
+  repeated Disk disks = 4;
+  repeated FileSystem filesystems = 5;
+  bool wipe_disks = 6;
+  bool preserve_existing = 7;
+}
+
+enum StorageType {
+  STORAGE_TYPE_UNKNOWN = 0;
+  STORAGE_TYPE_LVM = 1;
+  STORAGE_TYPE_DIRECT = 2;
+  STORAGE_TYPE_BCACHE = 3;
+  STORAGE_TYPE_RAID = 4;
+}
+
+message Disk {
+  string id = 1;
+  string path = 2;  // e.g., /dev/sda
+  string model = 3;
+  string serial = 4;
+  int64 size_bytes = 5;
+  bool is_rotational = 6;
+  repeated Partition partitions = 7;
+  string ptable = 8; // partition table type: gpt, mbr
+  bool wipe = 9;
+  bool preserve = 10;
+}
+
+message Partition {
+  string number = 1;
+  int64 size_bytes = 2;
+  string format = 3;  // filesystem format: ext4, xfs, etc.
+  string mount_point = 4;
+  string label = 5;
+  string flags = 6;  // boot, esp, etc.
+  bool preserve = 7;
+  bool grub_device = 8;
+}
+
+message FileSystem {
+  string id = 1;
+  string type = 2;
+  string device = 3;
+  string mount_point = 4;
+  string label = 5;
+  map<string, string> options = 6;
+}
+
+message GetStorageConfigRequest {
+  string machine_id = 1;
+}
+
+message GetStorageConfigResponse {
+  StorageConfig config = 1;
+}
+
+message UpdateStorageConfigRequest {
+  string machine_id = 1;
+  StorageConfig config = 2;
+}
+
+message UpdateStorageConfigResponse {
+  StorageConfig config = 1;
+}
+
+message DetectStorageDevicesRequest {
+  string machine_id = 1;
+}
+
+message DetectStorageDevicesResponse {
+  repeated Disk disks = 1;
+}
