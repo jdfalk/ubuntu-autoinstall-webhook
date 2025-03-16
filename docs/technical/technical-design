@@ -1,0 +1,160 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Technical Design Document](#technical-design-document)
+  - [Introduction](#introduction)
+  - [System Architecture](#system-architecture)
+    - [Component Overview](#component-overview)
+    - [Communication Protocols](#communication-protocols)
+    - [Data Flow](#data-flow)
+  - [Technology Stack](#technology-stack)
+    - [Backend Technologies](#backend-technologies)
+    - [Frontend Technologies](#frontend-technologies)
+    - [Infrastructure Components](#infrastructure-components)
+  - [API Design](#api-design)
+    - [gRPC Services](#grpc-services)
+    - [RESTful APIs](#restful-apis)
+    - [Authentication and Authorization](#authentication-and-authorization)
+  - [Data Model](#data-model)
+    - [Database Schema](#database-schema)
+    - [Key Entities](#key-entities)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+# Technical Design Document
+
+## Introduction
+
+This document provides a detailed technical design for the Ubuntu Autoinstall Webhook system, a microservices-based application for automating Ubuntu server installations. The system is designed as a single Go binary that contains multiple commands implementing various microservices, communicating via gRPC and Protocol Buffers.
+
+## System Architecture
+
+### Component Overview
+
+The Ubuntu Autoinstall Webhook system consists of the following main components:
+
+1. **File Editor Service**: Manages filesystem operations, including creating and updating configuration files for PXE boot and cloud-init.
+2. **Database Service**: Provides data persistence for the system, supporting both SQLite3 and CockroachDB backends.
+3. **Configuration Service**: Generates and manages configuration templates and instances for system installation.
+4. **DNSMasq Watcher Service**: Monitors DHCP requests to detect new systems on the network.
+5. **Certificate Issuer Service**: Manages certificate issuance and renewal for secure communication.
+6. **Webserver Service**: Hosts the web frontend and provides API endpoints for clients.
+7. **Admin CLI**: Command-line interface for system administration.
+
+### Communication Protocols
+
+All inter-service communication uses gRPC with Protocol Buffers, offering:
+- Strong typing and schema validation
+- Efficient binary serialization
+- Bi-directional streaming capabilities
+- Built-in service discovery and health checking
+
+External clients communicate with the system via:
+- RESTful APIs (browser clients)
+- gRPC APIs (installation clients)
+- Web interface for administrative tasks
+
+### Data Flow
+
+The system implements several key data flows:
+
+1. **Installation Workflow**:
+   - New system detected → Configuration created → Files written → Installation initiated → Status reported
+
+2. **Administrative Workflow**:
+   - Admin creates config → Configuration validated → Files updated → Available for installation
+
+3. **Certificate Management Flow**:
+   - Client requests certificate → Identity verified → Certificate issued → Secure communication established
+
+## Technology Stack
+
+### Backend Technologies
+
+- **Primary Language**: Go 1.21+
+- **Command Framework**: Cobra for CLI structure
+- **Configuration**: Viper for configuration management
+- **Communication**: gRPC and Protocol Buffers v3
+- **Database**:
+  - SQLite3 (default, single-instance)
+  - CockroachDB (optional, multi-instance)
+
+### Frontend Technologies
+
+- **Framework**: Angular v19+
+- **UI Components**: Material Design 3 (Angular Material v19+)
+- **Code Editor**: Monaco Editor (via ngx-monaco-editor-v2)
+
+### Infrastructure Components
+
+- **Web Server**: Built-in Go HTTP server
+- **DHCP Integration**: DNSMasq log monitoring or API integration
+- **Certificate Authority**: Internal CA using cfssl or boringssl
+
+## API Design
+
+### gRPC Services
+
+Each microservice exposes a gRPC API defined in Protocol Buffer IDL:
+
+1. **FileEditorService**:
+   - `WriteFile(FileWriteRequest) returns (FileWriteResponse)`
+   - `ReadFile(FileReadRequest) returns (FileReadResponse)`
+   - `CreateDirectory(DirectoryCreateRequest) returns (DirectoryCreateResponse)`
+   - `CreateSymlink(SymlinkCreateRequest) returns (SymlinkCreateResponse)`
+
+2. **DatabaseService**:
+   - `CreateRecord(CreateRecordRequest) returns (CreateRecordResponse)`
+   - `ReadRecord(ReadRecordRequest) returns (ReadRecordResponse)`
+   - `UpdateRecord(UpdateRecordRequest) returns (UpdateRecordResponse)`
+   - `DeleteRecord(DeleteRecordRequest) returns (DeleteRecordResponse)`
+   - `QueryRecords(QueryRequest) returns (stream QueryResponse)`
+
+3. **ConfigurationService**:
+   - `GenerateConfig(ConfigGenerateRequest) returns (ConfigGenerateResponse)`
+   - `ValidateConfig(ConfigValidateRequest) returns (ConfigValidateResponse)`
+   - `GetConfigTemplate(TemplateRequest) returns (TemplateResponse)`
+
+4. **DNSMasqWatcherService**:
+   - `ReportNewSystem(NewSystemRequest) returns (NewSystemResponse)`
+   - `GetSystemStatus(SystemStatusRequest) returns (SystemStatusResponse)`
+
+5. **CertificateIssuerService**:
+   - `RequestCertificate(CertificateRequest) returns (CertificateResponse)`
+   - `RevokeCertificate(RevocationRequest) returns (RevocationResponse)`
+   - `CheckCertificateStatus(StatusRequest) returns (StatusResponse)`
+
+6. **WebserverService**:
+   - `CreateUser(UserCreateRequest) returns (UserCreateResponse)`
+   - `AuthenticateUser(AuthRequest) returns (AuthResponse)`
+   - `GetInstallationStatus(StatusRequest) returns (StatusResponse)`
+
+### RESTful APIs
+
+The Webserver service also exposes RESTful APIs for browser clients:
+
+- `/api/v1/systems` - System management
+- `/api/v1/configs` - Configuration management
+- `/api/v1/users` - User management
+- `/api/v1/certs` - Certificate management
+- `/api/v1/status` - Installation status reporting
+
+### Authentication and Authorization
+
+APIs are secured using multiple mechanisms:
+
+- **Mutual TLS**: Service-to-service and client-server authentication
+- **Pre-shared Keys**: Format `base64(user:password:role)` for client authentication
+- **JWT Tokens**: For web UI session management
+- **IP/MAC Verification**: For trusted client validation
+
+## Data Model
+
+### Database Schema
+
+The system uses a relational database schema with the following core tables:
+
+### Key Entities
+
+1. **Systems**:
