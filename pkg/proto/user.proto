@@ -1,0 +1,253 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// UserService manages users and authentication
+service UserService {
+  // CreateUser creates a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+
+  // GetUser retrieves user details
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+
+  // UpdateUser updates user information
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+
+  // DeleteUser deletes a user
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+
+  // ListUsers lists all users
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+  // UpdatePassword updates a user's password
+  rpc UpdatePassword(UpdatePasswordRequest) returns (UpdatePasswordResponse);
+
+  // Authenticate authenticates a user by username and password
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+
+  // RefreshToken refreshes an authentication token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  // ValidateToken validates an authentication token
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+
+  // Logout invalidates an authentication token
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+// User represents a system user
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string full_name = 4;
+  bool active = 5;
+  UserRole role = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp last_login = 8;
+  repeated string permissions = 9;
+  map<string, string> preferences = 10;
+  bool mfa_enabled = 11;
+  bool password_change_required = 12;
+  google.protobuf.Timestamp password_expires_at = 13;
+}
+
+// UserRole represents user permission levels
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_VIEWER = 1;
+  USER_ROLE_OPERATOR = 2;
+  USER_ROLE_ADMIN = 3;
+  USER_ROLE_SYSTEM = 4;
+}
+
+// Authentication token information
+message Token {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3; // seconds until expiration
+  string token_type = 4; // typically "Bearer"
+  google.protobuf.Timestamp issued_at = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  string scope = 7;
+}
+
+// CreateUserRequest for creating a new user
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+  string full_name = 4;
+  UserRole role = 5;
+  repeated string permissions = 6;
+  bool send_welcome_email = 7;
+  bool password_change_required = 8;
+}
+
+// CreateUserResponse contains the created user
+message CreateUserResponse {
+  User user = 1;
+}
+
+// GetUserRequest for retrieving user details
+message GetUserRequest {
+  string id = 1;
+  string username = 2; // Alternative to ID
+}
+
+// GetUserResponse contains user details
+message GetUserResponse {
+  User user = 1;
+}
+
+// UpdateUserRequest for updating user information
+message UpdateUserRequest {
+  string id = 1;
+  string email = 2;
+  string full_name = 3;
+  bool active = 4;
+  UserRole role = 5;
+  repeated string permissions = 6;
+  map<string, string> preferences = 7;
+  bool mfa_enabled = 8;
+}
+
+// UpdateUserResponse contains the updated user
+message UpdateUserResponse {
+  User user = 1;
+  bool password_reset_required = 2;
+}
+
+// DeleteUserRequest for deleting a user
+message DeleteUserRequest {
+  string id = 1;
+  bool hard_delete = 2; // If true, permanently delete; if false, deactivate
+}
+
+// DeleteUserResponse contains the result of deletion
+message DeleteUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ListUsersRequest for listing users
+message ListUsersRequest {
+  bool include_inactive = 1;
+  UserRole filter_by_role = 2;
+  string search_term = 3; // Search by username, email, or full name
+  int32 page_size = 4;
+  string page_token = 5;
+}
+
+// ListUsersResponse contains a list of users
+message ListUsersResponse {
+  repeated User users = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+// UpdatePasswordRequest for updating a user's password
+message UpdatePasswordRequest {
+  string id = 1;
+  string current_password = 2;
+  string new_password = 3;
+}
+
+// UpdatePasswordResponse contains the result of password update
+message UpdatePasswordResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// AuthenticateRequest for authenticating a user
+message AuthenticateRequest {
+  string username = 1;
+  string password = 2;
+  string mfa_code = 3; // Optional MFA verification code
+  string client_ip = 4;
+  string user_agent = 5;
+}
+
+// AuthenticateResponse contains authentication result
+message AuthenticateResponse {
+  bool success = 1;
+  Token token = 2;
+  User user = 3;
+  bool mfa_required = 4; // If true, client should submit MFA code
+  string message = 5; // Error or information message
+}
+
+// RefreshTokenRequest for refreshing an authentication token
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+// RefreshTokenResponse contains the refreshed token
+message RefreshTokenResponse {
+  bool success = 1;
+  Token token = 2;
+  string message = 3;
+}
+
+// ValidateTokenRequest for validating an authentication token
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+// ValidateTokenResponse contains the validation result
+message ValidateTokenResponse {
+  bool valid = 1;
+  string user_id = 2;
+  UserRole role = 3;
+  repeated string permissions = 4;
+  google.protobuf.Timestamp expires_at = 5;
+}
+
+// LogoutRequest for logging out and invalidating a token
+message LogoutRequest {
+  string token = 1;
+  bool all_sessions = 2; // If true, invalidate all tokens for the user
+}
+
+// LogoutResponse contains the logout result
+message LogoutResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// MFA related messages
+message SetupMFARequest {
+  string user_id = 1;
+  MFAType mfa_type = 2;
+}
+
+message SetupMFAResponse {
+  bool success = 1;
+  string secret = 2; // For TOTP
+  string qr_code_url = 3; // For TOTP QR code
+  string recovery_codes = 4;
+}
+
+message VerifyMFARequest {
+  string user_id = 1;
+  string verification_code = 2;
+}
+
+message VerifyMFAResponse {
+  bool success = 1;
+  bool enabled = 2;
+  string message = 3;
+}
+
+// MFA types
+enum MFAType {
+  MFA_TYPE_UNSPECIFIED = 0;
+  MFA_TYPE_TOTP = 1; // Time-based One-Time Password
+  MFA_TYPE_SMS = 2;
+  MFA_TYPE_EMAIL = 3;
+  MFA_TYPE_RECOVERY_CODE = 4;
+}
