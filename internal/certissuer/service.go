@@ -4,7 +4,8 @@ package certissuer
 import (
 	"context"
 	"fmt"
-	"time"
+	"os"
+	"path/filepath"
 )
 
 // CertIssuer defines the interface for certificate management.
@@ -19,35 +20,49 @@ type CertIssuer interface {
 
 // Service implements the CertIssuer interface.
 type Service struct {
-	// You might include fields here like a reference to a certificate store,
-	// configuration parameters, or logger.
+	ca          *CertificateAuthority
+	certStorage string
 }
 
 // NewService creates a new instance of the CertIssuer service.
-func NewService() CertIssuer {
-	return &Service{}
+func NewService(certStorage string) CertIssuer {
+	// Default storage location if none provided
+	if certStorage == "" {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			certStorage = filepath.Join(homeDir, ".autoinstall-webhook", "certificates")
+		} else {
+			certStorage = "/var/lib/autoinstall-webhook/certificates"
+		}
+	}
+
+	ca, err := NewCertificateAuthority(certStorage)
+	if err != nil {
+		fmt.Printf("Error initializing certificate authority: %v\n", err)
+		// Fallback to in-memory CA
+		ca, _ = NewCertificateAuthority("")
+	}
+
+	return &Service{
+		ca:          ca,
+		certStorage: certStorage,
+	}
 }
 
 // IssueCertificate issues a certificate based on the provided CSR and client info.
 func (s *Service) IssueCertificate(ctx context.Context, csr []byte, clientInfo map[string]string) ([]byte, error) {
 	fmt.Println("Issuing certificate for client:", clientInfo)
-	// Stub implementation: return a dummy certificate with a timestamp.
-	dummyCert := []byte(fmt.Sprintf("DUMMY_CERTIFICATE issued at %s", time.Now().Format(time.RFC3339)))
-	return dummyCert, nil
+	return s.ca.IssueCertificateFromCSR(csr, clientInfo)
 }
 
 // RenewCertificate renews the given certificate.
 func (s *Service) RenewCertificate(ctx context.Context, cert []byte) ([]byte, error) {
 	fmt.Println("Renewing certificate")
-	// Stub implementation: return a dummy renewed certificate.
-	renewedCert := []byte(fmt.Sprintf("RENEWED_CERTIFICATE issued at %s", time.Now().Format(time.RFC3339)))
-	return renewedCert, nil
+	return s.ca.RenewCertificate(cert)
 }
 
 // GetRootCA returns the root CA certificate.
 func (s *Service) GetRootCA(ctx context.Context) ([]byte, error) {
 	fmt.Println("Retrieving root CA certificate")
-	// Stub implementation: return a dummy root CA certificate.
-	rootCA := []byte("DUMMY_ROOT_CA_CERTIFICATE")
-	return rootCA, nil
+	return s.ca.GetCACertificate(), nil
 }

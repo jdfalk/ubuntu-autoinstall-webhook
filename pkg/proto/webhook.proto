@@ -1,0 +1,204 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// WebhookService handles incoming webhook requests for autoinstall
+service WebhookService {
+  // RegisterWebhook registers a new webhook endpoint
+  rpc RegisterWebhook(RegisterWebhookRequest) returns (RegisterWebhookResponse);
+
+  // GetWebhook retrieves webhook configuration
+  rpc GetWebhook(GetWebhookRequest) returns (GetWebhookResponse);
+
+  // ListWebhooks lists all registered webhook endpoints
+  rpc ListWebhooks(ListWebhooksRequest) returns (ListWebhooksResponse);
+
+  // UpdateWebhook updates webhook configuration
+  rpc UpdateWebhook(UpdateWebhookRequest) returns (UpdateWebhookResponse);
+
+  // DeleteWebhook deletes a webhook endpoint
+  rpc DeleteWebhook(DeleteWebhookRequest) returns (DeleteWebhookResponse);
+
+  // TestWebhook sends a test event to a webhook endpoint
+  rpc TestWebhook(TestWebhookRequest) returns (TestWebhookResponse);
+
+  // GetWebhookEvents retrieves webhook event history
+  rpc GetWebhookEvents(GetWebhookEventsRequest) returns (GetWebhookEventsResponse);
+}
+
+// Webhook represents a webhook endpoint configuration
+message Webhook {
+  string id = 1;
+  string name = 2;
+  string url = 3;
+  string description = 4;
+  bool active = 5;
+  string secret = 6;  // Only included in initial response
+  repeated WebhookEventType event_types = 7;
+  map<string, string> headers = 8;
+  WebhookAuthType auth_type = 9;
+  WebhookAuthConfig auth_config = 10;
+  int32 timeout_seconds = 11;
+  int32 retry_count = 12;
+  int32 retry_delay_seconds = 13;
+  google.protobuf.Timestamp created_at = 14;
+  string created_by = 15;
+}
+
+// WebhookEventType represents types of events for webhook triggers
+enum WebhookEventType {
+  WEBHOOK_EVENT_TYPE_UNKNOWN = 0;
+  WEBHOOK_EVENT_TYPE_INSTALLATION_STARTED = 1;
+  WEBHOOK_EVENT_TYPE_INSTALLATION_COMPLETED = 2;
+  WEBHOOK_EVENT_TYPE_INSTALLATION_FAILED = 3;
+  WEBHOOK_EVENT_TYPE_CERTIFICATE_ISSUED = 4;
+  WEBHOOK_EVENT_TYPE_CERTIFICATE_REVOKED = 5;
+  WEBHOOK_EVENT_TYPE_SYSTEM_ALERT = 6;
+  WEBHOOK_EVENT_TYPE_SERVER_ADDED = 7;
+}
+
+// WebhookAuthType represents authentication methods for webhooks
+enum WebhookAuthType {
+  WEBHOOK_AUTH_TYPE_UNKNOWN = 0;
+  WEBHOOK_AUTH_TYPE_NONE = 1;
+  WEBHOOK_AUTH_TYPE_BASIC = 2;
+  WEBHOOK_AUTH_TYPE_TOKEN = 3;
+  WEBHOOK_AUTH_TYPE_OAUTH2 = 4;
+}
+
+// WebhookAuthConfig contains authentication configuration
+message WebhookAuthConfig {
+  string username = 1;
+  string password = 2;
+  string token = 3;
+  string token_header = 4;
+  string client_id = 5;
+  string client_secret = 6;
+  string token_url = 7;
+}
+
+// WebhookEvent represents a webhook delivery event
+message WebhookEvent {
+  string id = 1;
+  string webhook_id = 2;
+  WebhookEventType event_type = 3;
+  string resource_id = 4;
+  string resource_type = 5;
+  bool success = 6;
+  int32 response_code = 7;
+  string response_body = 8;
+  string error = 9;
+  int32 attempt = 10;
+  google.protobuf.Timestamp timestamp = 11;
+  google.protobuf.Timestamp next_retry = 12;
+  string request_body = 13;
+}
+
+// RegisterWebhookRequest for creating a new webhook endpoint
+message RegisterWebhookRequest {
+  string name = 1;
+  string url = 2;
+  string description = 3;
+  repeated WebhookEventType event_types = 4;
+  map<string, string> headers = 5;
+  WebhookAuthType auth_type = 6;
+  WebhookAuthConfig auth_config = 7;
+  int32 timeout_seconds = 8;
+  int32 retry_count = 9;
+  int32 retry_delay_seconds = 10;
+}
+
+// RegisterWebhookResponse contains the registered webhook
+message RegisterWebhookResponse {
+  Webhook webhook = 1;
+}
+
+// GetWebhookRequest for retrieving webhook configuration
+message GetWebhookRequest {
+  string id = 1;
+}
+
+// GetWebhookResponse contains webhook configuration
+message GetWebhookResponse {
+  Webhook webhook = 1;
+}
+
+// ListWebhooksRequest for listing webhooks
+message ListWebhooksRequest {
+  bool include_inactive = 1;
+  WebhookEventType filter_by_event = 2;
+}
+
+// ListWebhooksResponse contains a list of webhooks
+message ListWebhooksResponse {
+  repeated Webhook webhooks = 1;
+}
+
+// UpdateWebhookRequest for updating webhook configuration
+message UpdateWebhookRequest {
+  string id = 1;
+  string name = 2;
+  string url = 3;
+  string description = 4;
+  bool active = 5;
+  repeated WebhookEventType event_types = 6;
+  map<string, string> headers = 7;
+  WebhookAuthType auth_type = 8;
+  WebhookAuthConfig auth_config = 9;
+  int32 timeout_seconds = 10;
+  int32 retry_count = 11;
+  int32 retry_delay_seconds = 12;
+}
+
+// UpdateWebhookResponse contains the updated webhook
+message UpdateWebhookResponse {
+  Webhook webhook = 1;
+}
+
+// DeleteWebhookRequest for deleting a webhook endpoint
+message DeleteWebhookRequest {
+  string id = 1;
+}
+
+// DeleteWebhookResponse contains the result of deletion
+message DeleteWebhookResponse {
+  bool success = 1;
+}
+
+// TestWebhookRequest for testing a webhook endpoint
+message TestWebhookRequest {
+  string id = 1;
+  WebhookEventType event_type = 2;
+  map<string, string> payload = 3;
+}
+
+// TestWebhookResponse contains the test result
+message TestWebhookResponse {
+  bool success = 1;
+  int32 response_code = 2;
+  string response_body = 3;
+  int32 response_time_ms = 4;
+  string error = 5;
+}
+
+// GetWebhookEventsRequest for retrieving webhook events
+message GetWebhookEventsRequest {
+  string webhook_id = 1;
+  WebhookEventType event_type = 2;
+  bool success_only = 3;
+  bool failure_only = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+  int32 page_size = 7;
+  string page_token = 8;
+}
+
+// GetWebhookEventsResponse contains webhook events
+message GetWebhookEventsResponse {
+  repeated WebhookEvent events = 1;
+  string next_page_token = 2;
+}

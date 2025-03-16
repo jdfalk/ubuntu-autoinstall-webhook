@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// SettingsService manages global system settings
+service SettingsService {
+  // GetSettings retrieves system settings
+  rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse);
+
+  // UpdateSettings updates system settings
+  rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse);
+
+  // GetSetting retrieves a specific setting
+  rpc GetSetting(GetSettingRequest) returns (GetSettingResponse);
+
+  // UpdateSetting updates a specific setting
+  rpc UpdateSetting(UpdateSettingRequest) returns (UpdateSettingResponse);
+
+  // RestoreDefaults restores default settings
+  rpc RestoreDefaults(RestoreDefaultsRequest) returns (RestoreDefaultsResponse);
+}
+
+// Settings represents global system settings
+message Settings {
+  ServerSettings server = 1;
+  SecuritySettings security = 2;
+  InstallationSettings installation = 3;
+  NotificationSettings notification = 4;
+  NetworkSettings network = 5;
+  StorageSettings storage = 6;
+}
+
+// ServerSettings represents server configuration
+message ServerSettings {
+  string hostname = 1;
+  int32 http_port = 2;
+  int32 grpc_port = 3;
+  string log_level = 4;
+  string admin_email = 5;
+  string data_directory = 6;
+  bool debug_mode = 7;
+}
+
+// SecuritySettings represents security configuration
+message SecuritySettings {
+  int32 session_timeout_minutes = 1;
+  bool mfa_required = 2;
+  string password_policy = 3;
+  int32 api_key_expiry_days = 4;
+  int32 cert_expiry_days = 5;
+  bool enforce_https = 6;
+  bool allow_insecure_http = 7;
+  string trusted_proxies = 8;
+  string allowed_cors_origins = 9;
+}
+
+// InstallationSettings represents installation defaults
+message InstallationSettings {
+  string default_ubuntu_version = 1;
+  int32 installation_timeout_minutes = 2;
+  bool save_installation_logs = 3;
+  string default_template_id = 4;
+  string autoinstall_url = 5;
+  string mirror_url = 6;
+}
+
+// NotificationSettings represents notification configuration
+message NotificationSettings {
+  bool enable_email_notifications = 1;
+  bool enable_system_notifications = 2;
+  int32 notification_retention_days = 3;
+  string smtp_server = 4;
+  int32 smtp_port = 5;
+  string smtp_username = 6;
+  string smtp_password = 7;
+  string smtp_from_address = 8;
+  bool smtp_use_tls = 9;
+}
+
+// NetworkSettings represents network configuration
+message NetworkSettings {
+  string proxy_server = 1;
+  bool use_proxy = 2;
+  string no_proxy = 3;
+  string dns_servers = 4;
+  string search_domains = 5;
+  bool ipv6_enabled = 6;
+}
+
+// StorageSettings represents storage configuration
+message StorageSettings {
+  string default_partition_layout = 1;
+  bool use_lvm = 2;
+  string default_filesystem = 3;
+  int32 backup_retention_days = 4;
+}
+
+// Setting represents a single named setting with metadata
+message Setting {
+  string name = 1;
+  string value = 2;
+  string description = 3;
+  SettingType type = 4;
+  string default_value = 5;
+  bool required = 6;
+  string validation = 7;
+  repeated string allowed_values = 8;
+}
+
+enum SettingType {
+  SETTING_TYPE_UNKNOWN = 0;
+  SETTING_TYPE_STRING = 1;
+  SETTING_TYPE_NUMBER = 2;
+  SETTING_TYPE_BOOLEAN = 3;
+  SETTING_TYPE_JSON = 4;
+  SETTING_TYPE_LIST = 5;
+}
+
+message GetSettingsRequest {
+  string section = 1; // Empty means all sections
+}
+
+message GetSettingsResponse {
+  Settings settings = 1;
+}
+
+message UpdateSettingsRequest {
+  Settings settings = 1;
+}
+
+message UpdateSettingsResponse {
+  Settings settings = 1;
+}
+
+message GetSettingRequest {
+  string name = 1;
+}
+
+message GetSettingResponse {
+  Setting setting = 1;
+}
+
+message UpdateSettingRequest {
+  string name = 1;
+  string value = 2;
+}
+
+message UpdateSettingResponse {
+  Setting setting = 1;
+}
+
+message RestoreDefaultsRequest {
+  string section = 1; // Empty means all sections
+}
+
+message RestoreDefaultsResponse {
+  Settings settings = 1;
+}

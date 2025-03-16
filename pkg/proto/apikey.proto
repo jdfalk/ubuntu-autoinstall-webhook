@@ -1,0 +1,101 @@
+// pkg/proto/apikey.proto
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// APIKeyService manages API keys for authentication
+service APIKeyService {
+  // CreateAPIKey creates a new API key
+  rpc CreateAPIKey(CreateAPIKeyRequest) returns (CreateAPIKeyResponse);
+
+  // GetAPIKey retrieves API key information
+  rpc GetAPIKey(GetAPIKeyRequest) returns (GetAPIKeyResponse);
+
+  // ListAPIKeys lists all API keys
+  rpc ListAPIKeys(ListAPIKeysRequest) returns (ListAPIKeysResponse);
+
+  // RevokeAPIKey revokes an API key
+  rpc RevokeAPIKey(RevokeAPIKeyRequest) returns (RevokeAPIKeyResponse);
+
+  // UpdateAPIKey updates API key information
+  rpc UpdateAPIKey(UpdateAPIKeyRequest) returns (UpdateAPIKeyResponse);
+}
+
+// APIKey represents an API key for authentication
+message APIKey {
+  string id = 1;
+  string name = 2;
+  string key = 3;  // Only included in creation response
+  string created_by = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp last_used_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  bool active = 8;
+  repeated string permissions = 9;
+  string description = 10;
+}
+
+// CreateAPIKeyRequest for creating a new API key
+message CreateAPIKeyRequest {
+  string name = 1;
+  string description = 2;
+  int32 expiry_days = 3;
+  repeated string permissions = 4;
+}
+
+// CreateAPIKeyResponse contains the created API key
+message CreateAPIKeyResponse {
+  APIKey api_key = 1;
+}
+
+// GetAPIKeyRequest for retrieving API key information
+message GetAPIKeyRequest {
+  string id = 1;
+}
+
+// GetAPIKeyResponse contains API key information
+message GetAPIKeyResponse {
+  APIKey api_key = 1;
+}
+
+// ListAPIKeysRequest for listing API keys
+message ListAPIKeysRequest {
+  bool include_inactive = 1;
+  bool include_expired = 2;
+  string created_by = 3;
+}
+
+// ListAPIKeysResponse contains a list of API keys
+message ListAPIKeysResponse {
+  repeated APIKey api_keys = 1;
+}
+
+// RevokeAPIKeyRequest for revoking an API key
+message RevokeAPIKeyRequest {
+  string id = 1;
+  string reason = 2;
+}
+
+// RevokeAPIKeyResponse contains the result of revocation
+message RevokeAPIKeyResponse {
+  bool success = 1;
+}
+
+// UpdateAPIKeyRequest for updating API key information
+message UpdateAPIKeyRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp expires_at = 4;
+  bool active = 5;
+  repeated string permissions = 6;
+}
+
+// UpdateAPIKeyResponse contains the updated API key
+message UpdateAPIKeyResponse {
+  APIKey api_key = 1;
+}

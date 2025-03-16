@@ -1,0 +1,32 @@
+// pkg/proto/certadmin.proto
+syntax = "proto3";
+
+package proto;
+
+import "pkg/proto/cert.proto"; // Import the certificate message definitions
+
+option go_package = "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto";
+
+// CertAdmin service provides administrative access to the certificate infrastructure
+service CertAdmin {
+  // GetCACertificate retrieves the CA certificate
+  rpc GetCACertificate(GetCACertificateRequest) returns (GetCACertificateResponse);
+
+  // IssueCertificate issues a new certificate based on CSR
+  rpc IssueCertificate(IssueCertificateRequest) returns (IssueCertificateResponse);
+
+  // RevokeCertificate revokes an existing certificate
+  rpc RevokeCertificate(RevokeCertificateRequest) returns (RevokeCertificateResponse);
+
+  // ListCertificates lists all issued certificates
+  rpc ListCertificates(ListCertificatesRequest) returns (ListCertificatesResponse);
+
+  // GetCertificateInfo gets detailed information about a certificate
+  rpc GetCertificateInfo(GetCertificateInfoRequest) returns (GetCertificateInfoResponse);
+
+  // RenewCertificate renews an existing certificate
+  rpc RenewCertificate(RenewCertificateRequest) returns (RenewCertificateResponse);
+
+  // VerifyCertificate verifies a certificate against the CA
+  rpc VerifyCertificate(VerifyCertificateRequest) returns (VerifyCertificateResponse);
+}

@@ -3,6 +3,7 @@ package fileeditor
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -496,9 +497,17 @@ func TestDeleteCloudInitDir(t *testing.T) {
 	service, fs, _ := setupTestService(t)
 	ctx := context.Background()
 
-	// Get a Symlinker from the fs
+	// Get a Symlinker and Lstater from the fs
 	symlinker, ok := fs.(afero.Symlinker)
 	require.True(t, ok, "filesystem must support symlinks")
+
+	_, ok = fs.(afero.Lstater)
+	require.True(t, ok, "filesystem must support Lstater")
+
+	// Ensure recycle bin exists
+	recycleBinPath := filepath.Join(service.cloudInitDir, "recycle_bin")
+	err := fs.MkdirAll(recycleBinPath, 0755)
+	require.NoError(t, err)
 
 	// Delete by MAC address
 	t.Run("Delete by MAC", func(t *testing.T) {
@@ -519,6 +528,12 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		_ = fs.RemoveAll(hostnameDir)
 		_ = fs.RemoveAll(hostnameInstallDir)
 
+		// Clear recycle bin
+		entries, _ := afero.ReadDir(fs, recycleBinPath)
+		for _, entry := range entries {
+			_ = fs.RemoveAll(filepath.Join(recycleBinPath, entry.Name()))
+		}
+
 		err := fs.MkdirAll(macDir, 0755)
 		require.NoError(t, err)
 
@@ -535,7 +550,7 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		err = service.DeleteCloudInitDir(ctx, macAddress)
 		require.NoError(t, err)
 
-		// Verify everything is deleted
+		// Verify symlinks are deleted
 		exists, err := afero.Exists(fs, hostnameDir)
 		require.NoError(t, err)
 		assert.False(t, exists)
@@ -544,6 +559,7 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, exists)
 
+		// Verify original directories are gone
 		exists, err = afero.Exists(fs, macDir)
 		require.NoError(t, err)
 		assert.False(t, exists)
@@ -551,6 +567,29 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		exists, err = afero.Exists(fs, macInstallDir)
 		require.NoError(t, err)
 		assert.False(t, exists)
+
+		// Check that directories were moved to recycle bin
+		entries, err = afero.ReadDir(fs, recycleBinPath)
+		require.NoError(t, err)
+
+		// Should have 2 entries in recycle bin: macDir and macInstallDir
+		assert.Equal(t, 2, len(entries))
+
+		// Check naming pattern (should contain normalized MAC and delete_me)
+		macDirMoved := false
+		macInstallDirMoved := false
+
+		for _, entry := range entries {
+			name := entry.Name()
+			if strings.HasPrefix(name, normalizedMac+"_delete_me_") {
+				macDirMoved = true
+			} else if strings.HasPrefix(name, normalizedMac+"_install_delete_me_") {
+				macInstallDirMoved = true
+			}
+		}
+
+		assert.True(t, macDirMoved, "MAC directory not moved to recycle bin")
+		assert.True(t, macInstallDirMoved, "MAC install directory not moved to recycle bin")
 	})
 
 	// Complete the "Delete by Hostname" test
@@ -571,6 +610,12 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		_ = fs.RemoveAll(hostnameDir)
 		_ = fs.RemoveAll(hostnameInstallDir)
 
+		// Clear recycle bin
+		entries, _ := afero.ReadDir(fs, recycleBinPath)
+		for _, entry := range entries {
+			_ = fs.RemoveAll(filepath.Join(recycleBinPath, entry.Name()))
+		}
+
 		// Create the directories
 		err := fs.MkdirAll(macDir, 0755)
 		require.NoError(t, err)
@@ -585,11 +630,19 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		err = symlinker.SymlinkIfPossible(macInstallDir, hostnameInstallDir)
 		require.NoError(t, err)
 
-		// Delete by hostname instead of MAC address
+		// Add debugging before deletion
+		if linkReader, ok := fs.(afero.LinkReader); ok {
+			target, _ := linkReader.ReadlinkIfPossible(hostnameDir)
+			fmt.Printf("Hostname symlink target: %s\n", target)
+			fmt.Printf("MAC dir: %s\n", macDir)
+			fmt.Printf("Basename of target: %s\n", filepath.Base(target))
+		}
+
+		// Call DeleteCloudInitDir
 		err = service.DeleteCloudInitDir(ctx, hostname)
 		require.NoError(t, err)
 
-		// Verify everything is deleted
+		// Verify symlinks are deleted
 		exists, err := afero.Exists(fs, hostnameDir)
 		require.NoError(t, err)
 		assert.False(t, exists)
@@ -598,6 +651,7 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, exists)
 
+		// Verify original directories are gone
 		exists, err = afero.Exists(fs, macDir)
 		require.NoError(t, err)
 		assert.False(t, exists)
@@ -605,6 +659,29 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		exists, err = afero.Exists(fs, macInstallDir)
 		require.NoError(t, err)
 		assert.False(t, exists)
+
+		// Check that directories were moved to recycle bin
+		entries, err = afero.ReadDir(fs, recycleBinPath)
+		require.NoError(t, err)
+
+		// Should have 2 entries in recycle bin: macDir and macInstallDir
+		assert.Equal(t, 2, len(entries))
+
+		// Check naming pattern
+		macDirMoved := false
+		macInstallDirMoved := false
+
+		for _, entry := range entries {
+			name := entry.Name()
+			if strings.HasPrefix(name, normalizedMac+"_delete_me_") {
+				macDirMoved = true
+			} else if strings.HasPrefix(name, normalizedMac+"_install_delete_me_") {
+				macInstallDirMoved = true
+			}
+		}
+
+		assert.True(t, macDirMoved, "MAC directory not moved to recycle bin")
+		assert.True(t, macInstallDirMoved, "MAC install directory not moved to recycle bin")
 	})
 
 	// Complete the "Multiple Symlinks" test
@@ -631,8 +708,19 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		_ = fs.RemoveAll(otherHostnameDir)
 		_ = fs.RemoveAll(otherHostnameInstallDir)
 
+		// Clear recycle bin - Make sure this runs before checking the bin later!
+		entries, _ := afero.ReadDir(fs, recycleBinPath)
+		for _, entry := range entries {
+			_ = fs.RemoveAll(filepath.Join(recycleBinPath, entry.Name()))
+		}
+
+		// Verify recycle bin is empty at start
+		entries, err = afero.ReadDir(fs, recycleBinPath)
+		require.NoError(t, err)
+		assert.Equal(t, 0, len(entries), "Recycle bin should be empty at test start")
+
 		// Create the directories
-		err := fs.MkdirAll(macDir, 0755)
+		err = fs.MkdirAll(macDir, 0755)
 		require.NoError(t, err)
 
 		err = fs.MkdirAll(macInstallDir, 0755)
@@ -681,6 +769,11 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		exists, err = afero.Exists(fs, otherHostnameInstallDir)
 		require.NoError(t, err)
 		assert.True(t, exists)
+
+		// Check recycle bin - should be empty since MAC dirs are still referenced
+		entries, err = afero.ReadDir(fs, recycleBinPath)
+		require.NoError(t, err)
+		assert.Equal(t, 0, len(entries), "Recycle bin should be empty")
 	})
 
 	// Add a "Non-existent" test case
@@ -688,6 +781,42 @@ func TestDeleteCloudInitDir(t *testing.T) {
 		err := service.DeleteCloudInitDir(ctx, "non-existent-hostname")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "no cloud-init directory or symlink found")
+	})
+
+	// Test CleanupRecycleBin function
+	t.Run("CleanupRecycleBin", func(t *testing.T) {
+		// First put some test files in the recycle bin
+		testFile1 := filepath.Join(recycleBinPath, "test-mac_delete_me_20250313")
+		testFile2 := filepath.Join(recycleBinPath, "test-mac-install_delete_me_20250313")
+
+		err := afero.WriteFile(fs, testFile1, []byte("test content"), 0644)
+		require.NoError(t, err)
+
+		err = afero.WriteFile(fs, testFile2, []byte("test content"), 0644)
+		require.NoError(t, err)
+
+		// Verify files exist
+		exists, err := afero.Exists(fs, testFile1)
+		require.NoError(t, err)
+		assert.True(t, exists)
+
+		exists, err = afero.Exists(fs, testFile2)
+		require.NoError(t, err)
+		assert.True(t, exists)
+
+		// Call CleanupRecycleBin
+		err = service.CleanupRecycleBin(ctx)
+		require.NoError(t, err)
+
+		// Verify recycle bin is empty
+		entries, err := afero.ReadDir(fs, recycleBinPath)
+		require.NoError(t, err)
+		assert.Equal(t, 0, len(entries), "Recycle bin should be empty after cleanup")
+
+		// Verify recycle bin directory still exists
+		exists, err = afero.DirExists(fs, recycleBinPath)
+		require.NoError(t, err)
+		assert.True(t, exists, "Recycle bin directory should still exist after cleanup")
 	})
 }
 
