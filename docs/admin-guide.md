@@ -284,6 +284,75 @@
       - [12.8.1. Structured Logging Configuration](#1281-structured-logging-configuration-1)
       - [12.8.2. Remote Logging Configuration](#1282-remote-logging-configuration-1)
       - [12.8.3. Log Correlation](#1283-log-correlation-1)
+  - [13. Appendices](#13-appendices-1)
+    - [13.1. Command Line Reference](#131-command-line-reference)
+      - [13.1.1. General Commands](#1311-general-commands)
+      - [13.1.2. Service Management Commands](#1312-service-management-commands)
+      - [13.1.3. System Management Commands](#1313-system-management-commands)
+      - [13.1.4. Template Management Commands](#1314-template-management-commands)
+      - [13.1.5. Installation Management Commands](#1315-installation-management-commands)
+      - [13.1.6. Certificate Management Commands](#1316-certificate-management-commands)
+      - [13.1.7. User Management Commands](#1317-user-management-commands)
+      - [13.1.8. Database Management Commands](#1318-database-management-commands)
+      - [13.1.9. Maintenance Commands](#1319-maintenance-commands)
+      - [13.1.10. Support and Debugging Commands](#13110-support-and-debugging-commands)
+    - [13.2. Configuration File Reference](#132-configuration-file-reference)
+      - [13.2.1. Basic Configuration](#1321-basic-configuration)
+      - [13.2.2. Web Server Configuration](#1322-web-server-configuration)
+      - [13.2.3. Database Configuration](#1323-database-configuration)
+      - [13.2.4. Authentication Configuration](#1324-authentication-configuration)
+      - [13.2.5. RBAC Configuration](#1325-rbac-configuration)
+      - [13.2.6. Logging Configuration](#1326-logging-configuration)
+      - [13.2.7. Certificate Management Configuration](#1327-certificate-management-configuration)
+      - [13.2.8. Installation Configuration](#1328-installation-configuration)
+      - [13.2.9. DNSMasq Watcher Configuration](#1329-dnsmasq-watcher-configuration)
+      - [13.2.10. Cache Configuration](#13210-cache-configuration)
+      - [13.2.11. Security Configuration](#13211-security-configuration)
+    - [13.3. Default Templates](#133-default-templates)
+      - [13.3.1. Minimal Server Template](#1331-minimal-server-template)
+      - [13.3.2. Web Server Template](#1332-web-server-template)
+      - [13.3.3. Development Workstation Template](#1333-development-workstation-template)
+      - [13.3.4. Custom Partitioning Template](#1334-custom-partitioning-template)
+      - [13.3.5. Network Appliance Template](#1335-network-appliance-template)
+    - [13.4. API Reference](#134-api-reference)
+      - [13.4.1. API Authentication](#1341-api-authentication)
+      - [13.4.2. Common API Endpoints](#1342-common-api-endpoints)
+      - [13.4.3. Example API Requests](#1343-example-api-requests)
+    - [13.5. Network Requirements](#135-network-requirements)
+    - [13.1. Command Line Reference](#131-command-line-reference-1)
+      - [13.1.1. General Commands](#1311-general-commands-1)
+      - [13.1.2. Service Management Commands](#1312-service-management-commands-1)
+      - [13.1.3. System Management Commands](#1313-system-management-commands-1)
+      - [13.1.4. Template Management Commands](#1314-template-management-commands-1)
+      - [13.1.5. Installation Management Commands](#1315-installation-management-commands-1)
+      - [13.1.6. Certificate Management Commands](#1316-certificate-management-commands-1)
+      - [13.1.7. User Management Commands](#1317-user-management-commands-1)
+      - [13.1.8. Database Management Commands](#1318-database-management-commands-1)
+      - [13.1.9. Maintenance Commands](#1319-maintenance-commands-1)
+      - [13.1.10. Support and Debugging Commands](#13110-support-and-debugging-commands-1)
+    - [13.2. Configuration File Reference](#132-configuration-file-reference-1)
+      - [13.2.1. Basic Configuration](#1321-basic-configuration-1)
+      - [13.2.2. Web Server Configuration](#1322-web-server-configuration-1)
+      - [13.2.3. Database Configuration](#1323-database-configuration-1)
+      - [13.2.4. Authentication Configuration](#1324-authentication-configuration-1)
+      - [13.2.5. RBAC Configuration](#1325-rbac-configuration-1)
+      - [13.2.6. Logging Configuration](#1326-logging-configuration-1)
+      - [13.2.7. Certificate Management Configuration](#1327-certificate-management-configuration-1)
+      - [13.2.8. Installation Configuration](#1328-installation-configuration-1)
+      - [13.2.9. DNSMasq Watcher Configuration](#1329-dnsmasq-watcher-configuration-1)
+      - [13.2.10. Cache Configuration](#13210-cache-configuration-1)
+      - [13.2.11. Security Configuration](#13211-security-configuration-1)
+    - [13.3. Default Templates](#133-default-templates-1)
+      - [13.3.1. Minimal Server Template](#1331-minimal-server-template-1)
+      - [13.3.2. Web Server Template](#1332-web-server-template-1)
+      - [13.3.3. Development Workstation Template](#1333-development-workstation-template-1)
+      - [13.3.4. Custom Partitioning Template](#1334-custom-partitioning-template-1)
+      - [13.3.5. Network Appliance Template](#1335-network-appliance-template-1)
+    - [13.4. API Reference](#134-api-reference-1)
+      - [13.4.1. API Authentication](#1341-api-authentication-1)
+      - [13.4.2. Common API Endpoints](#1342-common-api-endpoints-1)
+      - [13.4.3. Example API Requests](#1343-example-api-requests-1)
+    - [13.5. Network Requirements](#135-network-requirements-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -6417,3 +6486,2048 @@ logging:
       propagation: "w3c"
       sample_ratio: 0.1
 ```
+
+## 13. Appendices
+
+### 13.1. Command Line Reference
+
+The Ubuntu Autoinstall Webhook system provides a comprehensive command-line interface (CLI) for administration and maintenance tasks. This section serves as a quick reference for the available commands.
+
+#### 13.1.1. General Commands
+
+```
+ubuntu-autoinstall-webhook --version
+  Display the current version of the software.
+
+ubuntu-autoinstall-webhook --help
+  Display help information and available commands.
+
+ubuntu-autoinstall-webhook completion [bash|zsh|fish|powershell]
+  Generate shell completion scripts for the specified shell.
+```
+
+#### 13.1.2. Service Management Commands
+
+```
+ubuntu-autoinstall-webhook start
+  Start the service in the foreground (primarily for debugging).
+
+ubuntu-autoinstall-webhook start --recovery-mode
+  Start the service in recovery mode with limited functionality.
+
+ubuntu-autoinstall-webhook config validate [--file=PATH]
+  Validate a configuration file without applying it.
+
+ubuntu-autoinstall-webhook config apply [--file=PATH]
+  Apply a new configuration file and restart services as needed.
+
+ubuntu-autoinstall-webhook status check [--verbose]
+  Check the status of all service components.
+
+ubuntu-autoinstall-webhook service restart --component=COMPONENT
+  Restart a specific service component.
+```
+
+#### 13.1.3. System Management Commands
+
+```
+ubuntu-autoinstall-webhook systems list [--format=FORMAT]
+  List all systems in the database.
+
+ubuntu-autoinstall-webhook systems add --mac=MAC --hostname=HOSTNAME [--template=TEMPLATE]
+  Add a new system to the database.
+
+ubuntu-autoinstall-webhook systems delete --mac=MAC
+  Delete a system from the database.
+
+ubuntu-autoinstall-webhook systems import --file=CSV_FILE
+  Import systems from a CSV file.
+
+ubuntu-autoinstall-webhook systems export [--format=FORMAT] [--output=PATH]
+  Export systems to a file.
+```
+
+#### 13.1.4. Template Management Commands
+
+```
+ubuntu-autoinstall-webhook templates list
+  List all available templates.
+
+ubuntu-autoinstall-webhook templates create --name=NAME --file=YAML_FILE
+  Create a new template from a YAML file.
+
+ubuntu-autoinstall-webhook templates update --id=ID --file=YAML_FILE
+  Update an existing template.
+
+ubuntu-autoinstall-webhook templates delete --id=ID
+  Delete a template.
+
+ubuntu-autoinstall-webhook templates export --id=ID --output=PATH
+  Export a template to a file.
+
+ubuntu-autoinstall-webhook templates validate --file=YAML_FILE
+  Validate a template file without importing it.
+```
+
+#### 13.1.5. Installation Management Commands
+
+```
+ubuntu-autoinstall-webhook installations list [--status=STATUS]
+  List installations filtered by status.
+
+ubuntu-autoinstall-webhook installations start --mac=MAC [--template=ID]
+  Start an installation for a system.
+
+ubuntu-autoinstall-webhook installations cancel --id=ID
+  Cancel an ongoing installation.
+
+ubuntu-autoinstall-webhook installations logs --id=ID [--follow]
+  View logs for a specific installation.
+
+ubuntu-autoinstall-webhook installations stats [--last=TIME_PERIOD]
+  Show installation statistics for the specified period.
+```
+
+#### 13.1.6. Certificate Management Commands
+
+```
+ubuntu-autoinstall-webhook cert list [--expiring-within=DAYS]
+  List certificates, optionally filtering for expiring ones.
+
+ubuntu-autoinstall-webhook cert generate --type=TYPE --cn=COMMON_NAME [options]
+  Generate a new certificate.
+
+ubuntu-autoinstall-webhook cert revoke --id=CERT_ID --reason=REASON
+  Revoke a certificate.
+
+ubuntu-autoinstall-webhook cert renew --id=CERT_ID
+  Renew a specific certificate.
+
+ubuntu-autoinstall-webhook cert init-ca
+  Initialize the certificate authority if not already done.
+
+ubuntu-autoinstall-webhook cert export --id=CERT_ID --format=FORMAT --output=PATH
+  Export a certificate in the specified format.
+```
+
+#### 13.1.7. User Management Commands
+
+```
+ubuntu-autoinstall-webhook users list
+  List all users in the system.
+
+ubuntu-autoinstall-webhook users add --username=USERNAME --role=ROLE
+  Add a new user.
+
+ubuntu-autoinstall-webhook users delete --username=USERNAME
+  Delete a user.
+
+ubuntu-autoinstall-webhook users password-reset --username=USERNAME
+  Reset a user's password.
+
+ubuntu-autoinstall-webhook users role --username=USERNAME --role=ROLE
+  Change a user's role.
+
+ubuntu-autoinstall-webhook users enable --username=USERNAME
+  Enable a disabled user account.
+
+ubuntu-autoinstall-webhook users disable --username=USERNAME
+  Disable a user account.
+```
+
+#### 13.1.8. Database Management Commands
+
+```
+ubuntu-autoinstall-webhook db check
+  Check database health and integrity.
+
+ubuntu-autoinstall-webhook db repair
+  Attempt to repair database issues.
+
+ubuntu-autoinstall-webhook db migrate [--to-version=VERSION]
+  Run database migrations.
+
+ubuntu-autoinstall-webhook db rollback [--to-version=VERSION]
+  Roll back database migrations.
+
+ubuntu-autoinstall-webhook db backup [--output=PATH]
+  Create a database backup.
+
+ubuntu-autoinstall-webhook db restore --file=PATH
+  Restore a database from backup.
+
+ubuntu-autoinstall-webhook db query "SQL_QUERY"
+  Execute a SQL query on the database.
+```
+
+#### 13.1.9. Maintenance Commands
+
+```
+ubuntu-autoinstall-webhook maintenance cleanup [--older-than=DAYS] [--status=STATUS]
+  Clean up old installation data.
+
+ubuntu-autoinstall-webhook maintenance cleanup-tokens [--expired-only]
+  Clean up authentication tokens.
+
+ubuntu-autoinstall-webhook maintenance cleanup-logs [--older-than=DAYS]
+  Clean up old log files.
+
+ubuntu-autoinstall-webhook maintenance verify-permissions [--fix]
+  Verify and optionally fix filesystem permissions.
+
+ubuntu-autoinstall-webhook maintenance rebuild-indexes
+  Rebuild database indexes for performance.
+```
+
+#### 13.1.10. Support and Debugging Commands
+
+```
+ubuntu-autoinstall-webhook debug enable-profiling
+  Enable runtime profiling for debugging.
+
+ubuntu-autoinstall-webhook debug disable-profiling
+  Disable runtime profiling.
+
+ubuntu-autoinstall-webhook support bundle [--output=PATH] [options]
+  Generate a support bundle for troubleshooting.
+
+ubuntu-autoinstall-webhook benchmark run [--output=PATH]
+  Run performance benchmarks.
+
+ubuntu-autoinstall-webhook logs tail [--component=COMPONENT] [--level=LEVEL]
+  Tail logs with filtering options.
+```
+
+### 13.2. Configuration File Reference
+
+This section provides a comprehensive reference for the configuration options available in the main configuration file, located at `/etc/ubuntu-autoinstall-webhook/config.yaml`.
+
+#### 13.2.1. Basic Configuration
+
+```yaml
+# Basic server configuration
+server:
+  # Unique identifier for this server instance
+  id: "server1"
+  # Server display name
+  name: "Production Server"
+  # Environment (production, staging, development)
+  environment: "production"
+  # Data directory
+  data_dir: "/var/lib/ubuntu-autoinstall-webhook"
+```
+
+#### 13.2.2. Web Server Configuration
+
+```yaml
+webserver:
+  # HTTP settings
+  http:
+    enabled: true
+    address: "0.0.0.0"
+    port: 8080
+    read_timeout_seconds: 30
+    write_timeout_seconds: 60
+    idle_timeout_seconds: 120
+    max_header_bytes: 1048576
+
+  # HTTPS settings
+  https:
+    enabled: true
+    address: "0.0.0.0"
+    port: 8443
+    cert_file: "/etc/ubuntu-autoinstall-webhook/certs/server.crt"
+    key_file: "/etc/ubuntu-autoinstall-webhook/certs/server.key"
+    min_version: "1.2"  # TLS 1.2
+
+  # CORS settings
+  cors:
+    enabled: true
+    allowed_origins:
+      - "https://example.com"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
+    max_age_seconds: 3600
+
+  # Static file serving
+  static_files:
+    path: "/var/www/html"
+    cache_control: "public, max-age=86400"
+    gzip: true
+    min_compress_size: 1024
+```
+
+#### 13.2.3. Database Configuration
+
+```yaml
+database:
+  # Database type: sqlite, cockroachdb
+  type: "sqlite"
+
+  # SQLite configuration
+  sqlite:
+    file: "/var/lib/ubuntu-autoinstall-webhook/database.sqlite3"
+    pragmas:
+      journal_mode: "WAL"
+      synchronous: "NORMAL"
+      temp_store: "MEMORY"
+      mmap_size: 30000000000
+      cache_size: -64000
+
+  # CockroachDB configuration
+  cockroach:
+    host: "localhost"
+    port: 26257
+    database: "ubuntu_autoinstall"
+    user: "ubuntu_autoinstall"
+    password: "password"  # Better to use password_file
+    password_file: "/etc/ubuntu-autoinstall-webhook/db_password"
+    ssl_mode: "verify-full"
+    ssl_ca: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-ca.crt"
+    ssl_cert: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.crt"
+    ssl_key: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.key"
+    max_open_conns: 25
+    max_idle_conns: 10
+    conn_max_lifetime_minutes: 60
+
+  # Connection retry settings
+  retry:
+    max_attempts: 5
+    initial_backoff_seconds: 1
+    max_backoff_seconds: 30
+```
+
+#### 13.2.4. Authentication Configuration
+
+```yaml
+auth:
+  # Session settings
+  session:
+    name: "webhook_session"
+    secret: "random-session-secret"  # Better to use secret_file
+    secret_file: "/etc/ubuntu-autoinstall-webhook/session_secret"
+    lifetime_hours: 24
+    idle_timeout_minutes: 30
+    cookie_secure: true
+    cookie_http_only: true
+
+  # Local authentication
+  local:
+    enabled: true
+    password_min_length: 12
+    password_require_mixed_case: true
+    password_require_number: true
+    password_require_special: true
+    password_max_age_days: 90
+
+  # LDAP authentication
+  ldap:
+    enabled: false
+    server: "ldap.example.com"
+    port: 636
+    use_ssl: true
+    bind_dn: "cn=service-account,ou=users,dc=example,dc=com"
+    bind_password: "secret"  # Better to use password_file
+    bind_password_file: "/etc/ubuntu-autoinstall-webhook/ldap_password"
+    search_base: "ou=users,dc=example,dc=com"
+    search_filter: "(sAMAccountName=%s)"
+    group_search_base: "ou=groups,dc=example,dc=com"
+    group_search_filter: "(member=%s)"
+    admin_group: "ubuntu-autoinstall-admins"
+
+  # OAuth2 configuration
+  oauth2:
+    enabled: false
+    provider: "github"
+    client_id: "your-client-id"
+    client_secret: "your-client-secret"  # Better to use secret_file
+    client_secret_file: "/etc/ubuntu-autoinstall-webhook/oauth_secret"
+    redirect_url: "https://webhook.example.com/auth/callback"
+    scopes: ["user:email"]
+
+  # API token settings
+  tokens:
+    enabled: true
+    max_lifetime_hours: 8760  # 1 year
+    default_lifetime_hours: 720  # 30 days
+    inactive_timeout_hours: 72
+```
+
+#### 13.2.5. RBAC Configuration
+
+```yaml
+rbac:
+  # Built-in roles configuration
+  roles:
+    admin:
+      description: "Full administrative access"
+    operator:
+      description: "Manage systems and installations"
+      permissions:
+        - "systems:*"
+        - "installations:*"
+        - "templates:read"
+        - "logs:read"
+    installer:
+      description: "Initiate and monitor installations"
+      permissions:
+        - "systems:read"
+        - "installations:read"
+        - "installations:write"
+        - "logs:read"
+    viewer:
+      description: "Read-only access"
+      permissions:
+        - "*:read"
+
+  # Custom roles
+  custom_roles:
+    - name: "TemplateManager"
+      description: "Can create and edit templates"
+      permissions:
+        - "templates:*"
+        - "systems:read"
+
+    - name: "SecurityAuditor"
+      description: "Audit security settings and logs"
+      permissions:
+        - "logs:read"
+        - "certificates:read"
+        - "users:read"
+        - "audit:read"
+```
+
+#### 13.2.6. Logging Configuration
+
+```yaml
+logging:
+  # Log level: debug, info, warn, error
+  level: "info"
+
+  # Log format: text, json
+  format: "json"
+
+  # Output options: file, stdout, both
+  output: "both"
+
+  # File logging settings
+  file:
+    directory: "/var/log/ubuntu-autoinstall-webhook"
+    filename: "webhook.log"
+
+  # Log rotation settings
+  rotate:
+    max_size_mb: 100
+    max_backups: 10
+    max_age_days: 30
+    compress: true
+
+  # Component-specific log levels
+  components:
+    file_editor: "info"
+    database: "info"
+    webserver: "info"
+    dnsmasq_watcher: "info"
+    cert_issuer: "info"
+
+  # Audit log settings
+  audit:
+    enabled: true
+    file: "/var/log/ubuntu-autoinstall-webhook/audit.log"
+    syslog: false
+    retention_days: 365
+```
+
+#### 13.2.7. Certificate Management Configuration
+
+```yaml
+certificates:
+  # CA settings
+  ca:
+    root_cert: "/var/lib/ubuntu-autoinstall-webhook/certificates/ca.crt"
+    root_key: "/var/lib/ubuntu-autoinstall-webhook/certificates/private/ca.key"
+
+  # Certificate defaults
+  defaults:
+    country: "US"
+    organization: "Example Organization"
+    validity_days: 365
+    key_type: "rsa"
+    key_bits: 2048
+
+  # Certificate types
+  types:
+    server:
+      validity_days: 365
+      subject_alt_names:
+        - "webhook.example.com"
+        - "webhook.local"
+    client:
+      validity_days: 90
+    service:
+      validity_days: 180
+
+  # Auto-renewal settings
+  renewal:
+    enabled: true
+    before_expiry_days: 30
+    retry_interval_hours: 24
+```
+
+#### 13.2.8. Installation Configuration
+
+```yaml
+installation:
+  # Default Ubuntu version
+  default_ubuntu_version: "22.04"
+
+  # Available Ubuntu versions
+  ubuntu_versions:
+    - "20.04"
+    - "22.04"
+    - "24.04"
+
+  # Files directory
+  files_directory: "/var/www/html/ipxe"
+
+  # Installation timeouts
+  timeouts:
+    discovery_minutes: 10
+    installation_minutes: 120
+    post_install_minutes: 30
+
+  # iPXE configuration
+  ipxe:
+    script_template: "/var/lib/ubuntu-autoinstall-webhook/templates/ipxe.script.tmpl"
+    timeout_seconds: 300
+    retry_count: 3
+    retry_delay_seconds: 5
+
+  # Autoinstall configuration
+  autoinstall:
+    template_directory: "/var/lib/ubuntu-autoinstall-webhook/templates"
+    user_data_template: "user-data.yaml.tmpl"
+    meta_data_template: "meta-data.yaml.tmpl"
+    vendor_data_template: "vendor-data.yaml.tmpl"
+
+  # Authentication for installations
+  authentication:
+    method: "token"  # none, token, certificate
+    token_lifetime_minutes: 30
+    max_attempts: 3
+
+  # Post-installation hooks
+  post_install_hooks:
+    - name: "inventory-update"
+      url: "https://inventory.example.com/api/new-installation"
+      method: "POST"
+      headers:
+        Content-Type: "application/json"
+        Authorization: "Bearer token"
+      retry_count: 3
+```
+
+#### 13.2.9. DNSMasq Watcher Configuration
+
+```yaml
+dnsmasq_watcher:
+  # Log file to watch
+  log_file: "/var/log/dnsmasq.log"
+
+  # Poll interval in seconds
+  poll_interval_seconds: 3
+
+  # Hostname generation
+  hostname_template: "ubuntu-{{mac|replace(':','')[:8]}}"
+
+  # System registration
+  auto_register: true
+  default_template: "minimal-server"
+
+  # Processing options
+  handle_duplicates: "update"  # ignore, update
+  max_queue_size: 100
+
+  # Log rotation handling
+  handle_log_rotation: true
+  log_rotation_check_interval_seconds: 30
+```
+
+#### 13.2.10. Cache Configuration
+
+```yaml
+cache:
+  # Cache type: memory, redis
+  type: "memory"
+
+  # Memory cache settings
+  memory:
+    size_mb: 256
+    ttl_seconds: 300
+
+  # Redis cache settings
+  redis:
+    address: "redis:6379"
+    password: ""
+    db: 0
+    pool_size: 10
+    ttl_seconds: 300
+
+  # Cache types
+  enable_template_cache: true
+  enable_config_cache: true
+  enable_system_cache: true
+```
+
+#### 13.2.11. Security Configuration
+
+```yaml
+security:
+  # IP restriction
+  allowed_ip_ranges:
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    burst: 20
+
+  # Sensitive data handling
+  sensitive_data:
+    encryption_key_file: "/etc/ubuntu-autoinstall-webhook/keys/data-encryption.key"
+    encrypt_passwords: true
+    encrypt_ssh_keys: true
+    encrypt_api_tokens: true
+    hide_sensitive_logs: true
+
+  # Data retention
+  data_retention:
+    installation_logs_days: 90
+    completed_installations_days: 180
+    failed_installations_days: 30
+    audit_logs_days: 365
+
+  # Security headers
+  http_security_headers:
+    content_security_policy: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    x_frame_options: "DENY"
+    x_content_type_options: "nosniff"
+    referrer_policy: "strict-origin-when-cross-origin"
+```
+
+### 13.3. Default Templates
+
+The system includes several default templates that can be used as a starting point for your own templates. This section provides a reference for these templates and their intended use cases.
+
+#### 13.3.1. Minimal Server Template
+
+**Purpose:** A basic server configuration with minimal packages installed.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/minimal-server.yaml
+version: 1
+variant: server
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: ubuntu
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    layout:
+      name: direct
+  packages:
+    - openssh-server
+    - cloud-init
+    - python3
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+```
+
+#### 13.3.2. Web Server Template
+
+**Purpose:** A server optimized for running web applications.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/web-server.yaml
+version: 1
+variant: server
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: ubuntu
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys:
+      - ssh-rsa AAAA...  # Your SSH public key
+  storage:
+    layout:
+      name: lvm
+  packages:
+    - openssh-server
+    - nginx
+    - fail2ban
+    - ufw
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+    runcmd:
+      - ufw allow 'Nginx HTTP'
+      - ufw allow 'Nginx HTTPS'
+      - ufw allow 'OpenSSH'
+      - ufw --force enable
+```
+
+#### 13.3.3. Development Workstation Template
+
+**Purpose:** A desktop environment with development tools.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/dev-workstation.yaml
+version: 1
+variant: desktop
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: developer
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    layout:
+      name: direct
+  packages:
+    - ubuntu-desktop
+    - build-essential
+    - git
+    - vim
+    - docker.io
+    - docker-compose
+    - python3-dev
+    - python3-pip
+    - nodejs
+    - npm
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+    runcmd:
+      - usermod -aG docker developer
+```
+
+#### 13.3.4. Custom Partitioning Template
+
+**Purpose:** Demonstrates advanced storage configuration options.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/custom-partitioning.yaml
+version: 1
+variant: server
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: ubuntu
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    config:
+      - type: disk
+        id: disk-0
+        match:
+          size: largest
+      - type: partition
+        id: boot-partition
+        device: disk-0
+        size: 500M
+        number: 1
+        flag: boot
+      - type: format
+        id: boot-format
+        volume: boot-partition
+        fstype: ext4
+      - type: partition
+        id: root-partition
+        device: disk-0
+        size: 10G
+        number: 2
+      - type: format
+        id: root-format
+        volume: root-partition
+        fstype: ext4
+      - type: partition
+        id: data-partition
+        device: disk-0
+        size: -1
+        number: 3
+      - type: format
+        id: data-format
+        volume: data-partition
+        fstype: ext4
+      - type: mount
+        id: boot-mount
+        device: boot-format
+        path: /boot
+      - type: mount
+        id: root-mount
+        device: root-format
+        path: /
+      - type: mount
+        id: data-mount
+        device: data-format
+        path: /data
+  packages:
+    - openssh-server
+    - cloud-init
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+```
+
+#### 13.3.5. Network Appliance Template
+
+**Purpose:** A minimal installation for network devices.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/network-appliance.yaml
+version: 1
+variant: server
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: netadmin
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys:
+      - ssh-rsa AAAA...  # Your SSH public key
+  network:
+    network:
+      version: 2
+      ethernets:
+        eth0:
+          dhcp4: true
+        eth1:
+          dhcp4: false
+          addresses: [192.168.1.1/24]
+  storage:
+    layout:
+      name: direct
+  packages:
+    - openssh-server
+    - cloud-init
+    - iptables-persistent
+    - net-tools
+    - tcpdump
+    - nftables
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+    bootcmd:
+      - sysctl -w net.ipv4.ip_forward=1
+```
+
+### 13.4. API Reference
+
+#### 13.4.1. API Authentication
+
+The API supports two authentication methods:
+
+1. **API Token Authentication** (recommended for scripts and automation)
+   ```
+   Authorization: Bearer <token>
+   ```
+
+2. **Session-based Authentication** (for web UI and interactive use)
+   ```
+   Cookie: webhook_session=<session_id>
+   ```
+
+#### 13.4.2. Common API Endpoints
+
+Below are the common API endpoints organized by resource:
+
+**Systems**
+```
+GET    /api/v1/systems            - List all systems
+POST   /api/v1/systems            - Create a new system
+GET    /api/v1/systems/{id}       - Get system details
+PUT    /api/v1/systems/{id}       - Update a system
+DELETE /api/v1/systems/{id}       - Delete a system
+GET    /api/v1/systems/by-mac/{mac} - Get system by MAC address
+```
+
+**Templates**
+```
+GET    /api/v1/templates          - List all templates
+POST   /api/v1/templates          - Create a new template
+GET    /api/v1/templates/{id}     - Get template details
+PUT    /api/v1/templates/{id}     - Update a template
+DELETE /api/v1/templates/{id}     - Delete a template
+GET    /api/v1/templates/{id}/render/{mac} - Render a template for a system
+```
+
+**Installations**
+```
+GET    /api/v1/installations      - List installations
+POST   /api/v1/installations      - Start a new installation
+GET    /api/v1/installations/{id} - Get installation details
+DELETE /api/v1/installations/{id} - Cancel an installation
+GET    /api/v1/installations/{id}/logs - Get installation logs
+POST   /api/v1/installations/phone-home - Endpoint for system callbacks
+```
+
+**Users**
+```
+GET    /api/v1/users              - List users
+POST   /api/v1/users              - Create a new user
+GET    /api/v1/users/{id}         - Get user details
+PUT    /api/v1/users/{id}         - Update a user
+DELETE /api/v1/users/{id}         - Delete a user
+PUT    /api/v1/users/{id}/password - Change user password
+```
+
+**Authentication**
+```
+POST   /api/v1/auth/login         - Login with username/password
+POST   /api/v1/auth/logout        - Logout current session
+POST   /api/v1/auth/tokens        - Create a new API token
+GET    /api/v1/auth/tokens        - List API tokens
+DELETE /api/v1/auth/tokens/{id}   - Revoke an API token
+```
+
+**Certificates**
+```
+GET    /api/v1/certs              - List certificates
+POST   /api/v1/certs              - Create a new certificate
+GET    /api/v1/certs/{id}         - Get certificate details
+PUT    /api/v1/certs/{id}/revoke  - Revoke a certificate
+GET    /api/v1/certs/{id}/download - Download a certificate
+```
+
+**Configuration**
+```
+GET    /api/v1/config             - Get system configuration
+PUT    /api/v1/config             - Update system configuration
+GET    /api/v1/config/network     - Get network configuration
+PUT    /api/v1/config/network     - Update network configuration
+```
+
+**Status**
+```
+GET    /api/v1/status             - Get system status
+GET    /api/v1/status/health      - Get health status
+GET    /api/v1/status/metrics     - Get system metrics
+```
+
+#### 13.4.3. Example API Requests
+
+**Authenticate and Get Token**
+```bash
+curl -X POST "https://webhook.example.com:8443/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin", "password":"your-password"}' \
+  | jq -r '.token'
+```
+
+**Create a New System**
+```bash
+curl -X POST "https://webhook.example.com:8443/api/v1/systems" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "hostname": "new-server",
+    "mac_address": "00:11:22:33:44:55",
+    "template_id": "550e8400-e29b-41d4-a716-446655440000"
+  }'
+```
+
+**Start an Installation**
+```bash
+curl -X POST "https://webhook.example.com:8443/api/v1/installations" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "system_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "template_id": "550e8400-e29b-41d4-a716-446655440000"
+  }'
+```
+
+### 13.5. Network Requirements
+
+This reference table outlines the network ports and protocols used by the Ubuntu Autoinstall Webhook system:
+
+| Port | Protocol | Purpose                                 | Direction | Optional? |
+| ---- | -------- | --------------------------------------- | --------- | --------- |
+| 8080 | TCP      | HTTP web interface & installation files | Inbound   | No        |
+| 8443 | TCP      | HTTPS web interface                     | Inbound   | No        |
+| 69   | UDP      | TFTP boot files                         | Inbound   | No        |
+| 53   | UDP/TCP  | DNS<!--                                 |
+## 13. Appendices
+
+### 13.1. Command Line Reference
+
+The Ubuntu Autoinstall Webhook system provides a comprehensive command-line interface (CLI) for administration and maintenance tasks. This section serves as a quick reference for the available commands.
+
+#### 13.1.1. General Commands
+
+```
+ubuntu-autoinstall-webhook --version
+  Display the current version of the software.
+
+ubuntu-autoinstall-webhook --help
+  Display help information and available commands.
+
+ubuntu-autoinstall-webhook completion [bash|zsh|fish|powershell]
+  Generate shell completion scripts for the specified shell.
+```
+
+#### 13.1.2. Service Management Commands
+
+```
+ubuntu-autoinstall-webhook start
+  Start the service in the foreground (primarily for debugging).
+
+ubuntu-autoinstall-webhook start --recovery-mode
+  Start the service in recovery mode with limited functionality.
+
+ubuntu-autoinstall-webhook config validate [--file=PATH]
+  Validate a configuration file without applying it.
+
+ubuntu-autoinstall-webhook config apply [--file=PATH]
+  Apply a new configuration file and restart services as needed.
+
+ubuntu-autoinstall-webhook status check [--verbose]
+  Check the status of all service components.
+
+ubuntu-autoinstall-webhook service restart --component=COMPONENT
+  Restart a specific service component.
+```
+
+#### 13.1.3. System Management Commands
+
+```
+ubuntu-autoinstall-webhook systems list [--format=FORMAT]
+  List all systems in the database.
+
+ubuntu-autoinstall-webhook systems add --mac=MAC --hostname=HOSTNAME [--template=TEMPLATE]
+  Add a new system to the database.
+
+ubuntu-autoinstall-webhook systems delete --mac=MAC
+  Delete a system from the database.
+
+ubuntu-autoinstall-webhook systems import --file=CSV_FILE
+  Import systems from a CSV file.
+
+ubuntu-autoinstall-webhook systems export [--format=FORMAT] [--output=PATH]
+  Export systems to a file.
+```
+
+#### 13.1.4. Template Management Commands
+
+```
+ubuntu-autoinstall-webhook templates list
+  List all available templates.
+
+ubuntu-autoinstall-webhook templates create --name=NAME --file=YAML_FILE
+  Create a new template from a YAML file.
+
+ubuntu-autoinstall-webhook templates update --id=ID --file=YAML_FILE
+  Update an existing template.
+
+ubuntu-autoinstall-webhook templates delete --id=ID
+  Delete a template.
+
+ubuntu-autoinstall-webhook templates export --id=ID --output=PATH
+  Export a template to a file.
+
+ubuntu-autoinstall-webhook templates validate --file=YAML_FILE
+  Validate a template file without importing it.
+```
+
+#### 13.1.5. Installation Management Commands
+
+```
+ubuntu-autoinstall-webhook installations list [--status=STATUS]
+  List installations filtered by status.
+
+ubuntu-autoinstall-webhook installations start --mac=MAC [--template=ID]
+  Start an installation for a system.
+
+ubuntu-autoinstall-webhook installations cancel --id=ID
+  Cancel an ongoing installation.
+
+ubuntu-autoinstall-webhook installations logs --id=ID [--follow]
+  View logs for a specific installation.
+
+ubuntu-autoinstall-webhook installations stats [--last=TIME_PERIOD]
+  Show installation statistics for the specified period.
+```
+
+#### 13.1.6. Certificate Management Commands
+
+```
+ubuntu-autoinstall-webhook cert list [--expiring-within=DAYS]
+  List certificates, optionally filtering for expiring ones.
+
+ubuntu-autoinstall-webhook cert generate --type=TYPE --cn=COMMON_NAME [options]
+  Generate a new certificate.
+
+ubuntu-autoinstall-webhook cert revoke --id=CERT_ID --reason=REASON
+  Revoke a certificate.
+
+ubuntu-autoinstall-webhook cert renew --id=CERT_ID
+  Renew a specific certificate.
+
+ubuntu-autoinstall-webhook cert init-ca
+  Initialize the certificate authority if not already done.
+
+ubuntu-autoinstall-webhook cert export --id=CERT_ID --format=FORMAT --output=PATH
+  Export a certificate in the specified format.
+```
+
+#### 13.1.7. User Management Commands
+
+```
+ubuntu-autoinstall-webhook users list
+  List all users in the system.
+
+ubuntu-autoinstall-webhook users add --username=USERNAME --role=ROLE
+  Add a new user.
+
+ubuntu-autoinstall-webhook users delete --username=USERNAME
+  Delete a user.
+
+ubuntu-autoinstall-webhook users password-reset --username=USERNAME
+  Reset a user's password.
+
+ubuntu-autoinstall-webhook users role --username=USERNAME --role=ROLE
+  Change a user's role.
+
+ubuntu-autoinstall-webhook users enable --username=USERNAME
+  Enable a disabled user account.
+
+ubuntu-autoinstall-webhook users disable --username=USERNAME
+  Disable a user account.
+```
+
+#### 13.1.8. Database Management Commands
+
+```
+ubuntu-autoinstall-webhook db check
+  Check database health and integrity.
+
+ubuntu-autoinstall-webhook db repair
+  Attempt to repair database issues.
+
+ubuntu-autoinstall-webhook db migrate [--to-version=VERSION]
+  Run database migrations.
+
+ubuntu-autoinstall-webhook db rollback [--to-version=VERSION]
+  Roll back database migrations.
+
+ubuntu-autoinstall-webhook db backup [--output=PATH]
+  Create a database backup.
+
+ubuntu-autoinstall-webhook db restore --file=PATH
+  Restore a database from backup.
+
+ubuntu-autoinstall-webhook db query "SQL_QUERY"
+  Execute a SQL query on the database.
+```
+
+#### 13.1.9. Maintenance Commands
+
+```
+ubuntu-autoinstall-webhook maintenance cleanup [--older-than=DAYS] [--status=STATUS]
+  Clean up old installation data.
+
+ubuntu-autoinstall-webhook maintenance cleanup-tokens [--expired-only]
+  Clean up authentication tokens.
+
+ubuntu-autoinstall-webhook maintenance cleanup-logs [--older-than=DAYS]
+  Clean up old log files.
+
+ubuntu-autoinstall-webhook maintenance verify-permissions [--fix]
+  Verify and optionally fix filesystem permissions.
+
+ubuntu-autoinstall-webhook maintenance rebuild-indexes
+  Rebuild database indexes for performance.
+```
+
+#### 13.1.10. Support and Debugging Commands
+
+```
+ubuntu-autoinstall-webhook debug enable-profiling
+  Enable runtime profiling for debugging.
+
+ubuntu-autoinstall-webhook debug disable-profiling
+  Disable runtime profiling.
+
+ubuntu-autoinstall-webhook support bundle [--output=PATH] [options]
+  Generate a support bundle for troubleshooting.
+
+ubuntu-autoinstall-webhook benchmark run [--output=PATH]
+  Run performance benchmarks.
+
+ubuntu-autoinstall-webhook logs tail [--component=COMPONENT] [--level=LEVEL]
+  Tail logs with filtering options.
+```
+
+### 13.2. Configuration File Reference
+
+This section provides a comprehensive reference for the configuration options available in the main configuration file, located at `/etc/ubuntu-autoinstall-webhook/config.yaml`.
+
+#### 13.2.1. Basic Configuration
+
+```yaml
+# Basic server configuration
+server:
+  # Unique identifier for this server instance
+  id: "server1"
+  # Server display name
+  name: "Production Server"
+  # Environment (production, staging, development)
+  environment: "production"
+  # Data directory
+  data_dir: "/var/lib/ubuntu-autoinstall-webhook"
+```
+
+#### 13.2.2. Web Server Configuration
+
+```yaml
+webserver:
+  # HTTP settings
+  http:
+    enabled: true
+    address: "0.0.0.0"
+    port: 8080
+    read_timeout_seconds: 30
+    write_timeout_seconds: 60
+    idle_timeout_seconds: 120
+    max_header_bytes: 1048576
+
+  # HTTPS settings
+  https:
+    enabled: true
+    address: "0.0.0.0"
+    port: 8443
+    cert_file: "/etc/ubuntu-autoinstall-webhook/certs/server.crt"
+    key_file: "/etc/ubuntu-autoinstall-webhook/certs/server.key"
+    min_version: "1.2"  # TLS 1.2
+
+  # CORS settings
+  cors:
+    enabled: true
+    allowed_origins:
+      - "https://example.com"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
+    max_age_seconds: 3600
+
+  # Static file serving
+  static_files:
+    path: "/var/www/html"
+    cache_control: "public, max-age=86400"
+    gzip: true
+    min_compress_size: 1024
+```
+
+#### 13.2.3. Database Configuration
+
+```yaml
+database:
+  # Database type: sqlite, cockroachdb
+  type: "sqlite"
+
+  # SQLite configuration
+  sqlite:
+    file: "/var/lib/ubuntu-autoinstall-webhook/database.sqlite3"
+    pragmas:
+      journal_mode: "WAL"
+      synchronous: "NORMAL"
+      temp_store: "MEMORY"
+      mmap_size: 30000000000
+      cache_size: -64000
+
+  # CockroachDB configuration
+  cockroach:
+    host: "localhost"
+    port: 26257
+    database: "ubuntu_autoinstall"
+    user: "ubuntu_autoinstall"
+    password: "password"  # Better to use password_file
+    password_file: "/etc/ubuntu-autoinstall-webhook/db_password"
+    ssl_mode: "verify-full"
+    ssl_ca: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-ca.crt"
+    ssl_cert: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.crt"
+    ssl_key: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.key"
+    max_open_conns: 25
+    max_idle_conns: 10
+    conn_max_lifetime_minutes: 60
+
+  # Connection retry settings
+  retry:
+    max_attempts: 5
+    initial_backoff_seconds: 1
+    max_backoff_seconds: 30
+```
+
+#### 13.2.4. Authentication Configuration
+
+```yaml
+auth:
+  # Session settings
+  session:
+    name: "webhook_session"
+    secret: "random-session-secret"  # Better to use secret_file
+    secret_file: "/etc/ubuntu-autoinstall-webhook/session_secret"
+    lifetime_hours: 24
+    idle_timeout_minutes: 30
+    cookie_secure: true
+    cookie_http_only: true
+
+  # Local authentication
+  local:
+    enabled: true
+    password_min_length: 12
+    password_require_mixed_case: true
+    password_require_number: true
+    password_require_special: true
+    password_max_age_days: 90
+
+  # LDAP authentication
+  ldap:
+    enabled: false
+    server: "ldap.example.com"
+    port: 636
+    use_ssl: true
+    bind_dn: "cn=service-account,ou=users,dc=example,dc=com"
+    bind_password: "secret"  # Better to use password_file
+    bind_password_file: "/etc/ubuntu-autoinstall-webhook/ldap_password"
+    search_base: "ou=users,dc=example,dc=com"
+    search_filter: "(sAMAccountName=%s)"
+    group_search_base: "ou=groups,dc=example,dc=com"
+    group_search_filter: "(member=%s)"
+    admin_group: "ubuntu-autoinstall-admins"
+
+  # OAuth2 configuration
+  oauth2:
+    enabled: false
+    provider: "github"
+    client_id: "your-client-id"
+    client_secret: "your-client-secret"  # Better to use secret_file
+    client_secret_file: "/etc/ubuntu-autoinstall-webhook/oauth_secret"
+    redirect_url: "https://webhook.example.com/auth/callback"
+    scopes: ["user:email"]
+
+  # API token settings
+  tokens:
+    enabled: true
+    max_lifetime_hours: 8760  # 1 year
+    default_lifetime_hours: 720  # 30 days
+    inactive_timeout_hours: 72
+```
+
+#### 13.2.5. RBAC Configuration
+
+```yaml
+rbac:
+  # Built-in roles configuration
+  roles:
+    admin:
+      description: "Full administrative access"
+    operator:
+      description: "Manage systems and installations"
+      permissions:
+        - "systems:*"
+        - "installations:*"
+        - "templates:read"
+        - "logs:read"
+    installer:
+      description: "Initiate and monitor installations"
+      permissions:
+        - "systems:read"
+        - "installations:read"
+        - "installations:write"
+        - "logs:read"
+    viewer:
+      description: "Read-only access"
+      permissions:
+        - "*:read"
+
+  # Custom roles
+  custom_roles:
+    - name: "TemplateManager"
+      description: "Can create and edit templates"
+      permissions:
+        - "templates:*"
+        - "systems:read"
+
+    - name: "SecurityAuditor"
+      description: "Audit security settings and logs"
+      permissions:
+        - "logs:read"
+        - "certificates:read"
+        - "users:read"
+        - "audit:read"
+```
+
+#### 13.2.6. Logging Configuration
+
+```yaml
+logging:
+  # Log level: debug, info, warn, error
+  level: "info"
+
+  # Log format: text, json
+  format: "json"
+
+  # Output options: file, stdout, both
+  output: "both"
+
+  # File logging settings
+  file:
+    directory: "/var/log/ubuntu-autoinstall-webhook"
+    filename: "webhook.log"
+
+  # Log rotation settings
+  rotate:
+    max_size_mb: 100
+    max_backups: 10
+    max_age_days: 30
+    compress: true
+
+  # Component-specific log levels
+  components:
+    file_editor: "info"
+    database: "info"
+    webserver: "info"
+    dnsmasq_watcher: "info"
+    cert_issuer: "info"
+
+  # Audit log settings
+  audit:
+    enabled: true
+    file: "/var/log/ubuntu-autoinstall-webhook/audit.log"
+    syslog: false
+    retention_days: 365
+```
+
+#### 13.2.7. Certificate Management Configuration
+
+```yaml
+certificates:
+  # CA settings
+  ca:
+    root_cert: "/var/lib/ubuntu-autoinstall-webhook/certificates/ca.crt"
+    root_key: "/var/lib/ubuntu-autoinstall-webhook/certificates/private/ca.key"
+
+  # Certificate defaults
+  defaults:
+    country: "US"
+    organization: "Example Organization"
+    validity_days: 365
+    key_type: "rsa"
+    key_bits: 2048
+
+  # Certificate types
+  types:
+    server:
+      validity_days: 365
+      subject_alt_names:
+        - "webhook.example.com"
+        - "webhook.local"
+    client:
+      validity_days: 90
+    service:
+      validity_days: 180
+
+  # Auto-renewal settings
+  renewal:
+    enabled: true
+    before_expiry_days: 30
+    retry_interval_hours: 24
+```
+
+#### 13.2.8. Installation Configuration
+
+```yaml
+installation:
+  # Default Ubuntu version
+  default_ubuntu_version: "22.04"
+
+  # Available Ubuntu versions
+  ubuntu_versions:
+    - "20.04"
+    - "22.04"
+    - "24.04"
+
+  # Files directory
+  files_directory: "/var/www/html/ipxe"
+
+  # Installation timeouts
+  timeouts:
+    discovery_minutes: 10
+    installation_minutes: 120
+    post_install_minutes: 30
+
+  # iPXE configuration
+  ipxe:
+    script_template: "/var/lib/ubuntu-autoinstall-webhook/templates/ipxe.script.tmpl"
+    timeout_seconds: 300
+    retry_count: 3
+    retry_delay_seconds: 5
+
+  # Autoinstall configuration
+  autoinstall:
+    template_directory: "/var/lib/ubuntu-autoinstall-webhook/templates"
+    user_data_template: "user-data.yaml.tmpl"
+    meta_data_template: "meta-data.yaml.tmpl"
+    vendor_data_template: "vendor-data.yaml.tmpl"
+
+  # Authentication for installations
+  authentication:
+    method: "token"  # none, token, certificate
+    token_lifetime_minutes: 30
+    max_attempts: 3
+
+  # Post-installation hooks
+  post_install_hooks:
+    - name: "inventory-update"
+      url: "https://inventory.example.com/api/new-installation"
+      method: "POST"
+      headers:
+        Content-Type: "application/json"
+        Authorization: "Bearer token"
+      retry_count: 3
+```
+
+#### 13.2.9. DNSMasq Watcher Configuration
+
+```yaml
+dnsmasq_watcher:
+  # Log file to watch
+  log_file: "/var/log/dnsmasq.log"
+
+  # Poll interval in seconds
+  poll_interval_seconds: 3
+
+  # Hostname generation
+  hostname_template: "ubuntu-{{mac|replace(':','')[:8]}}"
+
+  # System registration
+  auto_register: true
+  default_template: "minimal-server"
+
+  # Processing options
+  handle_duplicates: "update"  # ignore, update
+  max_queue_size: 100
+
+  # Log rotation handling
+  handle_log_rotation: true
+  log_rotation_check_interval_seconds: 30
+```
+
+#### 13.2.10. Cache Configuration
+
+```yaml
+cache:
+  # Cache type: memory, redis
+  type: "memory"
+
+  # Memory cache settings
+  memory:
+    size_mb: 256
+    ttl_seconds: 300
+
+  # Redis cache settings
+  redis:
+    address: "redis:6379"
+    password: ""
+    db: 0
+    pool_size: 10
+    ttl_seconds: 300
+
+  # Cache types
+  enable_template_cache: true
+  enable_config_cache: true
+  enable_system_cache: true
+```
+
+#### 13.2.11. Security Configuration
+
+```yaml
+security:
+  # IP restriction
+  allowed_ip_ranges:
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    burst: 20
+
+  # Sensitive data handling
+  sensitive_data:
+    encryption_key_file: "/etc/ubuntu-autoinstall-webhook/keys/data-encryption.key"
+    encrypt_passwords: true
+    encrypt_ssh_keys: true
+    encrypt_api_tokens: true
+    hide_sensitive_logs: true
+
+  # Data retention
+  data_retention:
+    installation_logs_days: 90
+    completed_installations_days: 180
+    failed_installations_days: 30
+    audit_logs_days: 365
+
+  # Security headers
+  http_security_headers:
+    content_security_policy: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+    x_frame_options: "DENY"
+    x_content_type_options: "nosniff"
+    referrer_policy: "strict-origin-when-cross-origin"
+```
+
+### 13.3. Default Templates
+
+The system includes several default templates that can be used as a starting point for your own templates. This section provides a reference for these templates and their intended use cases.
+
+#### 13.3.1. Minimal Server Template
+
+**Purpose:** A basic server configuration with minimal packages installed.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/minimal-server.yaml
+version: 1
+variant: server
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: ubuntu
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    layout:
+      name: direct
+  packages:
+    - openssh-server
+    - cloud-init
+    - python3
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+```
+
+#### 13.3.2. Web Server Template
+
+**Purpose:** A server optimized for running web applications.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/web-server.yaml
+version: 1
+variant: server
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: ubuntu
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys:
+      - ssh-rsa AAAA...  # Your SSH public key
+  storage:
+    layout:
+      name: lvm
+  packages:
+    - openssh-server
+    - nginx
+    - fail2ban
+    - ufw
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+    runcmd:
+      - ufw allow 'Nginx HTTP'
+      - ufw allow 'Nginx HTTPS'
+      - ufw allow 'OpenSSH'
+      - ufw --force enable
+```
+
+#### 13.3.3. Development Workstation Template
+
+**Purpose:** A desktop environment with development tools.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/dev-workstation.yaml
+version: 1
+variant: desktop
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: developer
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    layout:
+      name: direct
+  packages:
+    - ubuntu-desktop
+    - build-essential
+    - git
+    - vim
+    - docker.io
+    - docker-compose
+    - python3-dev
+    - python3-pip
+    - nodejs
+    - npm
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+    runcmd:
+      - usermod -aG docker developer
+```
+
+#### 13.3.4. Custom Partitioning Template
+
+**Purpose:** Demonstrates advanced storage configuration options.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/custom-partitioning.yaml
+version: 1
+variant: server
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: ubuntu
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: true
+  storage:
+    config:
+      - type: disk
+        id: disk-0
+        match:
+          size: largest
+      - type: partition
+        id: boot-partition
+        device: disk-0
+        size: 500M
+        number: 1
+        flag: boot
+      - type: format
+        id: boot-format
+        volume: boot-partition
+        fstype: ext4
+      - type: partition
+        id: root-partition
+        device: disk-0
+        size: 10G
+        number: 2
+      - type: format
+        id: root-format
+        volume: root-partition
+        fstype: ext4
+      - type: partition
+        id: data-partition
+        device: disk-0
+        size: -1
+        number: 3
+      - type: format
+        id: data-format
+        volume: data-partition
+        fstype: ext4
+      - type: mount
+        id: boot-mount
+        device: boot-format
+        path: /boot
+      - type: mount
+        id: root-mount
+        device: root-format
+        path: /
+      - type: mount
+        id: data-mount
+        device: data-format
+        path: /data
+  packages:
+    - openssh-server
+    - cloud-init
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+```
+
+#### 13.3.5. Network Appliance Template
+
+**Purpose:** A minimal installation for network devices.
+
+```yaml
+# /var/lib/ubuntu-autoinstall-webhook/templates/network-appliance.yaml
+version: 1
+variant: server
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  identity:
+    hostname: ${hostname}
+    username: netadmin
+    password: $6$examplehash$...  # Use your own password hash
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys:
+      - ssh-rsa AAAA...  # Your SSH public key
+  network:
+    network:
+      version: 2
+      ethernets:
+        eth0:
+          dhcp4: true
+        eth1:
+          dhcp4: false
+          addresses: [192.168.1.1/24]
+  storage:
+    layout:
+      name: direct
+  packages:
+    - openssh-server
+    - cloud-init
+    - iptables-persistent
+    - net-tools
+    - tcpdump
+    - nftables
+  user-data:
+    disable_root: true
+    timezone: UTC
+    package_update: true
+    package_upgrade: true
+    bootcmd:
+      - sysctl -w net.ipv4.ip_forward=1
+```
+
+### 13.4. API Reference
+
+#### 13.4.1. API Authentication
+
+The API supports two authentication methods:
+
+1. **API Token Authentication** (recommended for scripts and automation)
+   ```
+   Authorization: Bearer <token>
+   ```
+
+2. **Session-based Authentication** (for web UI and interactive use)
+   ```
+   Cookie: webhook_session=<session_id>
+   ```
+
+#### 13.4.2. Common API Endpoints
+
+Below are the common API endpoints organized by resource:
+
+**Systems**
+```
+GET    /api/v1/systems            - List all systems
+POST   /api/v1/systems            - Create a new system
+GET    /api/v1/systems/{id}       - Get system details
+PUT    /api/v1/systems/{id}       - Update a system
+DELETE /api/v1/systems/{id}       - Delete a system
+GET    /api/v1/systems/by-mac/{mac} - Get system by MAC address
+```
+
+**Templates**
+```
+GET    /api/v1/templates          - List all templates
+POST   /api/v1/templates          - Create a new template
+GET    /api/v1/templates/{id}     - Get template details
+PUT    /api/v1/templates/{id}     - Update a template
+DELETE /api/v1/templates/{id}     - Delete a template
+GET    /api/v1/templates/{id}/render/{mac} - Render a template for a system
+```
+
+**Installations**
+```
+GET    /api/v1/installations      - List installations
+POST   /api/v1/installations      - Start a new installation
+GET    /api/v1/installations/{id} - Get installation details
+DELETE /api/v1/installations/{id} - Cancel an installation
+GET    /api/v1/installations/{id}/logs - Get installation logs
+POST   /api/v1/installations/phone-home - Endpoint for system callbacks
+```
+
+**Users**
+```
+GET    /api/v1/users              - List users
+POST   /api/v1/users              - Create a new user
+GET    /api/v1/users/{id}         - Get user details
+PUT    /api/v1/users/{id}         - Update a user
+DELETE /api/v1/users/{id}         - Delete a user
+PUT    /api/v1/users/{id}/password - Change user password
+```
+
+**Authentication**
+```
+POST   /api/v1/auth/login         - Login with username/password
+POST   /api/v1/auth/logout        - Logout current session
+POST   /api/v1/auth/tokens        - Create a new API token
+GET    /api/v1/auth/tokens        - List API tokens
+DELETE /api/v1/auth/tokens/{id}   - Revoke an API token
+```
+
+**Certificates**
+```
+GET    /api/v1/certs              - List certificates
+POST   /api/v1/certs              - Create a new certificate
+GET    /api/v1/certs/{id}         - Get certificate details
+PUT    /api/v1/certs/{id}/revoke  - Revoke a certificate
+GET    /api/v1/certs/{id}/download - Download a certificate
+```
+
+**Configuration**
+```
+GET    /api/v1/config             - Get system configuration
+PUT    /api/v1/config             - Update system configuration
+GET    /api/v1/config/network     - Get network configuration
+PUT    /api/v1/config/network     - Update network configuration
+```
+
+**Status**
+```
+GET    /api/v1/status             - Get system status
+GET    /api/v1/status/health      - Get health status
+GET    /api/v1/status/metrics     - Get system metrics
+```
+
+#### 13.4.3. Example API Requests
+
+**Authenticate and Get Token**
+```bash
+curl -X POST "https://webhook.example.com:8443/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin", "password":"your-password"}' \
+  | jq -r '.token'
+```
+
+**Create a New System**
+```bash
+curl -X POST "https://webhook.example.com:8443/api/v1/systems" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "hostname": "new-server",
+    "mac_address": "00:11:22:33:44:55",
+    "template_id": "550e8400-e29b-41d4-a716-446655440000"
+  }'
+```
+
+**Start an Installation**
+```bash
+curl -X POST "https://webhook.example.com:8443/api/v1/installations" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "system_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "template_id": "550e8400-e29b-41d4-a716-446655440000"
+  }'
+```
+
+### 13.5. Network Requirements
+
+This reference table outlines the network ports and protocols used by the Ubuntu Autoinstall Webhook system:
+
+| Port | Protocol | Purpose                                 | Direction | Optional? |
+| ---- | -------- | --------------------------------------- | --------- | --------- |
+| 8080 | TCP      | HTTP web interface & installation files | Inbound   | No        |
+| 8443 | TCP      | HTTPS web interface                     | Inbound   | No        |
+| 69   | UDP      | TFTP boot files                         | Inbound   | No        |
+| 53   | UDP/TCP  | DNS                                     |
