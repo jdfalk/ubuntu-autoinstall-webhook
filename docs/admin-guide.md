@@ -349,10 +349,69 @@
       - [13.3.4. Custom Partitioning Template](#1334-custom-partitioning-template-1)
       - [13.3.5. Network Appliance Template](#1335-network-appliance-template-1)
     - [13.4. API Reference](#134-api-reference-1)
-      - [13.4.1. API Authentication](#1341-api-authentication-1)
-      - [13.4.2. Common API Endpoints](#1342-common-api-endpoints-1)
-      - [13.4.3. Example API Requests](#1343-example-api-requests-1)
-    - [13.5. Network Requirements](#135-network-requirements-1)
+      - [13.4.1. API Overview](#1341-api-overview)
+      - [13.4.2. Authentication](#1342-authentication)
+      - [13.4.3. Common Response Formats](#1343-common-response-formats)
+      - [13.4.4. Systems API](#1344-systems-api)
+      - [13.4.5. Templates API](#1345-templates-api)
+      - [13.4.6. Installations API](#1346-installations-api)
+      - [13.4.7. Certificates API](#1347-certificates-api)
+      - [13.4.8. Users and Authentication API](#1348-users-and-authentication-api)
+      - [13.4.9. System Configuration API](#1349-system-configuration-api)
+      - [13.4.10. API Usage Examples](#13410-api-usage-examples)
+      - [13.4.11. API Error Codes](#13411-api-error-codes)
+    - [13.5. Command Line Reference](#135-command-line-reference)
+      - [13.5.1. Basic Usage](#1351-basic-usage)
+      - [13.5.2. System Management](#1352-system-management)
+      - [13.5.3. System Management](#1353-system-management)
+      - [13.5.4. Template Management](#1354-template-management)
+      - [13.5.5. Certificate Management](#1355-certificate-management)
+      - [13.5.6. User Management](#1356-user-management)
+      - [13.5.7. Configuration Management](#1357-configuration-management)
+      - [13.5.8. Diagnostic and Support](#1358-diagnostic-and-support)
+    - [13.6. File Structure](#136-file-structure)
+      - [13.6.1. Overview](#1361-overview)
+      - [13.6.2. Configuration Files](#1362-configuration-files)
+      - [13.6.3. Application Data](#1363-application-data)
+      - [13.6.4. Log Files](#1364-log-files)
+      - [13.6.5. Web Server Files](#1365-web-server-files)
+      - [13.6.6. Systemd Service Files](#1366-systemd-service-files)
+    - [13.7. Resource Requirements](#137-resource-requirements)
+      - [13.7.1. Hardware Requirements](#1371-hardware-requirements)
+      - [13.7.2. Software Requirements](#1372-software-requirements)
+      - [13.7.3. Capacity Planning](#1373-capacity-planning)
+    - [13.8. Migration Guide](#138-migration-guide)
+      - [13.8.1. Version 1.x to 2.x Migration](#1381-version-1x-to-2x-migration)
+      - [13.8.2. Database Migration](#1382-database-migration)
+    - [13.9. Security Best Practices](#139-security-best-practices)
+      - [13.9.1. Network Security](#1391-network-security)
+      - [13.9.2. Authentication and Authorization](#1392-authentication-and-authorization)
+      - [13.9.3. Data Protection](#1393-data-protection)
+      - [13.9.4. System Hardening](#1394-system-hardening)
+      - [13.9.5. Audit and Compliance](#1395-audit-and-compliance)
+    - [13.10. Integration Guide](#1310-integration-guide)
+      - [13.10.1. Configuration Management Tools](#13101-configuration-management-tools)
+      - [13.10.2. Monitoring Tools](#13102-monitoring-tools)
+      - [13.10.3. CMDB Integration](#13103-cmdb-integration)
+      - [13.10.4. Notification Systems](#13104-notification-systems)
+    - [13.11. Performance Optimization Reference](#1311-performance-optimization-reference)
+      - [13.11.1. HTTP Server Tuning](#13111-http-server-tuning)
+      - [13.11.2. Database Optimization](#13112-database-optimization)
+      - [13.11.3. Memory Management](#13113-memory-management)
+      - [13.11.4. Disk I/O Optimization](#13114-disk-io-optimization)
+      - [13.11.5. Network Optimization](#13115-network-optimization)
+    - [13.12. Glossary](#1312-glossary)
+    - [13.13. Troubleshooting Reference](#1313-troubleshooting-reference)
+      - [13.13.1. Installation Issues](#13131-installation-issues)
+      - [13.13.2. PXE Boot Issues](#13132-pxe-boot-issues)
+      - [13.13.3. Installation Failures](#13133-installation-failures)
+      - [13.13.4. Web Interface Issues](#13134-web-interface-issues)
+      - [13.13.5. API Issues](#13135-api-issues)
+    - [13.14. System Messages Reference](#1314-system-messages-reference)
+      - [13.14.1. Informational Messages](#13141-informational-messages)
+      - [13.14.2. Warning Messages](#13142-warning-messages)
+      - [13.14.3. Error Messages](#13143-error-messages)
+    - [13.15. Conclusion](#1315-conclusion)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -8397,137 +8456,2233 @@ autoinstall:
 
 ### 13.4. API Reference
 
-#### 13.4.1. API Authentication
+The Ubuntu Autoinstall Webhook system provides a comprehensive REST API that allows for programmatic control of all system functions. This reference documents the available endpoints, authentication methods, and provides usage examples.
 
-The API supports two authentication methods:
+#### 13.4.1. API Overview
 
-1. **API Token Authentication** (recommended for scripts and automation)
-   ```
-   Authorization: Bearer <token>
-   ```
+The API follows RESTful principles with these characteristics:
 
-2. **Session-based Authentication** (for web UI and interactive use)
-   ```
-   Cookie: webhook_session=<session_id>
-   ```
+- Base URL: `https://your-server:8443/api/v1/`
+- Authentication via API tokens or JWT
+- JSON request and response bodies
+- Standard HTTP status codes
+- Consistent error response format
+- Rate limiting and pagination for large responses
 
-#### 13.4.2. Common API Endpoints
+#### 13.4.2. Authentication
 
-Below are the common API endpoints organized by resource:
+**Token Authentication**
 
-**Systems**
+Most API requests should include an API token in the Authorization header:
+
 ```
-GET    /api/v1/systems            - List all systems
-POST   /api/v1/systems            - Create a new system
-GET    /api/v1/systems/{id}       - Get system details
-PUT    /api/v1/systems/{id}       - Update a system
-DELETE /api/v1/systems/{id}       - Delete a system
-GET    /api/v1/systems/by-mac/{mac} - Get system by MAC address
+Authorization: Bearer your-api-token
 ```
 
-**Templates**
-```
-GET    /api/v1/templates          - List all templates
-POST   /api/v1/templates          - Create a new template
-GET    /api/v1/templates/{id}     - Get template details
-PUT    /api/v1/templates/{id}     - Update a template
-DELETE /api/v1/templates/{id}     - Delete a template
-GET    /api/v1/templates/{id}/render/{mac} - Render a template for a system
-```
+To create an API token:
 
-**Installations**
-```
-GET    /api/v1/installations      - List installations
-POST   /api/v1/installations      - Start a new installation
-GET    /api/v1/installations/{id} - Get installation details
-DELETE /api/v1/installations/{id} - Cancel an installation
-GET    /api/v1/installations/{id}/logs - Get installation logs
-POST   /api/v1/installations/phone-home - Endpoint for system callbacks
-```
+1. Via Web UI: Navigate to Profile > API Tokens > Generate New Token
+2. Via API: `POST /api/v1/tokens`
+3. Via CLI: `ubuntu-autoinstall-webhook tokens create`
 
-**Users**
-```
-GET    /api/v1/users              - List users
-POST   /api/v1/users              - Create a new user
-GET    /api/v1/users/{id}         - Get user details
-PUT    /api/v1/users/{id}         - Update a user
-DELETE /api/v1/users/{id}         - Delete a user
-PUT    /api/v1/users/{id}/password - Change user password
-```
+**JWT Authentication**
 
-**Authentication**
-```
-POST   /api/v1/auth/login         - Login with username/password
-POST   /api/v1/auth/logout        - Logout current session
-POST   /api/v1/auth/tokens        - Create a new API token
-GET    /api/v1/auth/tokens        - List API tokens
-DELETE /api/v1/auth/tokens/{id}   - Revoke an API token
-```
+For user-based operations, use JWT authentication:
 
-**Certificates**
-```
-GET    /api/v1/certs              - List certificates
-POST   /api/v1/certs              - Create a new certificate
-GET    /api/v1/certs/{id}         - Get certificate details
-PUT    /api/v1/certs/{id}/revoke  - Revoke a certificate
-GET    /api/v1/certs/{id}/download - Download a certificate
-```
+1. Obtain a JWT:
 
-**Configuration**
-```
-GET    /api/v1/config             - Get system configuration
-PUT    /api/v1/config             - Update system configuration
-GET    /api/v1/config/network     - Get network configuration
-PUT    /api/v1/config/network     - Update network configuration
-```
-
-**Status**
-```
-GET    /api/v1/status             - Get system status
-GET    /api/v1/status/health      - Get health status
-GET    /api/v1/status/metrics     - Get system metrics
-```
-
-#### 13.4.3. Example API Requests
-
-**Authenticate and Get Token**
 ```bash
-curl -X POST "https://webhook.example.com:8443/api/v1/auth/login" \
+curl -X POST https://your-server:8443/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin", "password":"your-password"}' \
-  | jq -r '.token'
+  -d '{"username": "admin", "password": "your-password"}'
 ```
 
-**Create a New System**
-```bash
-curl -X POST "https://webhook.example.com:8443/api/v1/systems" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "hostname": "new-server",
+2. Use the token in subsequent requests:
+
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ...
+```
+
+#### 13.4.3. Common Response Formats
+
+**Successful Response**:
+
+```json
+{
+  "status": "success",
+  "data": {
+    // Response data here
+  }
+}
+```
+
+**Error Response**:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "resource_not_found",
+    "message": "The requested resource was not found",
+    "details": {
+      // Additional error information
+    }
+  }
+}
+```
+
+**Collection Response**:
+
+```json
+{
+  "status": "success",
+  "data": [
+    // Array of items
+  ],
+  "pagination": {
+    "total": 100,
+    "per_page": 25,
+    "current_page": 1,
+    "last_page": 4,
+    "next_page_url": "/api/v1/systems?page=2",
+    "prev_page_url": null
+  }
+}
+```
+
+#### 13.4.4. Systems API
+
+**List Systems**
+
+```
+GET /api/v1/systems
+```
+
+Query Parameters:
+- `page`: Page number (default: 1)
+- `per_page`: Items per page (default: 25)
+- `status`: Filter by status (discovered, ready, installing, completed, failed)
+- `search`: Search by hostname or MAC address
+- `sort`: Field to sort by (hostname, mac_address, status, created_at)
+- `direction`: Sort direction (asc, desc)
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "hostname": "server01",
+      "mac_address": "00:11:22:33:44:55",
+      "ip_address": "192.168.1.10",
+      "status": "ready",
+      "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+      "last_seen": "2023-01-15T12:34:56Z",
+      "created_at": "2023-01-10T08:30:00Z",
+      "updated_at": "2023-01-15T12:34:56Z"
+    },
+    // More systems...
+  ],
+  "pagination": {
+    // Pagination info
+  }
+}
+```
+
+**Get System**
+
+```
+GET /api/v1/systems/{id}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "hostname": "server01",
     "mac_address": "00:11:22:33:44:55",
-    "template_id": "550e8400-e29b-41d4-a716-446655440000"
-  }'
+    "ip_address": "192.168.1.10",
+    "status": "ready",
+    "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+    "metadata": {
+      "rack": "B14",
+      "datacenter": "east",
+      "asset_tag": "AST-12345"
+    },
+    "last_seen": "2023-01-15T12:34:56Z",
+    "created_at": "2023-01-10T08:30:00Z",
+    "updated_at": "2023-01-15T12:34:56Z",
+    "installations": [
+      {
+        "id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+        "status": "completed",
+        "started_at": "2023-01-12T10:15:00Z",
+        "completed_at": "2023-01-12T10:45:22Z"
+      }
+    ]
+  }
+}
 ```
 
-**Start an Installation**
+**Create System**
+
+```
+POST /api/v1/systems
+```
+
+Request:
+
+```json
+{
+  "hostname": "server02",
+  "mac_address": "AA:BB:CC:DD:EE:FF",
+  "ip_address": "192.168.1.11",
+  "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+  "metadata": {
+    "rack": "C21",
+    "datacenter": "west"
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "662f9511-f30a-42d5-8286-557958167ab1",
+    "hostname": "server02",
+    "mac_address": "AA:BB:CC:DD:EE:FF",
+    "ip_address": "192.168.1.11",
+    "status": "ready",
+    "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+    "metadata": {
+      "rack": "C21",
+      "datacenter": "west"
+    },
+    "last_seen": null,
+    "created_at": "2023-01-15T14:22:33Z",
+    "updated_at": "2023-01-15T14:22:33Z"
+  }
+}
+```
+
+**Update System**
+
+```
+PUT /api/v1/systems/{id}
+```
+
+Request:
+
+```json
+{
+  "hostname": "server02-renamed",
+  "metadata": {
+    "rack": "C22",
+    "datacenter": "west",
+    "notes": "Relocated server"
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    // Updated system data
+  }
+}
+```
+
+**Delete System**
+
+```
+DELETE /api/v1/systems/{id}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "message": "System deleted successfully"
+  }
+}
+```
+
+**Bulk Import Systems**
+
+```
+POST /api/v1/systems/bulk
+```
+
+Request:
+
+```json
+{
+  "systems": [
+    {
+      "hostname": "bulk-server01",
+      "mac_address": "00:01:02:03:04:05",
+      "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+    },
+    {
+      "hostname": "bulk-server02",
+      "mac_address": "05:04:03:02:01:00",
+      "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+    }
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "imported": 2,
+    "failed": 0,
+    "systems": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "hostname": "bulk-server01",
+        "mac_address": "00:01:02:03:04:05"
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440002",
+        "hostname": "bulk-server02",
+        "mac_address": "05:04:03:02:01:00"
+      }
+    ]
+  }
+}
+```
+
+#### 13.4.5. Templates API
+
+**List Templates**
+
+```
+GET /api/v1/templates
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+      "name": "base-server",
+      "description": "Basic server configuration",
+      "ubuntu_version": "22.04",
+      "parent_id": null,
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-10T12:30:45Z"
+    },
+    // More templates...
+  ]
+}
+```
+
+**Get Template**
+
+```
+GET /api/v1/templates/{id}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+    "name": "base-server",
+    "description": "Basic server configuration",
+    "ubuntu_version": "22.04",
+    "parent_id": null,
+    "configuration": {
+      "user_data": "...",
+      "meta_data": "...",
+      "network_config": "..."
+    },
+    "variables": [
+      {
+        "name": "hostname",
+        "description": "System hostname",
+        "default": "${hostname}"
+      },
+      {
+        "name": "timezone",
+        "description": "System timezone",
+        "default": "UTC"
+      }
+    ],
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-10T12:30:45Z"
+  }
+}
+```
+
+**Create Template**
+
+```
+POST /api/v1/templates
+```
+
+Request:
+
+```json
+{
+  "name": "web-server",
+  "description": "NGINX web server configuration",
+  "ubuntu_version": "22.04",
+  "parent_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+  "configuration": {
+    "user_data": "#cloud-config\npackages:\n  - nginx\n  - certbot",
+    "meta_data": "instance-id: {{ v1 }}\nlocal-hostname: {{ hostname }}",
+    "network_config": "version: 2\nethernets:\n  eth0:\n    dhcp4: true"
+  },
+  "variables": [
+    {
+      "name": "hostname",
+      "description": "System hostname",
+      "default": "${hostname}"
+    }
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "8b0ec4d4-6b7f-5c8d-9e0f-1a2b3c4d5e6f",
+    "name": "web-server",
+    // Other template data...
+  }
+}
+```
+
+**Update Template**
+
+```
+PUT /api/v1/templates/{id}
+```
+
+**Delete Template**
+
+```
+DELETE /api/v1/templates/{id}
+```
+
+**Clone Template**
+
+```
+POST /api/v1/templates/{id}/clone
+```
+
+Request:
+
+```json
+{
+  "name": "web-server-modified",
+  "description": "Modified version of web server template"
+}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "9c1fd5e5-7c8g-6d9h-0f1i-2a3b4c5d6e7f",
+    "name": "web-server-modified",
+    // Other template data...
+  }
+}
+```
+
+#### 13.4.6. Installations API
+
+**List Installations**
+
+```
+GET /api/v1/installations
+```
+
+**Get Installation**
+
+```
+GET /api/v1/installations/{id}
+```
+
+**Start Installation**
+
+```
+POST /api/v1/installations
+```
+
+Request:
+
+```json
+{
+  "system_id": "550e8400-e29b-41d4-a716-446655440000",
+  "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+  "variables": {
+    "hostname": "custom-hostname",
+    "timezone": "America/New_York"
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+    "system_id": "550e8400-e29b-41d4-a716-446655440000",
+    "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b",
+    "status": "preparing",
+    "started_at": "2023-01-15T15:30:00Z",
+    "variables": {
+      "hostname": "custom-hostname",
+      "timezone": "America/New_York"
+    }
+  }
+}
+```
+
+**Bulk Installation**
+
+```
+POST /api/v1/installations/bulk
+```
+
+Request:
+
+```json
+{
+  "systems": ["id1", "id2", "id3"],
+  "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+}
+```
+
+**Get Installation Logs**
+
+```
+GET /api/v1/installations/{id}/logs
+```
+
+Parameters:
+- `lines`: Number of lines to retrieve (default: 100)
+- `level`: Log level filter (info, warning, error)
+
+**Cancel Installation**
+
+```
+POST /api/v1/installations/{id}/cancel
+```
+
+#### 13.4.7. Certificates API
+
+**List Certificates**
+
+```
+GET /api/v1/certificates
+```
+
+**Get Certificate**
+
+```
+GET /api/v1/certificates/{id}
+```
+
+**Create Certificate**
+
+```
+POST /api/v1/certificates
+```
+
+Request:
+
+```json
+{
+  "type": "server",
+  "common_name": "webhook.example.com",
+  "organization": "Example Corp",
+  "organizational_unit": "IT Department",
+  "locality": "New York",
+  "province": "NY",
+  "country": "US",
+  "valid_days": 365,
+  "key_type": "rsa",
+  "key_bits": 2048,
+  "sans": [
+    "webhook.example.com",
+    "webhook-alt.example.com",
+    "192.168.1.10"
+  ]
+}
+```
+
+**Revoke Certificate**
+
+```
+POST /api/v1/certificates/{id}/revoke
+```
+
+Request:
+
+```json
+{
+  "reason": "key_compromise",
+  "comments": "Security incident on 2023-01-15"
+}
+```
+
+**Download Certificate**
+
+```
+GET /api/v1/certificates/{id}/download
+```
+
+Parameters:
+- `format`: The format to download (pem, der, pkcs12)
+- `include_chain`: Whether to include the CA chain (true, false)
+- `include_key`: Whether to include the private key (true, false)
+
+#### 13.4.8. Users and Authentication API
+
+**List Users**
+
+```
+GET /api/v1/users
+```
+
+**Get User**
+
+```
+GET /api/v1/users/{id}
+```
+
+**Create User**
+
+```
+POST /api/v1/users
+```
+
+Request:
+
+```json
+{
+  "username": "newuser",
+  "email": "user@example.com",
+  "password": "securepassword",
+  "full_name": "New User",
+  "roles": ["operator"]
+}
+```
+
+**Update User**
+
+```
+PUT /api/v1/users/{id}
+```
+
+**Delete User**
+
+```
+DELETE /api/v1/users/{id}
+```
+
+**Login**
+
+```
+POST /api/v1/auth/login
+```
+
+Request:
+
+```json
+{
+  "username": "admin",
+  "password": "password"
+}
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ...",
+    "expires_at": "2023-01-16T15:30:00Z",
+    "user": {
+      "id": "1a2b3c4d-5e6f-7g8h-9i0j",
+      "username": "admin",
+      "email": "admin@example.com",
+      "roles": ["admin"]
+    }
+  }
+}
+```
+
+**Logout**
+
+```
+POST /api/v1/auth/logout
+```
+
+**Refresh Token**
+
+```
+POST /api/v1/auth/refresh
+```
+
+#### 13.4.9. System Configuration API
+
+**Get Configuration**
+
+```
+GET /api/v1/config
+```
+
+**Update Configuration**
+
+```
+PUT /api/v1/config
+```
+
+Request:
+
+```json
+{
+  "webserver": {
+    "port": 8443,
+    "installation_port": 8080
+  },
+  "logging": {
+    "level": "info",
+    "format": "json"
+  }
+}
+```
+
+**Test Configuration**
+
+```
+POST /api/v1/config/test
+```
+
+Request:
+
+```json
+{
+  "webserver": {
+    "port": 8443,
+    "installation_port": 8080
+  }
+}
+```
+
+**Reset to Default**
+
+```
+POST /api/v1/config/reset
+```
+
+#### 13.4.10. API Usage Examples
+
+**Example 1: Basic System Workflow**
+
+1. Create a new system:
+
 ```bash
-curl -X POST "https://webhook.example.com:8443/api/v1/installations" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+curl -X POST https://your-server:8443/api/v1/systems \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "system_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "template_id": "550e8400-e29b-41d4-a716-446655440000"
+    "hostname": "api-test-server",
+    "mac_address": "AA:BB:CC:DD:EE:FF",
+    "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
   }'
 ```
 
-### 13.5. Network Requirements
+2. Start an installation:
 
-This reference table outlines the network ports and protocols used by the Ubuntu Autoinstall Webhook system:
+```bash
+curl -X POST https://your-server:8443/api/v1/installations \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "system_id": "YOUR_SYSTEM_ID",
+    "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+  }'
+```
 
-| Port | Protocol | Purpose                                 | Direction | Optional? |
-| ---- | -------- | --------------------------------------- | --------- | --------- |
-| 8080 | TCP      | HTTP web interface & installation files | Inbound   | No        |
-| 8443 | TCP      | HTTPS web interface                     | Inbound   | No        |
-| 69   | UDP      | TFTP boot files                         | Inbound   | No        |
-| 53   | UDP/TCP  | DNS                                     |
+3. Check installation status:
+
+```bash
+curl -X GET https://your-server:8443/api/v1/installations/YOUR_INSTALLATION_ID \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+4. Get installation logs:
+
+```bash
+curl -X GET https://your-server:8443/api/v1/installations/YOUR_INSTALLATION_ID/logs \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+**Example 2: Creating and Using a Custom Template**
+
+1. Create a template:
+
+```bash
+curl -X POST https://your-server:8443/api/v1/templates \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "api-custom-template",
+    "description": "Custom template via API",
+    "ubuntu_version": "22.04",
+    "configuration": {
+      "user_data": "#cloud-config\npackages:\n  - nginx\n  - postgresql",
+      "meta_data": "instance-id: {{ v1 }}\nlocal-hostname: {{ hostname }}",
+      "network_config": "version: 2\nethernets:\n  eth0:\n    dhcp4: true"
+    }
+  }'
+```
+
+2. Assign template to a system:
+
+```bash
+curl -X PUT https://your-server:8443/api/v1/systems/YOUR_SYSTEM_ID \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template_id": "YOUR_TEMPLATE_ID"
+  }'
+```
+
+**Example 3: Bulk Operations**
+
+1. Bulk import systems:
+
+```bash
+curl -X POST https://your-server:8443/api/v1/systems/bulk \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "systems": [
+      {"hostname": "api-bulk-1", "mac_address": "00:11:22:33:44:55"},
+      {"hostname": "api-bulk-2", "mac_address": "55:44:33:22:11:00"}
+    ],
+    "default_template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+  }'
+```
+
+2. Bulk installation:
+
+```bash
+curl -X POST https://your-server:8443/api/v1/installations/bulk \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "systems": ["id1", "id2", "id3"],
+    "template_id": "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+  }'
+```
+
+#### 13.4.11. API Error Codes
+
+| HTTP Status | Error Code              | Description                                         |
+| ----------- | ----------------------- | --------------------------------------------------- |
+| 400         | invalid_request         | The request was malformed                           |
+| 400         | validation_failed       | Request data failed validation                      |
+| 401         | authentication_required | Authentication is required                          |
+| 401         | invalid_credentials     | The provided credentials are invalid                |
+| 401         | token_expired           | The authentication token has expired                |
+| 403         | permission_denied       | The user lacks permission for this action           |
+| 404         | resource_not_found      | The requested resource was not found                |
+| 409         | resource_conflict       | The request conflicts with current state            |
+| 422         | unprocessable_entity    | The request was well-formed but cannot be processed |
+| 429         | too_many_requests       | Rate limit exceeded                                 |
+| 500         | server_error            | Internal server error                               |
+| 503         | service_unavailable     | The service is temporarily unavailable              |
+
+
+### 13.5. Command Line Reference
+
+The Ubuntu Autoinstall Webhook system includes a comprehensive command-line interface (CLI) tool that provides administrative capabilities for managing all aspects of the system.
+
+#### 13.5.1. Basic Usage
+
+```bash
+ubuntu-autoinstall-webhook [command] [subcommand] [options]
+```
+
+Global options:
+- `--config=PATH`: Specify an alternative config file location
+- `--verbose`, `-v`: Enable verbose output
+- `--quiet`, `-q`: Suppress all output except errors
+- `--json`: Output in JSON format
+- `--help`, `-h`: Show help for a command
+- `--version`: Show version information
+
+#### 13.5.2. System Management
+
+**Status Commands**
+
+Check system status:
+```bash
+ubuntu-autoinstall-webhook status
+
+# More detailed status
+ubuntu-autoinstall-webhook status --verbose
+
+# Component-specific status
+ubuntu-autoinstall-webhook status --component=database
+```
+
+Service control:
+```bash
+# Start the service
+ubuntu-autoinstall-webhook service start
+
+# Stop the service
+ubuntu-autoinstall-webhook service stop
+
+# Restart the service
+ubuntu-autoinstall-webhook service restart
+```
+
+**Database Commands**
+
+```bash
+# Check database health
+ubuntu-autoinstall-webhook db check
+
+# Perform database migration
+ubuntu-autoinstall-webhook db migrate
+
+# Backup database
+ubuntu-autoinstall-webhook db backup --output=/path/to/backup.sql
+
+# Restore database
+ubuntu-autoinstall-webhook db restore --input=/path/to/backup.sql
+
+# Export data
+ubuntu-autoinstall-webhook db export --tables=systems,installations --format=csv --output=/path/to/export
+```
+
+**Maintenance Commands**
+
+```bash
+# Clean up old installations
+ubuntu-autoinstall-webhook maintenance cleanup --older-than=90d
+
+# Verify file permissions
+ubuntu-autoinstall-webhook maintenance verify-permissions --fix
+
+# Clean up temporary files
+ubuntu-autoinstall-webhook maintenance cleanup-temp-files
+```
+
+#### 13.5.3. System Management
+
+**Systems Commands**
+
+List systems:
+```bash
+ubuntu-autoinstall-webhook systems list
+
+# Filtered list
+ubuntu-autoinstall-webhook systems list --status=ready
+
+# Detailed view
+ubuntu-autoinstall-webhook systems list --verbose
+
+# Output as JSON
+ubuntu-autoinstall-webhook systems list --json
+
+# Search for specific system
+ubuntu-autoinstall-webhook systems list --search="server01"
+```
+
+Manage individual systems:
+```bash
+# Show system details
+ubuntu-autoinstall-webhook systems show 550e8400-e29b-41d4-a716-446655440000
+
+# Add a new system
+ubuntu-autoinstall-webhook systems add --hostname=server01 --mac=00:11:22:33:44:55
+
+# Delete a system
+ubuntu-autoinstall-webhook systems delete 550e8400-e29b-41d4-a716-446655440000
+
+# Update system
+ubuntu-autoinstall-webhook systems update 550e8400-e29b-41d4-a716-446655440000 --hostname=server01-new
+
+# Import systems from CSV
+ubuntu-autoinstall-webhook systems import --file=/path/to/systems.csv
+```
+
+**Installation Commands**
+
+```bash
+# List installations
+ubuntu-autoinstall-webhook installations list
+
+# View specific installation
+ubuntu-autoinstall-webhook installations show 1a2b3c4d-5e6f-7g8h-9i0j
+
+# Start installation
+ubuntu-autoinstall-webhook installations start --system=550e8400-e29b-41d4-a716-446655440000 --template=7a9fdcb3-5a70-4d7c-8339-e5328c786e0b
+
+# Cancel installation
+ubuntu-autoinstall-webhook installations cancel 1a2b3c4d-5e6f-7g8h-9i0j
+
+# View installation logs
+ubuntu-autoinstall-webhook installations logs 1a2b3c4d-5e6f-7g8h-9i0j
+```
+
+#### 13.5.4. Template Management
+
+```bash
+# List templates
+ubuntu-autoinstall-webhook templates list
+
+# Show template details
+ubuntu-autoinstall-webhook templates show 7a9fdcb3-5a70-4d7c-8339-e5328c786e0b
+
+# Create template from file
+ubuntu-autoinstall-webhook templates create --file=/path/to/template.yaml
+
+# Create template interactively
+ubuntu-autoinstall-webhook templates create --interactive
+
+# Update template
+ubuntu-autoinstall-webhook templates update 7a9fdcb3-5a70-4d7c-8339-e5328c786e0b --file=/path/to/template.yaml
+
+# Delete template
+ubuntu-autoinstall-webhook templates delete 7a9fdcb3-5a70-4d7c-8339-e5328c786e0b
+
+# Clone template
+ubuntu-autoinstall-webhook templates clone 7a9fdcb3-5a70-4d7c-8339-e5328c786e0b --name="New Template Name"
+
+# Validate template
+ubuntu-autoinstall-webhook templates validate --file=/path/to/template.yaml
+```
+
+#### 13.5.5. Certificate Management
+
+```bash
+# List certificates
+ubuntu-autoinstall-webhook certificates list
+
+# Show certificate details
+ubuntu-autoinstall-webhook certificates show a1b2c3d4-e5f6-g7h8-i9j0
+
+# Generate new certificate
+ubuntu-autoinstall-webhook certificates generate --type=server --cn=webhook.example.com
+
+# Revoke certificate
+ubuntu-autoinstall-webhook certificates revoke a1b2c3d4-e5f6-g7h8-i9j0 --reason=key_compromise
+
+# Renew certificate
+ubuntu-autoinstall-webhook certificates renew a1b2c3d4-e5f6-g7h8-i9j0
+
+# Export certificate
+ubuntu-autoinstall-webhook certificates export a1b2c3d4-e5f6-g7h8-i9j0 --format=pem --output=/path/to/cert.pem
+
+# Initialize CA
+ubuntu-autoinstall-webhook certificates init-ca --org="Example Corp" --common-name="Example Corp CA"
+```
+
+#### 13.5.6. User Management
+
+```bash
+# List users
+ubuntu-autoinstall-webhook users list
+
+# Show user details
+ubuntu-autoinstall-webhook users show username
+
+# Create user
+ubuntu-autoinstall-webhook users create --username=newuser --email=user@example.com --role=operator
+
+# Update user
+ubuntu-autoinstall-webhook users update username --email=new@example.com
+
+# Delete user
+ubuntu-autoinstall-webhook users delete username
+
+# Reset user password
+ubuntu-autoinstall-webhook users reset-password username
+
+# Manage roles
+ubuntu-autoinstall-webhook users set-role username --role=admin
+```
+
+#### 13.5.7. Configuration Management
+
+```bash
+# View current configuration
+ubuntu-autoinstall-webhook config show
+
+# Update configuration setting
+ubuntu-autoinstall-webhook config set webserver.port=8443
+
+# Reset to default configuration
+ubuntu-autoinstall-webhook config reset
+
+# Validate configuration
+ubuntu-autoinstall-webhook config validate --file=/path/to/config.yaml
+
+# Export current configuration
+ubuntu-autoinstall-webhook config export --output=/path/to/config.yaml
+
+# Import configuration
+ubuntu-autoinstall-webhook config import --file=/path/to/config.yaml
+```
+
+#### 13.5.8. Diagnostic and Support
+
+```bash
+# Run diagnostics
+ubuntu-autoinstall-webhook diagnostic run
+
+# Show system information
+ubuntu-autoinstall-webhook diagnostic info
+
+# Check network connectivity
+ubuntu-autoinstall-webhook diagnostic network
+
+# Test database connection
+ubuntu-autoinstall-webhook diagnostic database
+
+# Generate support bundle
+ubuntu-autoinstall-webhook support bundle --output=/path/to/support-bundle.zip
+
+# Enable debug logging
+ubuntu-autoinstall-webhook logging set-level debug
+
+# View recent logs
+ubuntu-autoinstall-webhook logs show --lines=100
+```
+
+### 13.6. File Structure
+
+Understanding the file structure of the Ubuntu Autoinstall Webhook system is important for administration, troubleshooting, and customization.
+
+#### 13.6.1. Overview
+
+```
+/
+├── etc/
+│   ├── ubuntu-autoinstall-webhook/           # Configuration files
+│   ├── systemd/system/                       # Systemd service files
+│   └── logrotate.d/                          # Log rotation configuration
+├── usr/
+│   ├── bin/                                  # Executable binaries
+│   └── share/ubuntu-autoinstall-webhook/     # Shared data files
+└── var/
+    ├── lib/ubuntu-autoinstall-webhook/       # Application data
+    ├── log/ubuntu-autoinstall-webhook/       # Log files
+    └── www/html/ipxe/                        # Web-accessible files for PXE
+```
+
+#### 13.6.2. Configuration Files
+
+```
+/etc/ubuntu-autoinstall-webhook/
+├── config.yaml                    # Main configuration file
+├── templates/                     # Custom template definitions
+│   ├── base.yaml                  # Base template
+│   └── custom/                    # Custom templates
+├── certs/                         # TLS certificates
+│   ├── server.crt                 # Server certificate
+│   ├── server.key                 # Server private key
+│   └── ca.crt                     # CA certificate
+└── keys/                          # Encryption keys
+    └── data-encryption.key        # Data encryption key
+```
+
+#### 13.6.3. Application Data
+
+```
+/var/lib/ubuntu-autoinstall-webhook/
+├── database.sqlite3               # SQLite database file (if used)
+├── certificates/                  # Certificate store
+│   ├── issued/                    # Issued certificates
+│   ├── revoked/                   # Revoked certificates
+│   └── private/                   # Private keys
+├── templates/                     # Template files
+│   ├── ubuntu-22.04/              # Ubuntu 22.04 templates
+│   └── ubuntu-20.04/              # Ubuntu 20.04 templates
+├── cache/                         # Cache files
+│   └── iso-extracts/              # Extracted ISO files
+└── state/                         # State information
+    └── leader-election/           # Leader election data
+```
+
+#### 13.6.4. Log Files
+
+```
+/var/log/ubuntu-autoinstall-webhook/
+├── webhook.log                    # Main application log
+├── audit.log                      # Audit log for security events
+├── installations/                 # Installation logs
+│   ├── <system-id>-<date>.log     # Individual system installation logs
+│   └── archive/                   # Archived installation logs
+├── webserver/                     # Web server logs
+│   ├── access.log                 # Web server access log
+│   └── error.log                  # Web server error log
+└── system/                        # System component logs
+    ├── file-editor.log            # File editor service log
+    ├── cert-issuer.log            # Certificate issuer service log
+    └── dnsmasq-watcher.log        # DNSMasq watcher service log
+```
+
+#### 13.6.5. Web Server Files
+
+```
+/var/www/html/ipxe/
+├── boot/                          # Boot files
+│   ├── vmlinuz                    # Linux kernel
+│   ├── initrd                     # Initial ramdisk
+│   └── ubuntu-autoinstall.iso     # Ubuntu installation ISO
+├── user-data/                     # Generated cloud-init user-data
+│   └── <mac-address>              # User data files by MAC address
+├── meta-data/                     # Generated cloud-init meta-data
+│   └── <mac-address>              # Meta data files by MAC address
+├── vendor-data/                   # Generated cloud-init vendor-data
+│   └── <mac-address>              # Vendor data files by MAC address
+└── scripts/                       # iPXE boot scripts
+    ├── boot.ipxe                  # Main iPXE boot script
+    └── menu.ipxe                  # iPXE menu script
+```
+
+#### 13.6.6. Systemd Service Files
+
+```
+/etc/systemd/system/
+├── ubuntu-autoinstall-webhook.service            # Main service file
+└── ubuntu-autoinstall-webhook.service.d/         # Service overrides
+    └── override.conf                             # Custom service settings
+```
+
+### 13.7. Resource Requirements
+
+#### 13.7.1. Hardware Requirements
+
+The hardware requirements for running Ubuntu Autoinstall Webhook depend on your deployment scale:
+
+**Small Deployment (up to 100 systems)**
+- CPU: 2 cores
+- RAM: 4 GB
+- Storage: 20 GB available space (SSD recommended)
+- Network: 1 Gbps Ethernet
+
+**Medium Deployment (100-500 systems)**
+- CPU: 4 cores
+- RAM: 8 GB
+- Storage: 50 GB available space (SSD required)
+- Network: 1 Gbps Ethernet
+
+**Large Deployment (500+ systems)**
+- CPU: 8+ cores
+- RAM: 16+ GB
+- Storage: 100+ GB available space (NVMe SSD recommended)
+- Network: 10 Gbps Ethernet
+
+**Additional Storage Requirements**
+- Ubuntu ISO files: ~1-2 GB per Ubuntu version
+- Installation logs: ~5-10 MB per installation
+- Database growth: ~10 MB per 100 systems
+
+#### 13.7.2. Software Requirements
+
+**Operating System**
+- Ubuntu 20.04 LTS or newer (recommended)
+- Debian 11 or newer
+- CentOS/RHEL 8 or newer
+
+**Dependencies**
+- systemd
+- TFTP server (tftpd-hpa or similar)
+- HTTP server (provided, or can use external Nginx/Apache)
+- SQLite3 or CockroachDB
+- DNSMasq or ISC DHCP Server
+
+**Network Requirements**
+- DHCP server with PXE boot configuration
+- Network allows UDP port 69 (TFTP)
+- Network allows TCP ports 8080 and 8443 (HTTP/HTTPS)
+- Network allows broadcast traffic for PXE boot
+
+#### 13.7.3. Capacity Planning
+
+**Concurrency Limits**
+- Default maximum concurrent installations: 25
+- Default maximum API requests per second: 100
+- Default maximum web sessions: 100
+
+**Scaling Factors**
+- For every 20 concurrent installations, add 1 CPU core and 2 GB RAM
+- Every 1000 managed systems requires approximately 1 GB of database storage
+- Every 100 concurrent web users requires approximately 2 GB RAM
+
+### 13.8. Migration Guide
+
+This section provides guidance for migrating between major versions of the Ubuntu Autoinstall Webhook system.
+
+#### 13.8.1. Version 1.x to 2.x Migration
+
+**Breaking Changes**
+- API endpoints moved from `/api/` to `/api/v1/`
+- Template format changed to YAML (previously JSON)
+- Database schema changes require migration
+- Minimum Ubuntu version is now 20.04 (previously 18.04)
+
+**Pre-Migration Steps**
+1. Create a full backup:
+   ```bash
+   ubuntu-autoinstall-webhook backup create --full --output=/path/to/backup-v1
+   ```
+
+2. Review configuration for deprecated settings:
+   ```bash
+   ubuntu-autoinstall-webhook config validate --check-deprecated
+   ```
+
+3. Check for template compatibility:
+   ```bash
+   ubuntu-autoinstall-webhook maintenance check-template-compatibility
+   ```
+
+**Migration Procedure**
+1. Stop the service:
+   ```bash
+   systemctl stop ubuntu-autoinstall-webhook
+   ```
+
+2. Install the new version:
+   ```bash
+   apt-get update
+   apt-get install --only-upgrade ubuntu-autoinstall-webhook
+   ```
+
+3. Run the migration assistant:
+   ```bash
+   ubuntu-autoinstall-webhook migrate --from=1.x --to=2.x
+   ```
+
+4. Verify the migration:
+   ```bash
+   ubuntu-autoinstall-webhook status check --verbose
+   ```
+
+5. Start the service:
+   ```bash
+   systemctl start ubuntu-autoinstall-webhook
+   ```
+
+**Post-Migration Tasks**
+1. Update API integrations to use new endpoint paths
+2. Convert custom scripts to work with new API format
+3. Verify that all systems and templates were migrated correctly
+
+#### 13.8.2. Database Migration
+
+**SQLite to CockroachDB Migration**
+
+For scaling to distributed deployments:
+
+1. Prepare CockroachDB cluster:
+   ```bash
+   # Setup CockroachDB according to documentation
+   cockroach start --insecure --store=/var/lib/cockroach --listen-addr=0.0.0.0:26257
+   ```
+
+2. Create database:
+   ```bash
+   cockroach sql --insecure --execute "CREATE DATABASE ubuntu_autoinstall;"
+   ```
+
+3. Export data from SQLite:
+   ```bash
+   ubuntu-autoinstall-webhook db export --format=sql --output=/tmp/export.sql
+   ```
+
+4. Modify configuration:
+   ```bash
+   ubuntu-autoinstall-webhook config set database.type=cockroach
+   ubuntu-autoinstall-webhook config set database.cockroach.host=localhost
+   ubuntu-autoinstall-webhook config set database.cockroach.port=26257
+   ubuntu-autoinstall-webhook config set database.cockroach.database=ubuntu_autoinstall
+   ubuntu-autoinstall-webhook config set database.cockroach.user=root
+   ```
+
+5. Import data:
+   ```bash
+   ubuntu-autoinstall-webhook db import --file=/tmp/export.sql
+   ```
+
+6. Verify migration:
+   ```bash
+   ubuntu-autoinstall-webhook db verify-migration
+   ```
+
+### 13.9. Security Best Practices
+
+This section provides recommended security practices for hardening your Ubuntu Autoinstall Webhook deployment.
+
+#### 13.9.1. Network Security
+
+1. **Network Segmentation**
+   - Place the system in a management network separated from production
+   - Restrict PXE boot traffic to dedicated provisioning networks
+   - Use VLANs to isolate installation traffic
+
+2. **Firewall Configuration**
+   ```bash
+   # Allow only necessary ports
+   ufw allow 8443/tcp comment 'HTTPS Web Interface'
+   ufw allow 8080/tcp comment 'HTTP Installation Files'
+   ufw allow 69/udp comment 'TFTP'
+
+   # Restrict by source IP where possible
+   ufw allow from 10.0.0.0/8 to any port 8443 proto tcp
+   ```
+
+3. **TLS Configuration**
+   - Use TLS 1.2 or higher
+   - Regularly audit cipher suite settings
+   - Enable HTTP Strict Transport Security (HSTS)
+   - Use strong certificate key lengths (RSA 2048+ or ECC P-256+)
+
+#### 13.9.2. Authentication and Authorization
+
+1. **Password Policies**
+   ```yaml
+   # In config.yaml
+   security:
+     passwords:
+       min_length: 16
+       require_uppercase: true
+       require_lowercase: true
+       require_digits: true
+       require_special: true
+       max_age_days: 90
+       prevent_reuse: 12  # Remember last 12 passwords
+   ```
+
+2. **Multi-Factor Authentication**
+   - Enable TOTP-based 2FA for admin accounts
+   - Consider hardware token support for high-security environments
+
+3. **Role-Based Access Control**
+   - Follow the principle of least privilege
+   - Regularly audit user permissions
+   - Create custom roles for specific job functions
+   - Implement workflow approvals for sensitive operations
+
+#### 13.9.3. Data Protection
+
+1. **Encryption**
+   - Use disk encryption on the server
+   - Enable sensitive data encryption in the application
+   - Protect backups with encryption
+   - Rotate encryption keys annually
+
+2. **Data Retention**
+   ```yaml
+   # In config.yaml
+   security:
+     data_retention:
+       installation_logs_days: 30
+       audit_logs_days: 365
+       completed_installations_days: 90
+       failed_installations_days: 30
+   ```
+
+3. **Secrets Management**
+   - Store API keys securely
+   - Use a dedicated secrets management solution for production
+   - Avoid storing sensitive data in templates or scripts
+   - Periodically rotate all credentials
+
+#### 13.9.4. System Hardening
+
+1. **Application Isolation**
+   - Run the service as a dedicated non-privileged user
+   - Use AppArmor or SELinux profiles
+   - Implement systemd service sandboxing
+
+   ```
+   # /etc/systemd/system/ubuntu-autoinstall-webhook.service.d/override.conf
+   [Service]
+   ProtectSystem=strict
+   ProtectHome=true
+   PrivateTmp=true
+   PrivateDevices=true
+   NoNewPrivileges=true
+   ```
+
+2. **OS Hardening**
+   - Regularly apply security updates
+   - Configure unattended-upgrades for critical patches
+   - Remove unnecessary services and packages
+   - Use SSH key authentication only (disable password auth)
+
+3. **Secure Boot Process**
+   - Implement secure boot for the server
+   - Verify boot loader and kernel signatures
+   - Use TPM for platform integrity verification
+
+#### 13.9.5. Audit and Compliance
+
+1. **Logging and Monitoring**
+   - Forward logs to a central SIEM system
+   - Set up alerts for suspicious activities
+   - Monitor for brute-force attempts
+   - Conduct regular log reviews
+
+2. **Security Testing**
+   - Schedule regular vulnerability scans
+   - Perform penetration testing after major changes
+   - Review third-party dependencies for vulnerabilities
+   - Conduct code security reviews
+
+3. **Incident Response**
+   - Develop an incident response plan
+   - Document procedures for security breaches
+   - Create a backup and recovery procedure
+   - Test the incident response process regularly
+
+### 13.10. Integration Guide
+
+This section provides guidance on integrating the Ubuntu Autoinstall Webhook system with other tools and services in your environment.
+
+#### 13.10.1. Configuration Management Tools
+
+**Ansible Integration**
+
+1. Install the Ubuntu Autoinstall Webhook Ansible collection:
+
+```bash
+ansible-galaxy collection install ubuntu.autoinstall_webhook
+```
+
+2. Example playbook for managing systems:
+
+```yaml
+---
+- name: Manage Ubuntu Autoinstall Systems
+  hosts: localhost
+  collections:
+    - ubuntu.autoinstall_webhook
+  vars:
+    webhook_url: "https://webhook.example.com:8443"
+    webhook_api_token: "{{ lookup('env', 'WEBHOOK_API_TOKEN') }}"
+  tasks:
+    - name: Get all systems
+      autoinstall_webhook_systems:
+        webhook_url: "{{ webhook_url }}"
+        api_token: "{{ webhook_api_token }}"
+        state: present
+      register: systems_result
+
+    - name: Add new system
+      autoinstall_webhook_systems:
+        webhook_url: "{{ webhook_url }}"
+        api_token: "{{ webhook_api_token }}"
+        state: present
+        hostname: "new-server-01"
+        mac_address: "00:11:22:33:44:55"
+        template_id: "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+      register: new_system
+
+    - name: Start installation
+      autoinstall_webhook_installation:
+        webhook_url: "{{ webhook_url }}"
+        api_token: "{{ webhook_api_token }}"
+        system_id: "{{ new_system.system.id }}"
+        template_id: "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+        variables:
+          hostname: "custom-hostname"
+          timezone: "America/New_York"
+```
+
+**Terraform Integration**
+
+1. Use the Ubuntu Autoinstall Webhook Terraform provider:
+
+```hcl
+terraform {
+  required_providers {
+    ubuntu_autoinstall = {
+      source = "terraform-registry.example.com/jdfalk/ubuntu_autoinstall"
+      version = "1.0.0"
+    }
+  }
+}
+
+provider "ubuntu_autoinstall" {
+  api_url = "https://webhook.example.com:8443/api/v1"
+  api_token = var.api_token
+}
+
+# Create a template
+resource "ubuntu_autoinstall_template" "web_server" {
+  name = "terraform-web-server"
+  description = "Web server template created via Terraform"
+  ubuntu_version = "22.04"
+
+  user_data = file("${path.module}/templates/web-server-user-data.yaml")
+  meta_data = file("${path.module}/templates/web-server-meta-data.yaml")
+  network_config = file("${path.module}/templates/web-server-network.yaml")
+}
+
+# Create systems
+resource "ubuntu_autoinstall_system" "web_servers" {
+  count = 3
+  hostname = "web-${count.index + 1}"
+  mac_address = "00:11:22:33:44:${format("%02x", count.index + 1)}"
+  template_id = ubuntu_autoinstall_template.web_server.id
+}
+
+# Start installations
+resource "ubuntu_autoinstall_installation" "web_server_installs" {
+  count = length(ubuntu_autoinstall_system.web_servers)
+  system_id = ubuntu_autoinstall_system.web_servers[count.index].id
+  template_id = ubuntu_autoinstall_template.web_server.id
+
+  variables = {
+    hostname = "web-${count.index + 1}.example.com"
+    timezone = "UTC"
+  }
+}
+```
+
+**Puppet Integration**
+
+1. Install the Ubuntu Autoinstall Webhook Puppet module:
+
+```bash
+puppet module install jdfalk-ubuntu_autoinstall
+```
+
+2. Example manifest:
+
+```puppet
+class profile::ubuntu_autoinstall {
+  $api_token = lookup('ubuntu_autoinstall::api_token')
+
+  ubuntu_autoinstall::template { 'base-server':
+    ensure           => present,
+    description      => 'Base server configuration',
+    ubuntu_version   => '22.04',
+    user_data_source => 'puppet:///modules/profile/ubuntu_autoinstall/base-user-data.yaml',
+    meta_data_source => 'puppet:///modules/profile/ubuntu_autoinstall/base-meta-data.yaml',
+  }
+
+  ubuntu_autoinstall::system { 'db-server-01':
+    ensure      => present,
+    mac_address => '00:11:22:33:44:55',
+    template    => 'base-server',
+  }
+}
+```
+
+#### 13.10.2. Monitoring Tools
+
+**Prometheus Integration**
+
+1. Scrape configuration for `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'ubuntu-autoinstall-webhook'
+    scrape_interval: 15s
+    scheme: https
+    tls_config:
+      ca_file: /etc/prometheus/certs/webhook-ca.crt
+    basic_auth:
+      username: 'prometheus'
+      password: 'your-password-here'
+    static_configs:
+      - targets: ['webhook.example.com:8443']
+    metrics_path: '/api/v1/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*):.*'
+        replacement: '$1'
+```
+
+2. AlertManager rules for critical alerts:
+
+```yaml
+groups:
+- name: ubuntu-autoinstall-webhook
+  rules:
+  - alert: WebhookServiceDown
+    expr: up{job="ubuntu-autoinstall-webhook"} == 0
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Ubuntu Autoinstall Webhook service down"
+      description: "The webhook service has been down for more than 2 minutes."
+
+  - alert: HighFailureRate
+    expr: sum(rate(webhook_installations_failed[15m])) / sum(rate(webhook_installations_total[15m])) > 0.3
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High installation failure rate"
+      description: "More than 30% of installation attempts are failing."
+```
+
+**Grafana Dashboard**
+
+Grafana dashboard ID: 12345
+
+Key metrics visualized:
+- Active installations
+- Success/failure rates
+- API response times
+- Resource utilization
+- Certificate expiration timeline
+
+**Nagios/Icinga Integration**
+
+Example check command definition:
+
+```
+define command {
+    command_name    check_ubuntu_autoinstall_webhook
+    command_line    /usr/lib/nagios/plugins/check_http -H '$ARG1$' -p 8443 -S -u '/health' -s '"status":"healthy"'
+}
+
+define service {
+    use                     generic-service
+    host_name               webhook-server
+    service_description     Ubuntu Autoinstall Webhook
+    check_command           check_ubuntu_autoinstall_webhook!webhook.example.com
+    notification_interval   30
+}
+```
+
+#### 13.10.3. CMDB Integration
+
+**ServiceNow Integration**
+
+1. Install the Ubuntu Autoinstall Webhook application from the ServiceNow store
+2. Configure the integration:
+   - API endpoint: https://webhook.example.com:8443/api/v1
+   - Authentication method: API Token
+   - API token: Your API token
+   - Synchronization interval: 60 minutes
+
+3. Configure asset mapping:
+   - Webhook System → ServiceNow CMDB CI
+   - MAC Address → MAC Address (cmdb_ci_computer.mac_address)
+   - Hostname → Name (cmdb_ci_computer.name)
+   - IP Address → IP Address (cmdb_ci_computer.ip_address)
+
+4. Enable automatic CI creation on system discovery
+5. Enable installation status updates to ServiceNow incidents
+
+**NetBox Integration**
+
+Example script for bi-directional synchronization:
+
+```python
+#!/usr/bin/env python3
+import requests
+import json
+import os
+
+# Configuration
+WEBHOOK_API_URL = "https://webhook.example.com:8443/api/v1"
+WEBHOOK_API_TOKEN = os.environ.get("WEBHOOK_API_TOKEN")
+NETBOX_API_URL = "https://netbox.example.com/api"
+NETBOX_API_TOKEN = os.environ.get("NETBOX_API_TOKEN")
+
+# Headers
+webhook_headers = {
+    "Authorization": f"Bearer {WEBHOOK_API_TOKEN}",
+    "Content-Type": "application/json"
+}
+netbox_headers = {
+    "Authorization": f"Token {NETBOX_API_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+# Get systems from webhook
+response = requests.get(f"{WEBHOOK_API_URL}/systems", headers=webhook_headers)
+webhook_systems = response.json()["data"]
+
+# Get devices from NetBox
+response = requests.get(f"{NETBOX_API_URL}/dcim/devices/", headers=netbox_headers)
+netbox_devices = response.json()["results"]
+
+# Map NetBox devices to webhook systems
+for device in netbox_devices:
+    # Find matching MAC address in webhook systems
+    mac_addresses = [iface["mac_address"] for iface in device["interfaces"] if "mac_address" in iface]
+
+    for mac in mac_addresses:
+        matching_systems = [s for s in webhook_systems if s["mac_address"].lower() == mac.lower()]
+
+        if matching_systems:
+            # System exists, update if needed
+            system = matching_systems[0]
+            # Update logic here
+        else:
+            # Create new system in webhook
+            new_system = {
+                "hostname": device["name"],
+                "mac_address": mac,
+                "template_id": "default-template-id"
+            }
+            requests.post(f"{WEBHOOK_API_URL}/systems", headers=webhook_headers, json=new_system)
+```
+
+#### 13.10.4. Notification Systems
+
+**Slack Integration**
+
+1. Create a Slack app and webhook URL:
+   - Go to https://api.slack.com/apps
+   - Create New App → From scratch
+   - Enable Incoming Webhooks
+   - Add New Webhook to Workspace
+   - Copy the webhook URL
+
+2. Configure in `config.yaml`:
+
+```yaml
+notifications:
+  providers:
+    slack:
+      enabled: true
+      webhook_url: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+      channel: "#server-provisioning"
+      username: "Ubuntu Autoinstall Bot"
+      icon_emoji: ":ubuntu:"
+  events:
+    system_discovered:
+      enabled: true
+      providers: ["slack"]
+      message: "New system discovered: {hostname} ({mac_address})"
+    installation_started:
+      enabled: true
+      providers: ["slack"]
+      message: "Installation started for {hostname}"
+    installation_completed:
+      enabled: true
+      providers: ["slack"]
+      message: "Installation completed for {hostname} in {duration_minutes} minutes"
+    installation_failed:
+      enabled: true
+      providers: ["slack"]
+      message: "⚠️ Installation FAILED for {hostname}: {error_message}"
+```
+
+**Email Notifications**
+
+Configure email notifications in `config.yaml`:
+
+```yaml
+notifications:
+  providers:
+    email:
+      enabled: true
+      smtp_server: "smtp.example.com"
+      smtp_port: 587
+      smtp_user: "notifications@example.com"
+      smtp_password: "your-password"
+      sender: "Ubuntu Autoinstall <notifications@example.com>"
+      use_tls: true
+      recipients:
+        - "admin@example.com"
+        - "ops-team@example.com"
+  events:
+    certificate_expiring:
+      enabled: true
+      providers: ["email"]
+      subject: "Certificate Expiring: {certificate_name}"
+      message: "The certificate {certificate_name} will expire in {days_remaining} days."
+```
+
+**PagerDuty Integration**
+
+1. Create a PagerDuty service and integration key
+2. Configure in `config.yaml`:
+
+```yaml
+notifications:
+  providers:
+    pagerduty:
+      enabled: true
+      integration_key: "your-pagerduty-integration-key"
+      severity_mapping:
+        installation_failed: "error"
+        service_down: "critical"
+        certificate_expired: "warning"
+  events:
+    service_down:
+      enabled: true
+      providers: ["pagerduty"]
+      message: "Ubuntu Autoinstall Webhook service is down"
+```
+
+### 13.11. Performance Optimization Reference
+
+This reference provides specific optimization techniques for different aspects of the Ubuntu Autoinstall Webhook system.
+
+#### 13.11.1. HTTP Server Tuning
+
+**Worker Process Configuration**
+
+For systems with multiple CPU cores:
+
+```yaml
+webserver:
+  worker_processes: auto  # Uses number of CPU cores
+  worker_connections: 1024
+  keepalive_timeout: 65
+  client_max_body_size: 20M
+```
+
+**HTTP/2 Configuration**
+
+Enable HTTP/2 for improved performance:
+
+```yaml
+webserver:
+  http2: true
+  ssl_protocols: "TLSv1.2 TLSv1.3"
+  ssl_ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305"
+  ssl_prefer_server_ciphers: true
+```
+
+**Static File Optimization**
+
+```yaml
+webserver:
+  static_files:
+    cache_control: "public, max-age=86400"
+    gzip: true
+    gzip_types: "text/plain text/css text/xml application/json application/javascript application/xml"
+    gzip_min_length: 1024
+    etag: true
+```
+
+#### 13.11.2. Database Optimization
+
+**SQLite Optimization**
+
+```yaml
+database:
+  sqlite:
+    pragmas:
+      journal_mode: WAL
+      synchronous: NORMAL
+      temp_store: MEMORY
+      mmap_size: 30000000000
+      cache_size: -64000
+    vacuum_interval_hours: 168  # Weekly
+```
+
+**Connection Pooling**
+
+```yaml
+database:
+  max_open_conns: 25
+  max_idle_conns: 10
+  conn_max_lifetime_minutes: 60
+  conn_max_idle_minutes: 15
+```
+
+**Query Optimization**
+
+Tables to index:
+- systems(mac_address)
+- systems(hostname)
+- systems(status)
+- installations(system_id)
+- installations(status)
+- templates(name)
+
+#### 13.11.3. Memory Management
+
+**Cache Configuration**
+
+```yaml
+cache:
+  enabled: true
+  # Memory cache settings
+  memory:
+    size_mb: 256
+    ttl_seconds: 300
+  # Redis cache (for clustered deployments)
+  redis:
+    enabled: false
+    address: "redis:6379"
+    password: ""
+    db: 0
+```
+
+**Garbage Collection Tuning**
+
+Environment variables to set:
+
+```bash
+# /etc/default/ubuntu-autoinstall-webhook
+GOGC=100  # Standard GC target percentage
+GOMEMLIMIT=0  # No specific memory limit
+```
+
+For memory-constrained environments:
+
+```bash
+GOGC=50  # More aggressive GC
+GOMEMLIMIT=1024MiB  # Limit total memory usage
+```
+
+#### 13.11.4. Disk I/O Optimization
+
+**Filesystem Selection**
+
+- Use ext4 with noatime option for general usage
+- Use XFS for high concurrency workloads
+- Consider ZFS with compression for large template storage
+
+**Mount Options**
+
+```
+# /etc/fstab example for SSD
+/dev/sda1 /var/lib/ubuntu-autoinstall-webhook ext4 defaults,noatime,commit=60 0 2
+```
+
+**I/O Scheduling**
+
+For SSDs:
+
+```bash
+echo "none" > /sys/block/sda/queue/scheduler
+```
+
+For HDDs:
+
+```bash
+echo "mq-deadline" > /sys/block/sda/queue/scheduler
+```
+
+#### 13.11.5. Network Optimization
+
+**TCP Tuning**
+
+Recommended `sysctl` settings:
+
+```
+# /etc/sysctl.d/60-ubuntu-autoinstall-webhook.conf
+net.core.somaxconn = 4096
+net.core.netdev_max_backlog = 4096
+net.ipv4.tcp_max_syn_backlog = 4096
+net.ipv4.tcp_fin_timeout = 30
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_keepalive_probes = 5
+net.ipv4.tcp_keepalive_intvl = 15
+```
+
+**Network Interface Configuration**
+
+```bash
+# For high-performance network interfaces
+ethtool -G eth0 rx 4096 tx 4096
+```
+
+### 13.12. Glossary
+
+**Autoinstall**
+: Ubuntu's automated installation system that uses cloud-init to provision systems without manual intervention.
+
+**CA (Certificate Authority)**
+: An entity that issues digital certificates for secure communication.
+
+**cloud-init**
+: A software package used for early initialization of cloud instances, handling the configuration of the system during boot.
+
+**CSR (Certificate Signing Request)**
+: A message sent to request a digital certificate from a Certificate Authority.
+
+**DHCP (Dynamic Host Configuration Protocol)**
+: A network protocol that automatically assigns IP addresses and other network configuration to devices.
+
+**iPXE**
+: An enhanced implementation of the PXE boot firmware that supports booting from a variety of network protocols.
+
+**ISO**
+: A disk image format that contains an exact copy of a file system, often used for distributing operating system installation media.
+
+**JWT (JSON Web Token)**
+: A compact, URL-safe means of representing claims to be transferred between two parties.
+
+**MAC Address**
+: Media Access Control address, a unique identifier assigned to a network interface controller.
+
+**mTLS (Mutual Transport Layer Security)**
+: A security protocol where both the client and server authenticate each other using digital certificates.
+
+**PXE (Preboot Execution Environment)**
+: An environment to boot computers using a network interface card independently of storage devices or installed operating systems.
+
+**RBAC (Role-Based Access Control)**
+: An approach to restricting system access to authorized users based on roles.
+
+**TFTP (Trivial File Transfer Protocol)**
+: A simple protocol for transferring files between network devices, commonly used in PXE boot processes.
+
+**User-data**
+: A cloud-init configuration file that specifies actions to perform during the initial boot of a cloud instance.
+
+**Metal-data**
+: A cloud-init configuration file that provides instance-specific information to the cloud instance.
+
+**Webhook**
+: A mechanism that allows one application to provide other applications with real-time information by delivering data to a specified URL when certain events occur.
+
+### 13.13. Troubleshooting Reference
+
+This reference provides quick solutions for common issues encountered with the Ubuntu Autoinstall Webhook system.
+
+#### 13.13.1. Installation Issues
+
+| Issue                      | Possible Causes                             | Solutions                                                                                                        |
+| -------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Service fails to start     | Configuration errors, missing dependencies  | Check logs with `journalctl -u ubuntu-autoinstall-webhook`, verify configuration file syntax                     |
+| Database connection errors | Database not running, incorrect credentials | Verify database service is running, check connection parameters in config.yaml                                   |
+| Permission denied errors   | Incorrect file permissions                  | Run `ubuntu-autoinstall-webhook maintenance verify-permissions --fix`                                            |
+| Certificate errors         | Invalid or expired certificates             | Check certificate validity with `openssl x509 -in /etc/ubuntu-autoinstall-webhook/certs/server.crt -text -noout` |
+
+#### 13.13.2. PXE Boot Issues
+
+| Issue                  | Possible Causes                             | Solutions                                                       |
+| ---------------------- | ------------------------------------------- | --------------------------------------------------------------- |
+| System not PXE booting | DHCP not providing PXE options, TFTP issues | Verify DHCP configuration, check TFTP service, test TFTP access |
+| Boot files not found   | Incorrect paths, file permission issues     | Check paths in DHCP configuration, verify file permissions      |
+| iPXE script errors     | Syntax errors, network issues               | Test scripts with `ipxe` command, check for syntax errors       |
+| Boot files timeout     | Network congestion, incorrect server        | Increase timeout values in iPXE scripts, check server address   |
+
+#### 13.13.3. Installation Failures
+
+| Issue                          | Possible Causes                                  | Solutions                                                             |
+| ------------------------------ | ------------------------------------------------ | --------------------------------------------------------------------- |
+| Disk partitioning fails        | Insufficient disk space, unsupported disk layout | Check disk size requirements, verify partition configuration          |
+| Network configuration fails    | Invalid network settings, missing drivers        | Check network configuration in template, ensure drivers are available |
+| Package installation fails     | Repository issues, network problems              | Verify repository availability, check network connectivity            |
+| Post-installation scripts fail | Script errors, environment issues                | Debug scripts with additional logging, check for dependencies         |
+
+#### 13.13.4. Web Interface Issues
+
+| Issue                     | Possible Causes                            | Solutions                                                                 |
+| ------------------------- | ------------------------------------------ | ------------------------------------------------------------------------- |
+| Cannot log in             | Authentication issues, database problems   | Reset admin password, check database connectivity                         |
+| Slow page loading         | Resource constraints, database performance | Check system resources, optimize database queries                         |
+| CSRF validation error     | Expired session, cookie issues             | Clear browser cookies, restart browser, check system time synchronization |
+| Template rendering errors | Invalid template syntax, missing variables | Validate template syntax, check for required variables                    |
+
+#### 13.13.5. API Issues
+
+| Issue                    | Possible Causes                       | Solutions                                           |
+| ------------------------ | ------------------------------------- | --------------------------------------------------- |
+| Authentication failed    | Invalid or expired token              | Generate a new API token, check token expiration    |
+| Rate limit exceeded      | Too many requests                     | Reduce request frequency, optimize batch operations |
+| Resource not found       | Invalid resource ID, deleted resource | Verify resource exists, check resource ID           |
+| Request validation error | Invalid request parameters            | Check API documentation, validate request format    |
+
+### 13.14. System Messages Reference
+
+This section documents common system messages and their meanings.
+
+#### 13.14.1. Informational Messages
+
+| Message                  | Description                                | Action Required                             |
+| ------------------------ | ------------------------------------------ | ------------------------------------------- |
+| "System discovered"      | A new system was detected via DHCP         | None; system is ready for configuration     |
+| "Installation started"   | An installation has been initiated         | None; system will proceed with installation |
+| "Installation completed" | An installation has completed successfully | None; system is ready for use               |
+| "Certificate issued"     | A new certificate has been issued          | None; certificate is ready for use          |
+| "Backup completed"       | A system backup has completed              | Verify backup integrity                     |
+
+#### 13.14.2. Warning Messages
+
+| Message                       | Description                              | Action Required                               |
+| ----------------------------- | ---------------------------------------- | --------------------------------------------- |
+| "Certificate expiring soon"   | A certificate will expire within 30 days | Renew the certificate                         |
+| "High resource usage"         | System resources are near capacity       | Check system load, consider scaling resources |
+| "Database growing rapidly"    | Database size is increasing quickly      | Check for abnormal activity, consider cleanup |
+| "Multiple failed logins"      | Several failed login attempts detected   | Check for suspicious activity                 |
+| "Template validation warning" | Template contains potential issues       | Review template for problems                  |
+
+#### 13.14.3. Error Messages
+
+| Message                            | Description                        | Action Required                                      |
+| ---------------------------------- | ---------------------------------- | ---------------------------------------------------- |
+| "Installation failed"              | An installation process has failed | Check logs for specific error, address root cause    |
+| "Database connection failed"       | Cannot connect to database         | Check database service, verify connection parameters |
+| "Certificate validation failed"    | Certificate is invalid or expired  | Replace or renew the certificate                     |
+| "API authentication failed"        | Invalid API credentials            | Check API token, regenerate if necessary             |
+| "Service component not responding" | A service component is down        | Check component status, restart if necessary         |
+
+### 13.15. Conclusion
+
+The Ubuntu Autoinstall Webhook system provides a comprehensive solution for automating Ubuntu server deployments across your infrastructure. This administrator guide has covered all aspects of setting up, configuring, maintaining, securing, and integrating the system.
+
+Key points to remember:
+
+1. **Regular Maintenance**: Perform routine maintenance tasks such as database optimization, log rotation, and certificate renewal to ensure system health.
+
+2. **Security First**: Follow security best practices, including regular updates, proper authentication configuration, network segmentation, and audit logging.
+
+3. **Scalability Planning**: As your deployment grows, consider the performance optimization techniques and scaling strategies outlined in this guide.
+
+4. **Backup Strategy**: Implement a comprehensive backup strategy to protect your configuration, certificates, and database.
+
+5. **Monitoring and Logging**: Set up proper monitoring and logging to quickly identify and resolve issues.
+
+6. **Integration**: Leverage the API and integration options to incorporate the system into your existing infrastructure management tools.
+
+By following the guidance in this document, you can ensure a reliable, secure, and efficient automated installation infrastructure that meets your organization's needs.
+
+For the latest updates, community support, and additional resources, visit the official project repository at [https://github.com/jdfalk/ubuntu-autoinstall-webhook](https://github.com/jdfalk/ubuntu-autoinstall-webhook).
+
+Thank you for using Ubuntu Autoinstall Webhook!
