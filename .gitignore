@@ -84,3 +84,7 @@ Temporary Items
 # Ignore any backup files
 *.bak
 *.backup
+
+.secrets
+secrets
+secrets.yaml
