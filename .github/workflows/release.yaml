@@ -13,7 +13,7 @@ permissions:
   attestations: write # Required for Sigstore Cosign
   contents: write
   packages: write
-  id-token: write  # Required for Sigstore Cosign
+  id-token: write # Required for Sigstore Cosign
 
 jobs:
   build:
@@ -31,9 +31,9 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4.2.0
         with:
-          node-version: 'lts/*'
+          node-version: "lts/*"
           check-latest: true
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: |
             viewer-app/package-lock.json
             viewer-app/package.json
@@ -44,12 +44,12 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5.3.0
         with:
-          go-version: '>=1.24'
+          go-version: ">=1.24"
           cache: true
           cache-dependency-path: |
-                "**/*.sum"
-                viewer-app/package-lock.json
-                viewer-app/package.json
+            "**/*.sum"
+            viewer-app/package-lock.json
+            viewer-app/package.json
 
       - name: Install Dependencies
         run: go mod tidy
@@ -65,8 +65,8 @@ jobs:
 
       - name: Generate Code Coverage
         run: |
-            go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
-            go tool cover -html=./cover.out -o coverage.html
+          go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+          go tool cover -html=./cover.out -o coverage.html
 
       - name: Build Binary
         run: |
@@ -160,8 +160,7 @@ jobs:
       - name: Attest Build Provenance
         uses: actions/attest-build-provenance@v2.2.0
         with:
-          subject-path: 'dist/*'
-
+          subject-path: "dist/*"
 
   docker:
     name: Build and Push Multi-Arch Docker Image
@@ -201,14 +200,14 @@ jobs:
         id: kaniko_build
         uses: int128/kaniko-action@v1.49.0
         with:
-          executor: 'gcr.io/kaniko-project/executor:debug'
+          executor: "gcr.io/kaniko-project/executor:debug"
           push: true
           tags: |
-              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:${{ github.sha }}-${{ matrix.arch }}
-              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:latest-${{ github.sha }}-${{ matrix.arch }}
-              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:latest-${{ github.ref_name }}-${{ matrix.arch }}
-              ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:latest-${{ matrix.arch }}
-              ${{ steps.metadata.outputs.tags }}
+            ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:${{ github.sha }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:latest-${{ github.sha }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:latest-${{ github.ref_name }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook:latest-${{ matrix.arch }}
+            ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           cache: true
           cache-repository: ghcr.io/${{ github.repository }}/cache
@@ -216,8 +215,7 @@ jobs:
             TARGETARCH=${{ matrix.arch }}
           # file: Dockerfile
           kaniko-args: |
-              --custom-platform=linux/${{ matrix.arch }}
-
+            --custom-platform=linux/${{ matrix.arch }}
 
   manifest:
     name: Create and Push Docker Manifest
@@ -271,5 +269,5 @@ jobs:
         uses: actions/attest-build-provenance@v2.2.0
         with:
           subject-name: "ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
-          subject-digest: ${{ needs.docker.outputs.digest }}  # Use the digest from the Kaniko build step
+          subject-digest: ${{ needs.docker.outputs.digest }} # Use the digest from the Kaniko build step
           push-to-registry: true
