@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	pb "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	pb "github.com/jdfalk/ubuntu-autoinstall-webhook/pkg/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

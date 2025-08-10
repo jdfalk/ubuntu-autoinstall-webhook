@@ -4,8 +4,8 @@ package configuration_test
 import (
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/configuration"
+	"github.com/spf13/viper"
 )
 
 func TestLoadConfig(t *testing.T) {
