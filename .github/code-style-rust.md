@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Rust Code Style Guide](#rust-code-style-guide)
   - [Formatting](#formatting)
@@ -19,7 +18,8 @@
 
 # Rust Code Style Guide
 
-This guide follows the official Rust style conventions and community best practices.
+This guide follows the official Rust style conventions and community best
+practices.
 
 ## Formatting
 
@@ -32,10 +32,12 @@ This guide follows the official Rust style conventions and community best practi
 ## Naming Conventions
 
 - Types, traits, and enums: `PascalCase` (e.g., `HashMap`, `ToString`)
-- Modules, functions, methods, variables: `snake_case` (e.g., `process_data`, `file_path`)
+- Modules, functions, methods, variables: `snake_case` (e.g., `process_data`,
+  `file_path`)
 - Constants: `SCREAMING_SNAKE_CASE` (e.g., `MAX_ITERATIONS`)
 - Static variables: `SCREAMING_SNAKE_CASE`
-- Macro names: `snake_case!` by convention, but some use `PascalCase!` for constructor-like macros
+- Macro names: `snake_case!` by convention, but some use `PascalCase!` for
+  constructor-like macros
 - Lifetimes: short, lowercase names like `'a`, `'ctx`, `'src`
 - Crates: `kebab-case` for package names, `snake_case` for imports
 
@@ -56,7 +58,8 @@ fn connect_to_database(url: &str) -> Result<DatabaseConnection, ConnectionError>
 - Order imports: std first, then external crates, then local imports
 - Separate import groups with a blank line
 - Alphabetize within each import group
-- Prefer using absolute paths (starting with crate name) rather than relative paths
+- Prefer using absolute paths (starting with crate name) rather than relative
+  paths
 
 ```rust
 // Good import ordering
@@ -76,11 +79,12 @@ use crate::models::User;
 - Use `///` for outer documentation comments (generates docs)
 - Use `//` for inner implementation comments
 - Use `//!` for module-level documentation
-- Follow [rustdoc conventions](https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html)
+- Follow
+  [rustdoc conventions](https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html)
 - Document all public items (functions, methods, structs, enums, traits)
 - Include examples in documentation where helpful
 
-```rust
+````rust
 /// Represents a user in the system.
 ///
 /// # Examples
@@ -93,7 +97,7 @@ pub struct User {
     username: String,
     password_hash: String,
 }
-```
+````
 
 ## Error Handling
 
@@ -160,7 +164,8 @@ match value {
 - Use trait bounds to constrain generic types
 - Implement standard traits when appropriate (e.g., `Display`, `Debug`, `Clone`)
 - Use trait objects when runtime polymorphism is required
-- Prefer associated types over generic parameters for traits with a single implementation
+- Prefer associated types over generic parameters for traits with a single
+  implementation
 - Use the `where` clause for complex trait bounds
 
 ```rust

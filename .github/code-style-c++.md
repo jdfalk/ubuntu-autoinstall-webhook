@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [C++ Code Style Guide](#c-code-style-guide)
   - [Header Files](#header-files)
@@ -108,7 +107,8 @@ void MyClass::MyFunction(int parameter) {
 ## Other C++ Features
 
 - Use C++17 features when available
-- Use smart pointers (`std::unique_ptr`, `std::shared_ptr`) instead of raw pointers
+- Use smart pointers (`std::unique_ptr`, `std::shared_ptr`) instead of raw
+  pointers
 - Use `auto` only when it improves readability
 - Use range-based for loops when possible
 - Prefer `enum class` over `enum`

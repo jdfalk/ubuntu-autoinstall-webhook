@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [TypeScript Code Style Guide](#typescript-code-style-guide)
   - [Core TypeScript Guidelines](#core-typescript-guidelines)
@@ -17,7 +16,8 @@
 
 # TypeScript Code Style Guide
 
-This guide follows Google's TypeScript Style Guide, which builds upon the JavaScript style guide with TypeScript-specific additions.
+This guide follows Google's TypeScript Style Guide, which builds upon the
+JavaScript style guide with TypeScript-specific additions.
 
 ## Core TypeScript Guidelines
 
@@ -29,7 +29,8 @@ This guide follows Google's TypeScript Style Guide, which builds upon the JavaSc
 ## Types and Interfaces
 
 - Use PascalCase for type names and interface names
-- Prefix interface names with `I` only in rare cases where required by frameworks
+- Prefix interface names with `I` only in rare cases where required by
+  frameworks
 - Use descriptive names that reflect the purpose, not the structure
 - Use readonly for immutable properties
 - Mark optional properties with `?` suffix
@@ -47,7 +48,8 @@ interface User {
 
 - Annotate function parameters and return types
 - Avoid `any` type as much as possible
-- Use union types instead of optional parameters when there's a logical distinction
+- Use union types instead of optional parameters when there's a logical
+  distinction
 - Use intersection types for composition
 
 ```typescript
@@ -63,12 +65,16 @@ function getId(user: User | number): string {
 
 ## Generics
 
-- Use descriptive generic type parameter names (e.g., `TValue` instead of just `T`)
+- Use descriptive generic type parameter names (e.g., `TValue` instead of just
+  `T`)
 - Constrain generic types when possible
 - Keep generic functions simple and focused
 
 ```typescript
-function getProperty<TObject, TKey extends keyof TObject>(obj: TObject, key: TKey): TObject[TKey] {
+function getProperty<TObject, TKey extends keyof TObject>(
+  obj: TObject,
+  key: TKey
+): TObject[TKey] {
   return obj[key];
 }
 ```
@@ -77,7 +83,8 @@ function getProperty<TObject, TKey extends keyof TObject>(obj: TObject, key: TKe
 
 - Use `undefined` for unintentional absence of value
 - Use `null` only when explicitly required by APIs
-- Use non-null assertion (`!`) only when you're certain a value cannot be null/undefined
+- Use non-null assertion (`!`) only when you're certain a value cannot be
+  null/undefined
 - Use optional chaining (`?.`) for potentially undefined properties
 
 ## Async Code
@@ -93,7 +100,7 @@ async function fetchUserData(userId: string): Promise<UserData> {
     if (!response.ok) {
       throw new Error(`HTTP error ${response.status}`);
     }
-    return await response.json() as UserData;
+    return (await response.json()) as UserData;
   } catch (error) {
     console.error('Failed to fetch user data', error);
     throw error;

@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [GitHub Actions Code Style Guidelines](#github-actions-code-style-guidelines)
   - [Workflow File Structure](#workflow-file-structure)
@@ -30,7 +29,8 @@
 ## Workflow File Structure
 
 - Use `.github/workflows/` directory for all workflow files
-- Use descriptive names for workflow files (e.g., `ci.yml`, `deploy-production.yml`)
+- Use descriptive names for workflow files (e.g., `ci.yml`,
+  `deploy-production.yml`)
 - Use lowercase, hyphen-separated names for workflow files
 - Include file extension `.yml` (preferred) or `.yaml`
 
@@ -97,7 +97,8 @@ jobs:
 
 ### Actions References
 
-- Always pin actions to specific versions using SHA hashes for critical workflows
+- Always pin actions to specific versions using SHA hashes for critical
+  workflows
 - Use major version references (`@v4`) for general usage
 - Avoid using `@master` or `@main` references
 

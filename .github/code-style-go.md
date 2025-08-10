@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Go Code Style Guide](#go-code-style-guide)
   - [Code Formatting](#code-formatting)
@@ -24,17 +23,21 @@ This guide follows the official Go style conventions and best practices.
 ## Code Formatting
 
 - Use `gofmt` or `go fmt` to automatically format code
-- Line length is flexible, but keep it reasonable (under 100 characters is common)
+- Line length is flexible, but keep it reasonable (under 100 characters is
+  common)
 - Use tabs for indentation (not spaces)
 - No trailing whitespace
 
 ## Naming Conventions
 
-- Package names: short, concise, lowercase, no underscores (`strconv`, not `string_converter`)
-- Interface names: use -er suffix for interfaces describing actions (`Reader`, `Writer`)
+- Package names: short, concise, lowercase, no underscores (`strconv`, not
+  `string_converter`)
+- Interface names: use -er suffix for interfaces describing actions (`Reader`,
+  `Writer`)
 - Variable/function names: use MixedCaps or mixedCaps, not underscores
 - Exported (public) names: must begin with a capital letter (`MarshalJSON`)
-- Unexported (private) names: must begin with a lowercase letter (`marshalState`)
+- Unexported (private) names: must begin with a lowercase letter
+  (`marshalState`)
 - Acronyms in names should be all caps (`HTTPServer`, not `HttpServer`)
 
 ```go
@@ -87,7 +90,7 @@ import (
 - All exported (public) declarations should have doc comments
 - Start comments with the name of the thing being described
 - Comments should be full sentences, ending with period
-- Use // for line comments, not /* */  <!-- markdownlint-disable-line MD037 -->
+- Use // for line comments, not /\* \*/ <!-- markdownlint-disable-line MD037 -->
 - Use `godoc` conventions for package documentation
 
 ```go

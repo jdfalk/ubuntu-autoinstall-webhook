@@ -1,170 +1,248 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Conventional Commits Guide](#conventional-commits-guide)
-  - [Format](#format)
-  - [Types](#types)
-  - [Description Guidelines](#description-guidelines)
-  - [File Changes Documentation (REQUIRED)](#file-changes-documentation-required)
-  - [Body Guidelines](#body-guidelines)
-  - [Footer Guidelines](#footer-guidelines)
-  - [Breaking Changes](#breaking-changes)
-  - [Scope Guidelines](#scope-guidelines)
-  - [Special Instructions](#special-instructions)
+- [Conventional Commit Message Guidelines](#conventional-commit-message-guidelines)
+  - [Template Structure](#template-structure)
+  - [Guidelines](#guidelines)
+    - [Commit Header](#commit-header)
+    - [Body Structure](#body-structure)
+    - [Conventional Commit Types](#conventional-commit-types)
+    - [File Documentation](#file-documentation)
+    - [Issue References](#issue-references)
   - [Examples](#examples)
+    - [Multi-Issue Commit Example](#multi-issue-commit-example)
+    - [Single-Issue Commit Example](#single-issue-commit-example)
+    - [Simple Commit Example](#simple-commit-example)
+    - [Breaking Change Example](#breaking-change-example)
+  - [Best Practices](#best-practices)
+    - [Do](#do)
+    - [Don't](#dont)
+  - [Integration with VS Code](#integration-with-vs-code)
+  - [Atomic Commits](#atomic-commits)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Conventional Commits Guide
+<!-- file: .github/commit-messages.md -->
+<!-- version: 3.3.0 -->
+<!-- guid: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d -->
 
-## Format
+# Conventional Commit Message Guidelines
 
-Use this template for your conventional commits:
+## Template Structure
+
+**IMPORTANT**: Only include issue numbers if you are working on a specific
+GitHub issue. Do not use placeholder numbers like #123.
+
+For commits that address multiple issues, use this multi-issue format:
 
 ```text
-<type>[optional scope]: <description>
+type(scope): primary description
 
-[optional body]
+Brief description of the overall changes and their purpose.
 
-[optional footer(s)]
+Issues Addressed:
+
+type(scope): description
+- path/to/file1.ext - Description of changes
+- path/to/file2.ext - Description of changes
+- path/to/file3.ext - Description of changes
+
+type(scope): description
+- path/to/file4.ext - Description of changes
+- path/to/file5.ext - Description of changes
+
+type(scope): description
+- path/to/file6.ext - Description of changes
 ```
 
-## Types
+For single commits, use the standard format:
 
-Use these standardized types to categorize your changes:
+```text
+type(scope): description
 
-- `feat`: A new feature
-- `fix`: A bug fix
+Brief description of what was changed and why.
+
+Files changed:
+- [path/to/file1.ext](path/to/file1.ext) - Description of changes
+- [path/to/file2.ext](path/to/file2.ext) - Description of changes
+```
+
+Only if working on a specific issue, include the issue number:
+
+```text
+type(scope): description (#actual-issue-number)
+
+Brief description of what was changed and why.
+
+Files changed:
+- [path/to/file1.ext](path/to/file1.ext) - Description of changes
+- [path/to/file2.ext](path/to/file2.ext) - Description of changes
+
+Closes #actual-issue-number
+```
+
+For commits without a specific issue, omit the issue number entirely:
+
+```text
+type(scope): description
+
+Brief description of what was changed and why.
+
+Files changed:
+- path/to/file1.ext - Description of changes
+- path/to/file2.ext - Description of changes
+```
+
+## Guidelines
+
+### Commit Header
+
+- Use conventional commit format: `type(scope): description`
+- Include issue number only if working on a specific issue:
+  `type(scope): description (#issue-number)`
+- Keep the header under 72 characters
+- Use present tense ("add feature" not "added feature")
+- Be specific and descriptive
+
+### Body Structure
+
+- **Single Issue**: Use "Files changed:" section
+- **Multiple Issues**: Use "Issues Addressed:" with subsections
+- Group files by the issue they address
+- Include brief context about the overall changes
+
+### Conventional Commit Types
+
+- `feat`: New features
+- `fix`: Bug fixes
 - `docs`: Documentation changes
-- `style`: Changes that don't affect code meaning (formatting, white-space, etc.)
-- `refactor`: Code changes that neither fix bugs nor add features
+- `style`: Code style changes (formatting, no logic changes)
+- `refactor`: Code refactoring (no functional changes)
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks, build changes, etc.
 - `perf`: Performance improvements
-- `test`: Adding or modifying tests
-- `build`: Changes to build system or external dependencies
-- `ci`: Changes to CI configuration and scripts
-- `chore`: Other changes that don't modify src or test files
-- `revert`: Reverts a previous commit
+- `ci`: CI/CD changes
+- `build`: Build system changes
+- `revert`: Reverting previous commits
 
-## Description Guidelines
+### File Documentation
 
-- Use imperative, present tense ("add" not "added" or "adds")
-- Don't capitalize first letter
-- No period at the end
-- Keep descriptions concise (50 chars or less)
-- Be specific and clear about what changed
-- Avoid vague terms like "fixes" or "updates" without context
-- Ensure commit messages are formatted consistently
+- **Always list every modified file**
+- Explain what changed in each file, not just what the file does
+- Use relative paths from repository root as markdown links:
+  `[path/to/file.ext](path/to/file.ext)`
+- Be specific about the nature of changes
 
-## File Changes Documentation (REQUIRED)
+### Issue References
 
-- **ALWAYS list ALL files that were changed in the body of the commit message**
-- Format each file listing with a brief summary of what changed, followed by a markdown link
-- Use bullet points for listing multiple files
-- Example:
-
-  ```markdown
-  Files changed:
-  - Added SSO provider implementation: [src/auth/SSOProvider.js](src/auth/SSOProvider.js)
-  - Updated auth context to support SSO flow: [src/auth/AuthContext.js](src/auth/AuthContext.js)
-  - Added SSO login button to form: [src/components/LoginForm.js](src/components/LoginForm.js)
-  ```
-
-- For repository links, use the full URL format: `Summary: [file.js](https://github.com/owner/repo/blob/branch/file.js)`
-- Include a clear, concise summary of what changed in each file
-- No commit should be submitted without this file change documentation
-
-## Body Guidelines
-
-- Use imperative, present tense
-- Include motivation for the change
-- Contrast with previous behavior
-- Use blank line to separate from description
-- Wrap at 72 characters
-- Summarize the commits as the first line
-- **Always include a "Files changed:" section with a summary and markdown links for all modified files**
-- Organize file changes by type (added, modified, deleted) when appropriate
-
-## Footer Guidelines
-
-- Use for referencing ACTUAL issues: `Fixes #123` or `Closes #456`
-- Never reference fictional issue numbers - only include references to real issues
-- Breaking changes must start with `BREAKING CHANGE:` followed by explanation
-- Reference ticket numbers as: `[#123]` or specific project format
-
-## Breaking Changes
-
-Indicate breaking changes either:
-
-- With `!` after type/scope: `feat(api)!: remove deprecated endpoints`
-- In footer: `BREAKING CHANGE: environment variables now use different naming convention`
-
-## Scope Guidelines
-
-- Use consistent scope names throughout the project
-- Keep scopes lowercase
-- Use short nouns describing the affected component
-- Common scopes: api, auth, core, ui, config, etc.
-
-## Special Instructions
-
-- For multi-line commit messages, ensure proper formatting with `-m` flag or by writing in commit editor
-- Never add issue references unless they're for actual issues in your project
+- Include issue numbers in the header: `(#123)`
+- Use closing keywords in footer: `Closes #123, #456`
+- For related issues: `Related to #999`
+- Omit issue references if not working on a specific issue
 
 ## Examples
 
-> **Note:** The examples below show the format - replace issue numbers with actual issues from your project or omit the reference entirely.
+### Multi-Issue Commit Example
 
 ```text
-feat(auth): add SSO login option
+feat(auth): implement user authentication system (#123)
 
-Implement single sign-on login functionality using OAuth2
+Added comprehensive authentication system with JWT tokens, profile management,
+and updated documentation to support the new auth workflow.
 
-Files changed:
-- Added SSO provider implementation: [src/auth/SSOProvider.js](src/auth/SSOProvider.js)
-- Updated auth context to support SSO flow: [src/auth/AuthContext.js](src/auth/AuthContext.js)
-- Added SSO login button to form: [src/components/LoginForm.js](src/components/LoginForm.js)
+Issues Addressed:
 
-Closes #ISSUE_NUMBER  # Only include if there's an actual issue
+feat(auth): implement JWT token validation (#123)
+- [src/middleware/auth.js](src/middleware/auth.js) - JWT validation logic and middleware
+- [src/routes/api.js](src/routes/api.js) - Applied auth middleware to protected routes
+- [tests/auth.test.js](tests/auth.test.js) - Comprehensive test coverage for auth flow
+
+feat(ui): add user profile page (#456)
+- [src/components/UserProfile.jsx](src/components/UserProfile.jsx) - Main profile component with edit functionality
+- [src/styles/profile.css](src/styles/profile.css) - Responsive styling for profile page
+
+docs(readme): update installation instructions (#789)
+- [README.md](README.md) - Updated installation and auth setup documentation
+
+Closes #123, #456, #789
 ```
+
+### Single-Issue Commit Example
 
 ```text
-fix(api): prevent race condition in user creation
+fix(search): resolve pagination bug in results (#542)
 
-The previous implementation allowed concurrent requests to create
-duplicate users with the same email address.
+Fixed issue where search results pagination was not properly handling
+empty result sets, causing infinite loading states.
 
 Files changed:
-- Added database locking mechanism: [src/api/userController.js](src/api/userController.js)
-- Enhanced email validation logic: [src/services/validation.js](src/services/validation.js)
+- [src/components/SearchResults.jsx](src/components/SearchResults.jsx) - Added null check for empty results
+- [src/hooks/useSearchPagination.js](src/hooks/useSearchPagination.js) - Fixed pagination logic for edge cases
+- [tests/search.test.js](tests/search.test.js) - Added test coverage for empty result pagination
 
-Fixes #ISSUE_NUMBER  # Only include if there's an actual issue
+Closes #542
 ```
+
+### Simple Commit Example
 
 ```text
-docs: update README with new API endpoints
+style(ui): format search component files
+
+Applied prettier formatting to search-related components.
 
 Files changed:
-- Added new endpoints documentation: [README.md](README.md)
-- Created detailed API reference: [docs/API.md](docs/API.md)
+- [src/components/SearchBar.jsx](src/components/SearchBar.jsx) - Code formatting only
+- [src/components/SearchResults.jsx](src/components/SearchResults.jsx) - Code formatting only
 ```
+
+### Breaking Change Example
 
 ```text
-feat(api)!: change response format to JSON API spec
+feat(api)!: restructure user authentication endpoints (#345)
 
-BREAKING CHANGE: API responses now follow JSON API specification.
-Clients will need to update their parsers.
+BREAKING CHANGE: Authentication endpoints have been restructured.
+The /auth/login endpoint now returns different response format.
 
-Files changed:
-- Implemented JSON API formatter: [src/api/responseFormatter.js](src/api/responseFormatter.js)
-- Updated middleware to use new format: [src/middleware/apiResponse.js](src/middleware/apiResponse.js)
-- Adjusted tests for new response structure: [tests/api/responses.test.js](tests/api/responses.test.js)
+Issues Addressed:
+
+feat(api): restructure authentication endpoints (#345)
+- [src/routes/auth.js](src/routes/auth.js) - New endpoint structure and response format
+- [src/middleware/auth.js](src/middleware/auth.js) - Updated to handle new token format
+- [docs/api.md](docs/api.md) - Updated API documentation
+
+Closes #345
 ```
 
-```text
-refactor(core): simplify error handling logic
+## Best Practices
 
-Files changed:
-- Consolidated error handlers: [src/core/errorHandler.js](src/core/errorHandler.js)
-- Created reusable error utilities: [src/utils/errors.js](src/utils/errors.js)
-```
+### Do
+
+1. **Be specific** - Explain what changed and why
+2. **Group by issue** - Keep related changes together
+3. **List all files** - Don't leave any modified files undocumented
+4. **Use present tense** - "add" not "added"
+5. **Reference issues only when working on specific issues** - Don't use
+   placeholder numbers
+6. **Be consistent** - Follow the format every time
+
+### Don't
+
+1. **Mix unrelated changes** - One commit per logical change set
+2. **Use vague descriptions** - "fix stuff" or "update files"
+3. **Forget file listings** - Every file should be documented
+4. **Use placeholder issue numbers** - Only reference real issues you're working
+   on
+5. **Use past tense** - Avoid "fixed" or "added"
+
+## Integration with VS Code
+
+Your VS Code settings are configured to use these commit message guidelines.
+When generating commit messages with GitHub Copilot, it will follow this format
+automatically.
+
+## Atomic Commits
+
+- **One logical change per commit** - Don't mix features, fixes, and docs
+- **Complete changes** - Don't split related files across commits
+- **Buildable commits** - Each commit should leave the code in a working state
+- **Issue-focused** - Group files by the issue they address, not by file type

@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Kotlin Code Style Guide](#kotlin-code-style-guide)
   - [Source File Structure](#source-file-structure)
@@ -19,13 +18,16 @@
 
 # Kotlin Code Style Guide
 
-This guide follows the official Kotlin coding conventions and Google's Android Kotlin style guide.
+This guide follows the official Kotlin coding conventions and Google's Android
+Kotlin style guide.
 
 ## Source File Structure
 
 - Source files should be encoded in UTF-8
-- Each source file contains a single top-level class or multiple related top-level declarations
-- File names should be descriptive and match the top-level class name (PascalCase.kt)
+- Each source file contains a single top-level class or multiple related
+  top-level declarations
+- File names should be descriptive and match the top-level class name
+  (PascalCase.kt)
 - Source files are organized by feature or layer, not by type
 
 ## Naming Conventions
@@ -67,7 +69,8 @@ object Logger {
 - Use a space after control flow keywords (`if`, `when`, `for`)
 - No space after function name in function calls
 - Curly braces begin on the same line as the declaration
-- When a function contains only a single expression, it can be expressed as an expression body
+- When a function contains only a single expression, it can be expressed as an
+  expression body
 
 ```kotlin
 // Formatting examples
@@ -123,7 +126,8 @@ class ProfileManager(private val userRepository: UserRepository) {
 ## Functions and Lambdas
 
 - Keep functions small and focused
-- Prefer named parameters for better readability when a function takes multiple parameters
+- Prefer named parameters for better readability when a function takes multiple
+  parameters
 - Use trailing lambda syntax when the lambda is the last parameter
 - Use the `it` identifier for single-parameter lambdas
 - Use parameter names for multi-parameter lambdas
@@ -204,7 +208,8 @@ val userName = user?.name ?: "Unknown"
 ## Collections and Functional Programming
 
 - Prefer collection operations like `map`, `filter`, etc. over loops
-- Use sequence operations for large collections to avoid intermediate collection creation
+- Use sequence operations for large collections to avoid intermediate collection
+  creation
 - Use destructuring declarations where appropriate
 
 ```kotlin

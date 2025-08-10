@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Markdown Style Guide](#markdown-style-guide)
   - [Headers](#headers)
@@ -25,7 +24,8 @@ This guide follows common Markdown best practices and industry standards.
 
 - Use ATX-style headers with a space after the hash signs (`#`)
 - Use sentence case for headers (capitalize first word and proper nouns only)
-- Include one blank line before and after headers (except at the beginning of the document)
+- Include one blank line before and after headers (except at the beginning of
+  the document)
 - Use appropriate header hierarchy without skipping levels
 - Limit document to one H1 header
 
@@ -126,7 +126,8 @@ function example() {
 ## Extensions and Special Features
 
 - Use HTML sparingly and only when Markdown syntax is insufficient
-- Support for extensions may vary across platforms, so stick to standard Markdown when possible
+- Support for extensions may vary across platforms, so stick to standard
+  Markdown when possible
 - Document any specialized Markdown extensions used in the project
 - Consider compatibility across different Markdown parsers
 

@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Java Code Style Guide](#java-code-style-guide)
   - [Source File Structure](#source-file-structure)
@@ -34,7 +33,8 @@ This guide follows Google's Java Style Guide.
 - `lowerCamelCase` for method and variable names
 - `UPPER_SNAKE_CASE` for constants
 - Package names in all lowercase, no underscores: `com.example.deepspace`
-- Test classes should be named ending with `Test`: `HashTest` or `HashIntegrationTest`
+- Test classes should be named ending with `Test`: `HashTest` or
+  `HashIntegrationTest`
 
 ## Formatting
 
@@ -109,7 +109,8 @@ public E get(int index) {
 - Caught exceptions should not be ignored
 - Static members should be accessed via class name: `Foo.aStaticMethod()`
 - Numeric literals should use underscores for readability: `1_000_000`
-- Use diamond operator with generics when possible: `Map<String, List<String>> map = new HashMap<>()`
+- Use diamond operator with generics when possible:
+  `Map<String, List<String>> map = new HashMap<>()`
 
 ## Exception Handling
 
