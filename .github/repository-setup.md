@@ -2,27 +2,27 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Code Review Guidelines (Pointer)](#code-review-guidelines-pointer)
+- [Repository Setup Guide (Pointer)](#repository-setup-guide-pointer)
   - [Quick Reference](#quick-reference)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-<!-- file: .github/review-selection.md -->
+<!-- file: .github/repository-setup.md -->
 <!-- version: 2.0.0 -->
-<!-- guid: 7e2f1b3c-4d5e-6f7a-8b9c-0d1e2f3a4b5c -->
+<!-- guid: 4e1f7b2c-8d5e-9f4e-1f7b-2c8d4e1f7b2c -->
 
-# Code Review Guidelines (Pointer)
+# Repository Setup Guide (Pointer)
 
-All code review standards, focus areas, and workflow rules are now found in the
+All repository setup, workflow, and configuration rules are now found in the
 canonical instructions system:
 
 - See `.github/instructions/general-coding.instructions.md` for the full,
-  up-to-date rules and best practices.
+  up-to-date setup and configuration rules.
 - All language/framework-specific rules are in
   `.github/instructions/*.instructions.md`.
+- For reusable workflow usage, see `.github/workflow-usage.md` (pointer).
 
 ## Quick Reference
 
-- Prioritize correctness, security, performance, readability, maintainability,
-  and test coverage
-- See the central instructions for detailed review checklists and best practices
+- Use the setup steps and best practices from the central instructions
+- See the central instructions for required files, secrets, and configuration

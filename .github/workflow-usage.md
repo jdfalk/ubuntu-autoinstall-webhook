@@ -2,27 +2,26 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Code Review Guidelines (Pointer)](#code-review-guidelines-pointer)
+- [GitHub Actions Workflow Usage Instructions (Pointer)](#github-actions-workflow-usage-instructions-pointer)
   - [Quick Reference](#quick-reference)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-<!-- file: .github/review-selection.md -->
+<!-- file: .github/workflow-usage.md -->
 <!-- version: 2.0.0 -->
-<!-- guid: 7e2f1b3c-4d5e-6f7a-8b9c-0d1e2f3a4b5c -->
+<!-- guid: 2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e -->
 
-# Code Review Guidelines (Pointer)
+# GitHub Actions Workflow Usage Instructions (Pointer)
 
-All code review standards, focus areas, and workflow rules are now found in the
+All workflow usage, best practices, and configuration rules are now found in the
 canonical instructions system:
 
 - See `.github/instructions/general-coding.instructions.md` for the full,
-  up-to-date rules and best practices.
+  up-to-date workflow usage and best practices.
 - All language/framework-specific rules are in
   `.github/instructions/*.instructions.md`.
 
 ## Quick Reference
 
-- Prioritize correctness, security, performance, readability, maintainability,
-  and test coverage
-- See the central instructions for detailed review checklists and best practices
+- Use the workflow patterns and security practices from the central instructions
+- See the central instructions for reusable workflow usage and troubleshooting

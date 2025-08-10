@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Test Generation Guidelines](#test-generation-guidelines)
   - [Test Structure](#test-structure)
@@ -24,9 +23,8 @@
 Follow this structure when creating tests:
 
 ```markdown
-[Setup] - Prepare the test environment and inputs
-[Exercise] - Execute the functionality being tested
-[Verify] - Check that the results match expectations
+[Setup] - Prepare the test environment and inputs [Exercise] - Execute the
+functionality being tested [Verify] - Check that the results match expectations
 [Teardown] - Clean up any resources (if needed)
 ```
 
