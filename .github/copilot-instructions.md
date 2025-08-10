@@ -2,69 +2,84 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Copilot Instructions](#copilot-instructions)
-  - [File Identification](#file-identification)
-  - [Code Documentation](#code-documentation)
-  - [Code Style](#code-style)
-  - [Testing](#testing)
-  - [Security & Best Practices](#security--best-practices)
-  - [Version Control](#version-control)
-  - [Project-Specific](#project-specific)
+- [Copilot/AI Agent Coding Instructions System](#copilotai-agent-coding-instructions-system)
+  - [🚨 CRITICAL: Documentation Update Protocol](#-critical-documentation-update-protocol)
+  - [System Overview](#system-overview)
+  - [How It Works](#how-it-works)
+  - [For Contributors](#for-contributors)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Copilot Instructions
+<!-- file: .github/copilot-instructions.md -->
+<!-- version: 2.0.0 -->
+<!-- guid: 4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a -->
 
-## File Identification
+# Copilot/AI Agent Coding Instructions System
 
-- Always check the first line of a file for a comment in the format `# file: $(relative_path_to_file)`
-- Use this path to determine which file you're working on and where to apply generated changes
-- If this comment is present, prioritize it over any other indications of file path
-- When generating code modifications, reference this path in your response
+This repository uses a centralized, modular system for Copilot/AI agent coding,
+documentation, and workflow instructions, following the latest VS Code Copilot
+customization best practices.
 
-## Code Documentation
+## 🚨 CRITICAL: Documentation Update Protocol
 
-- Always extensively document functions with parameters, return values, and purpose
-- Always extensively document methods with parameters, return values, and purpose
-- Always extensively document classes with their responsibilities and usage patterns
-- Always document tests with clear descriptions of what's being tested and expected outcomes
-- Always escape triple backticks with a backslash in documentation
-- Use consistent documentation style (JSDoc, docstrings, etc.) based on the codebase
+**NEVER edit markdown files directly. ALWAYS use the documentation update
+system:**
 
-## Code Style
+1. **Create GitHub Issue First** (if none exists):
 
-- Follow the established code style in the repository
-- Use consistent naming conventions for variables, functions, and classes
-- Prefer explicit type annotations where applicable
-- Keep functions small and focused on a single responsibility
-- Use meaningful variable names that indicate purpose
-- Refer to language-specific style guidelines in `.github/code-style-*.md` files which override these general guidelines when conflicts occur
+   ```bash
+   ./scripts/create-issue-update.sh "Update [filename] - [description]" "Detailed description of what needs to be updated"
+   ```
 
-## Testing
+2. **Create Documentation Update**:
 
-- Write comprehensive tests for new functionality
-- When updating tests, update the documentation to maintain consistency
-- Follow test naming conventions used in the codebase
-- Include edge cases and error handling in tests
-- Maintain test coverage when modifying existing code
-- Follow additional testing guidelines specified in `.github/testing-*.md` files which override these general guidelines when conflicts occur
+   ```bash
+   ./scripts/create-doc-update.sh [filename] "[content]" [mode] --issue [issue-number]
+   ```
 
-## Security & Best Practices
+3. **Link to Issue**: Every documentation change MUST reference a GitHub issue
+   for tracking and context.
 
-- Avoid hardcoding sensitive information
-- Follow secure coding practices
-- Use proper error handling
-- Validate inputs appropriately
-- Consider performance implications of code changes
+**Failure to follow this protocol will result in workflow conflicts and lost
+changes.**
 
-## Version Control
+## System Overview
 
-- Write clear commit messages that explain the purpose of changes
-- Keep pull requests focused on a single feature or fix
-- Reference issue numbers in commits and PRs when applicable
-- Follow commit message guidelines specified in `.github/commit-messages-*.md` files which override these general guidelines when conflicts occur
+- **General rules**: `.github/instructions/general-coding.instructions.md`
+  (applies to all files)
+- **Language/task-specific rules**: `.github/instructions/*.instructions.md`
+  (with `applyTo` frontmatter)
+- **Prompt files**: `.github/prompts/` (for Copilot/AI prompt customization)
+- **Agent-specific docs**: `.github/AGENTS.md`, `.github/CLAUDE.md`, etc.
+  (pointers to this system)
+- **VS Code integration**: `.vscode/copilot/` contains symlinks to canonical
+  `.github/instructions/` files for VS Code Copilot features
 
-## Project-Specific
+## How It Works
 
-- Import from project modules rather than duplicating functionality
-- Respect the established architecture patterns
+- **General instructions** are always included for all files and languages.
+- **Language/task-specific instructions** extend the general rules and use the
+  `applyTo` field to target file globs (e.g., `**/*.go`).
+- **All code style, documentation, and workflow rules are now found exclusively
+  in `.github/instructions/*.instructions.md` files.**
+- **Prompt files** are stored in `.github/prompts/` and can reference
+  instructions as needed.
+- **Agent docs** (e.g., AGENTS.md) point to `.github/` as the canonical source
+  for all rules.
+- **VS Code** uses symlinks in `.vscode/copilot/` to include these instructions
+  for Copilot customization.
+
+## For Contributors
+
+- **Edit or add rules** in `.github/instructions/` only. Do not use or reference
+  any `code-style-*.md` files; these are obsolete.
+- **Add new prompts** in `.github/prompts/`.
+- **Update agent docs** to reference this system.
+- **Do not duplicate rules**; always reference the general instructions from
+  specific ones.
+- **See `.github/README.md`** for a human-friendly summary and contributor
+  guide.
+
+For full details, see the
+[general coding instructions](instructions/general-coding.instructions.md) and
+language-specific files in `.github/instructions/`.
