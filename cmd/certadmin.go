@@ -20,13 +20,13 @@ import (
 )
 
 var (
-	serverAddr   string
-	apiKeyFile   string
+	serverAddr      string
+	apiKeyFile      string
 	certAdminApiKey string
-	insecureConn bool
-	timeout      time.Duration
-	outputFormat string
-	outputFile   string
+	insecureConn    bool
+	timeout         time.Duration
+	outputFormat    string
+	outputFile      string
 )
 
 // Main certadmin command

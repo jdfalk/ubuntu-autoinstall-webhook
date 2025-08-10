@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/jdfalk/ubuntu-autoinstall-webhook/internal/database"
+	"github.com/spf13/cobra"
 )
 
 var databaseCmd = &cobra.Command{
