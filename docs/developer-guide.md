@@ -172,11 +172,15 @@
 
 ## 1. Introduction
 
-This developer guide provides comprehensive information for developers who want to understand, modify, or contribute to the Ubuntu Autoinstall Webhook project. Whether you're fixing bugs, adding features, or just exploring the codebase, this document will help you navigate the project effectively.
+This developer guide provides comprehensive information for developers who want
+to understand, modify, or contribute to the Ubuntu Autoinstall Webhook project.
+Whether you're fixing bugs, adding features, or just exploring the codebase,
+this document will help you navigate the project effectively.
 
 ### 1.1. Project Overview
 
-The Ubuntu Autoinstall Webhook system is designed to automate the deployment of Ubuntu Server systems at scale. It provides:
+The Ubuntu Autoinstall Webhook system is designed to automate the deployment of
+Ubuntu Server systems at scale. It provides:
 
 - A centralized service for managing Ubuntu installations
 - Template-based configuration
@@ -184,26 +188,28 @@ The Ubuntu Autoinstall Webhook system is designed to automate the deployment of 
 - A REST API for programmatic control
 - A web interface for human operators
 
-The system follows a modular design with clear separation between components, making it easier to understand, test, and extend individual parts without affecting the whole system.
+The system follows a modular design with clear separation between components,
+making it easier to understand, test, and extend individual parts without
+affecting the whole system.
 
 ### 1.2. Development Philosophy
 
 This project follows several key principles:
 
-1. **Separation of Concerns**
-   Each component has a well-defined responsibility and minimal dependencies.
+1. **Separation of Concerns** Each component has a well-defined responsibility
+   and minimal dependencies.
 
-2. **Interface-Based Design**
-   Components interact through interfaces, allowing for flexible implementation and easier testing.
+2. **Interface-Based Design** Components interact through interfaces, allowing
+   for flexible implementation and easier testing.
 
-3. **Security First**
-   Security is integrated into the design from the beginning, not added as an afterthought.
+3. **Security First** Security is integrated into the design from the beginning,
+   not added as an afterthought.
 
-4. **Test-Driven Development**
-   Comprehensive testing is a core part of the development process.
+4. **Test-Driven Development** Comprehensive testing is a core part of the
+   development process.
 
-5. **Maintainable Code**
-   Code clarity and maintainability are prioritized over clever optimizations.
+5. **Maintainable Code** Code clarity and maintainability are prioritized over
+   clever optimizations.
 
 ### 1.3. Repository Overview
 
@@ -221,7 +227,8 @@ ubuntu-autoinstall-webhook/
 └── scripts/              # Utility scripts
 ```
 
-For a more detailed breakdown of the repository structure, see [Project Layout](./ai/project-layout.md).
+For a more detailed breakdown of the repository structure, see
+[Project Layout](./ai/project-layout.md).
 
 ## 2. Development Environment Setup
 
@@ -278,6 +285,7 @@ make install-tools
 ```
 
 This will install:
+
 - `golint` for linting
 - `goimports` for import formatting
 - `errcheck` for error checking
@@ -412,7 +420,8 @@ The system is built around these core components:
 5. **Database**: Stores system data and configurations
 6. **Configuration**: Manages system settings
 
-Each component is designed with clear interfaces to separate the component's contract from its implementation details.
+Each component is designed with clear interfaces to separate the component's
+contract from its implementation details.
 
 ### 3.3. Code Organization Principles
 
@@ -424,11 +433,13 @@ The code follows a clear dependency direction:
 cmd → api → services → repositories → models
 ```
 
-This ensures that higher-level components depend on lower-level ones, but not vice versa.
+This ensures that higher-level components depend on lower-level ones, but not
+vice versa.
 
 #### Interface Definitions
 
-Interfaces are typically defined in the package where they are used, not where they are implemented. For example:
+Interfaces are typically defined in the package where they are used, not where
+they are implemented. For example:
 
 ```go
 // internal/system/service.go
@@ -446,7 +457,8 @@ Errors are propagated up the call stack and handled at appropriate levels:
 
 - Low-level functions return specific errors
 - Mid-level functions add context to errors
-- High-level functions (API handlers, etc.) translate errors to appropriate responses
+- High-level functions (API handlers, etc.) translate errors to appropriate
+  responses
 
 ### 3.4. Key Design Patterns
 
@@ -466,7 +478,8 @@ This project follows the standard Go code style and conventions:
 
 - Use `gofmt` or `goimports` for formatting
 - Follow [Effective Go](https://golang.org/doc/effective_go) guidelines
-- Adhere to [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- Adhere to
+  [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
 
 #### Naming Conventions
 
@@ -778,6 +791,7 @@ func (h *SystemsHandler) RegisterRoutes(r *mux.Router) {
 ### 7.3. Error Handling in API
 
 Use<!-- filepath: /Users/jdfalk/repos/github.com/jdfalk/ubuntu-autoinstall-webhook/docs/developer-guide.md -->
+
 # Developer Guide for Ubuntu Autoinstall Webhook
 
 <!-- START doctoc -->
@@ -785,11 +799,15 @@ Use<!-- filepath: /Users/jdfalk/repos/github.com/jdfalk/ubuntu-autoinstall-webho
 
 ## 1. Introduction
 
-This developer guide provides comprehensive information for developers who want to understand, modify, or contribute to the Ubuntu Autoinstall Webhook project. Whether you're fixing bugs, adding features, or just exploring the codebase, this document will help you navigate the project effectively.
+This developer guide provides comprehensive information for developers who want
+to understand, modify, or contribute to the Ubuntu Autoinstall Webhook project.
+Whether you're fixing bugs, adding features, or just exploring the codebase,
+this document will help you navigate the project effectively.
 
 ### 1.1. Project Overview
 
-The Ubuntu Autoinstall Webhook system is designed to automate the deployment of Ubuntu Server systems at scale. It provides:
+The Ubuntu Autoinstall Webhook system is designed to automate the deployment of
+Ubuntu Server systems at scale. It provides:
 
 - A centralized service for managing Ubuntu installations
 - Template-based configuration
@@ -797,26 +815,28 @@ The Ubuntu Autoinstall Webhook system is designed to automate the deployment of 
 - A REST API for programmatic control
 - A web interface for human operators
 
-The system follows a modular design with clear separation between components, making it easier to understand, test, and extend individual parts without affecting the whole system.
+The system follows a modular design with clear separation between components,
+making it easier to understand, test, and extend individual parts without
+affecting the whole system.
 
 ### 1.2. Development Philosophy
 
 This project follows several key principles:
 
-1. **Separation of Concerns**
-   Each component has a well-defined responsibility and minimal dependencies.
+1. **Separation of Concerns** Each component has a well-defined responsibility
+   and minimal dependencies.
 
-2. **Interface-Based Design**
-   Components interact through interfaces, allowing for flexible implementation and easier testing.
+2. **Interface-Based Design** Components interact through interfaces, allowing
+   for flexible implementation and easier testing.
 
-3. **Security First**
-   Security is integrated into the design from the beginning, not added as an afterthought.
+3. **Security First** Security is integrated into the design from the beginning,
+   not added as an afterthought.
 
-4. **Test-Driven Development**
-   Comprehensive testing is a core part of the development process.
+4. **Test-Driven Development** Comprehensive testing is a core part of the
+   development process.
 
-5. **Maintainable Code**
-   Code clarity and maintainability are prioritized over clever optimizations.
+5. **Maintainable Code** Code clarity and maintainability are prioritized over
+   clever optimizations.
 
 ### 1.3. Repository Overview
 
@@ -834,7 +854,8 @@ ubuntu-autoinstall-webhook/
 └── scripts/              # Utility scripts
 ```
 
-For a more detailed breakdown of the repository structure, see [Project Layout](./ai/project-layout.md).
+For a more detailed breakdown of the repository structure, see
+[Project Layout](./ai/project-layout.md).
 
 ## 2. Development Environment Setup
 
@@ -891,6 +912,7 @@ make install-tools
 ```
 
 This will install:
+
 - `golint` for linting
 - `goimports` for import formatting
 - `errcheck` for error checking
@@ -1025,7 +1047,8 @@ The system is built around these core components:
 5. **Database**: Stores system data and configurations
 6. **Configuration**: Manages system settings
 
-Each component is designed with clear interfaces to separate the component's contract from its implementation details.
+Each component is designed with clear interfaces to separate the component's
+contract from its implementation details.
 
 ### 3.3. Code Organization Principles
 
@@ -1037,11 +1060,13 @@ The code follows a clear dependency direction:
 cmd → api → services → repositories → models
 ```
 
-This ensures that higher-level components depend on lower-level ones, but not vice versa.
+This ensures that higher-level components depend on lower-level ones, but not
+vice versa.
 
 #### Interface Definitions
 
-Interfaces are typically defined in the package where they are used, not where they are implemented. For example:
+Interfaces are typically defined in the package where they are used, not where
+they are implemented. For example:
 
 ```go
 // internal/system/service.go
@@ -1059,7 +1084,8 @@ Errors are propagated up the call stack and handled at appropriate levels:
 
 - Low-level functions return specific errors
 - Mid-level functions add context to errors
-- High-level functions (API handlers, etc.) translate errors to appropriate responses
+- High-level functions (API handlers, etc.) translate errors to appropriate
+  responses
 
 ### 3.4. Key Design Patterns
 
@@ -1079,7 +1105,8 @@ This project follows the standard Go code style and conventions:
 
 - Use `gofmt` or `goimports` for formatting
 - Follow [Effective Go](https://golang.org/doc/effective_go) guidelines
-- Adhere to [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- Adhere to
+  [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
 
 #### Naming Conventions
 
@@ -1394,7 +1421,9 @@ func (h *SystemsHandler) RegisterRoutes(r *mux.Router) {
 
 ### 7.3. Error Handling in API
 
-Consistent error handling is crucial for creating a reliable and user-friendly API. This section outlines the error handling patterns and best practices for the Ubuntu Autoinstall Webhook API.
+Consistent error handling is crucial for creating a reliable and user-friendly
+API. This section outlines the error handling patterns and best practices for
+the Ubuntu Autoinstall Webhook API.
 
 #### 7.3.1. Error Response Structure
 
@@ -1415,6 +1444,7 @@ All API error responses follow a standard JSON format:
 ```
 
 Key components:
+
 - `status`: Always "error" for error responses
 - `error.code`: A machine-readable error code (snake_case)
 - `error.message`: A human-readable error message
@@ -1424,21 +1454,21 @@ Key components:
 
 Use these standard error codes consistently across the API:
 
-| HTTP Status | Error Code                | Usage |
-|-------------|---------------------------|-------|
-| 400         | `invalid_request`         | General validation error |
-| 400         | `missing_required_field`  | A required field is missing |
-| 400         | `invalid_field_format`    | A field has invalid format |
-| 401         | `authentication_required` | Authentication is missing |
-| 401         | `invalid_credentials`     | Authentication failed |
-| 401         | `token_expired`           | Auth token has expired |
-| 403         | `permission_denied`       | User lacks permission |
+| HTTP Status | Error Code                | Usage                            |
+| ----------- | ------------------------- | -------------------------------- |
+| 400         | `invalid_request`         | General validation error         |
+| 400         | `missing_required_field`  | A required field is missing      |
+| 400         | `invalid_field_format`    | A field has invalid format       |
+| 401         | `authentication_required` | Authentication is missing        |
+| 401         | `invalid_credentials`     | Authentication failed            |
+| 401         | `token_expired`           | Auth token has expired           |
+| 403         | `permission_denied`       | User lacks permission            |
 | 404         | `resource_not_found`      | Requested resource doesn't exist |
-| 409         | `resource_conflict`       | Resource state conflict |
-| 422         | `validation_failed`       | Semantic validation failed |
-| 429         | `too_many_requests`       | Rate limit exceeded |
-| 500         | `server_error`            | Unexpected server error |
-| 503         | `service_unavailable`     | Service temporarily unavailable |
+| 409         | `resource_conflict`       | Resource state conflict          |
+| 422         | `validation_failed`       | Semantic validation failed       |
+| 429         | `too_many_requests`       | Rate limit exceeded              |
+| 500         | `server_error`            | Unexpected server error          |
+| 503         | `service_unavailable`     | Service temporarily unavailable  |
 
 #### 7.3.3. Implementing Error Handling
 
@@ -1578,7 +1608,8 @@ Follow these guidelines for error logging:
 
 1. **Log Unexpected Errors**: Always log unexpected errors at error level
 2. **Include Context**: Add relevant request context to logs
-3. **Don't Log Expected Errors**: No need to log 404s and validation errors as errors
+3. **Don't Log Expected Errors**: No need to log 404s and validation errors as
+   errors
 4. **Include Stack Trace**: For internal errors, include stack traces
 
 Example:
@@ -1605,9 +1636,12 @@ if err != nil {
 
 #### 7.3.8. Security Considerations
 
-1. **Don't Leak Implementation Details**: Internal error messages should not be exposed to clients
-2. **Be Careful with Error Messages**: Error messages should not reveal sensitive information
-3. **Use Generic Messages for 500 Errors**: Don't include detailed error information in 500 responses
+1. **Don't Leak Implementation Details**: Internal error messages should not be
+   exposed to clients
+2. **Be Careful with Error Messages**: Error messages should not reveal
+   sensitive information
+3. **Use Generic Messages for 500 Errors**: Don't include detailed error
+   information in 500 responses
 4. **Log Sensitive Errors**: Log the full error internally for debugging
 
 #### 7.3.9. Testing Error Conditions
@@ -1640,13 +1674,16 @@ func TestGetSystem_NotFound(t *testing.T) {
 
 ### 7.4. API Authentication
 
-The Ubuntu Autoinstall Webhook API uses a robust authentication system to secure endpoints. This section covers implementation details for API authentication mechanisms.
+The Ubuntu Autoinstall Webhook API uses a robust authentication system to secure
+endpoints. This section covers implementation details for API authentication
+mechanisms.
 
 #### 7.4.1. Authentication Methods
 
 The API supports three authentication methods:
 
-1. **API Token Authentication**: Long-lived tokens for service accounts and automation
+1. **API Token Authentication**: Long-lived tokens for service accounts and
+   automation
 2. **JWT Authentication**: Short-lived JSON Web Tokens for user sessions
 3. **Basic Authentication**: Username/password for initial authentication only
 
@@ -1655,6 +1692,7 @@ The API supports three authentication methods:
 API tokens provide a simple way for services to authenticate with the API.
 
 **Token Format**:
+
 - 64-character randomly generated string
 - Prefixed with `uaw_` to identify token type
 - Example: `uaw_a1b2c3d4e5f6...`
@@ -1677,6 +1715,7 @@ func GenerateAPIToken() (string, error) {
 ```
 
 **Token Storage**:
+
 - Store only the hashed value of the token in the database
 - Use bcrypt for hashing tokens
 
@@ -1851,7 +1890,8 @@ func TokenAuthMiddleware(next http.Handler) http.Handler {
 
 #### 7.4.5. Authorization Middleware
 
-In addition to authentication, implement authorization to check if authenticated users have the necessary permissions:
+In addition to authentication, implement authorization to check if authenticated
+users have the necessary permissions:
 
 ```go
 // In internal/api/middleware/auth.go
@@ -1976,11 +2016,13 @@ func TestTokenAuthMiddleware(t *testing.T) {
 
 ### 7.5. API Versioning
 
-API versioning ensures backward compatibility as the API evolves. The Ubuntu Autoinstall Webhook uses URL-based versioning.
+API versioning ensures backward compatibility as the API evolves. The Ubuntu
+Autoinstall Webhook uses URL-based versioning.
 
 #### 7.5.1. Versioning Strategy
 
 The API version is specified in the URL path:
+
 - Current version: `/api/v1/...`
 - Future versions: `/api/v2/...`, `/api/v3/...`
 
@@ -2083,11 +2125,13 @@ func (h *SystemsHandlerV2) GetSystem(w http.ResponseWriter, r *http.Request) {
 
 ### 7.6. API Documentation
 
-Comprehensive API documentation is essential for developers using the API. This section covers how to document the API using OpenAPI/Swagger.
+Comprehensive API documentation is essential for developers using the API. This
+section covers how to document the API using OpenAPI/Swagger.
 
 #### 7.6.1. OpenAPI Specification
 
-The Ubuntu Autoinstall Webhook API is documented using OpenAPI 3.0. The specification is maintained in YAML format.
+The Ubuntu Autoinstall Webhook API is documented using OpenAPI 3.0. The
+specification is maintained in YAML format.
 
 **Basic Structure**:
 
@@ -2281,15 +2325,19 @@ Ensure API documentation stays in sync with implementation:
 
 1. **Review Process**: Include OpenAPI spec updates in code reviews
 2. **Testing**: Test that API responses match documented schemas
-3. **Automation**: Consider tools to validate API responses against OpenAPI schemas
+3. **Automation**: Consider tools to validate API responses against OpenAPI
+   schemas
 
 ### 7.7. Rate Limiting
 
-Implement rate limiting to protect the API from abuse and ensure fair resource usage.
+Implement rate limiting to protect the API from abuse and ensure fair resource
+usage.
 
 #### 7.7.1. Rate Limiting Strategy
 
-The API uses a token bucket algorithm for rate limiting with different limits based on:
+The API uses a token bucket algorithm for rate limiting with different limits
+based on:
+
 - Authentication status
 - User role
 - Endpoint sensitivity
@@ -2457,7 +2505,9 @@ func RateLimitMiddleware(limiter *RateLimiter) func(http.Handler) http.Handler {
 
 ### 8.1. Database Architecture
 
-The Ubuntu Autoinstall Webhook uses a flexible database architecture that supports multiple database backends while maintaining consistent access patterns.
+The Ubuntu Autoinstall Webhook uses a flexible database architecture that
+supports multiple database backends while maintaining consistent access
+patterns.
 
 #### 8.1.1. Database Abstraction Layer
 
@@ -2465,9 +2515,11 @@ The system follows a layered approach to database access:
 
 1. **Models Layer**: Domain entities and data structures
 2. **Repository Layer**: Interface for data access operations
-3. **Database Implementation Layer**: Concrete implementations for different database backends
+3. **Database Implementation Layer**: Concrete implementations for different
+   database backends
 
 This architecture allows for:
+
 - Easy switching between database backends
 - Consistent access patterns across the application
 - Simplified testing with mock repositories
@@ -2530,7 +2582,8 @@ func NewDatabase(config *config.Config) (Database, error) {
 
 ### 8.2. Model Definition
 
-Models represent the core data entities in the system. They serve as both database records and domain objects.
+Models represent the core data entities in the system. They serve as both
+database records and domain objects.
 
 #### 8.2.1. Basic Model Structure
 
@@ -2667,7 +2720,8 @@ type Installation struct {
 
 ### 8.3. Repository Pattern
 
-The repository pattern provides a clean abstraction for database operations while keeping business logic separate from data access.
+The repository pattern provides a clean abstraction for database operations
+while keeping business logic separate from data access.
 
 #### 8.3.1. Repository Interfaces
 
@@ -2798,7 +2852,8 @@ func (r *sqliteSystemRepository) List(filter SystemFilter) ([]*models.System, er
 
 #### 8.3.3. CockroachDB Implementation
 
-For CockroachDB, leverage GORM's compatibility while handling CockroachDB-specific features:
+For CockroachDB, leverage GORM's compatibility while handling
+CockroachDB-specific features:
 
 ```go
 // In internal/database/cockroach_system_repository.go
@@ -3083,8 +3138,10 @@ Create appropriate indexes based on query patterns:
 
 1. **Primary Key Indexes**: Automatically created (e.g., `id`)
 2. **Foreign Key Indexes**: Create for all foreign keys (e.g., `system_id`)
-3. **Filter Indexes**: Create for columns frequently used in WHERE clauses (e.g., `status`)
-4. **Unique Indexes**: For columns with uniqueness constraints (e.g., `hostname`, `mac_address`)
+3. **Filter Indexes**: Create for columns frequently used in WHERE clauses
+   (e.g., `status`)
+4. **Unique Indexes**: For columns with uniqueness constraints (e.g.,
+   `hostname`, `mac_address`)
 
 Example of adding indexes:
 

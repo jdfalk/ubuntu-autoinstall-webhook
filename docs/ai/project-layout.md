@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Project Layout](#project-layout)
   - [Repository Structure](#repository-structure)
@@ -20,7 +19,8 @@
 
 # Project Layout
 
-This document provides a structured overview of the Ubuntu Autoinstall Webhook repository organization to help AI assistants understand the codebase structure.
+This document provides a structured overview of the Ubuntu Autoinstall Webhook
+repository organization to help AI assistants understand the codebase structure.
 
 ## Repository Structure
 
@@ -88,12 +88,18 @@ ubuntu-autoinstall-webhook/
 ## Key Directories Explained
 
 ### `cmd/`
-Contains the application entry points. Each subdirectory typically corresponds to a compiled binary.
+
+Contains the application entry points. Each subdirectory typically corresponds
+to a compiled binary.
 
 ### `internal/`
-Contains application code that's private to this project. The Go compiler enforces that packages under `internal/` can only be imported by code in the parent directory.
+
+Contains application code that's private to this project. The Go compiler
+enforces that packages under `internal/` can only be imported by code in the
+parent directory.
 
 #### Core Components in `internal/`:
+
 - **api**: RESTful API implementation
 - **certificate**: Certificate authority and management
 - **database**: Database interactions and models
@@ -103,40 +109,54 @@ Contains application code that's private to this project. The Go compiler enforc
 - **template**: Installation template processing
 
 ### `pkg/`
-Contains code that may be used by external applications. These packages have stable APIs and are designed for reuse.
+
+Contains code that may be used by external applications. These packages have
+stable APIs and are designed for reuse.
 
 ### `web/`
-Contains web interface assets, including HTML templates, JavaScript, CSS, and other static files.
+
+Contains web interface assets, including HTML templates, JavaScript, CSS, and
+other static files.
 
 ### `docs/`
+
 Project documentation, organized by audience and purpose.
 
 ### `test/`
-Contains test code, especially integration and end-to-end tests. Unit tests are typically co-located with the code they test.
+
+Contains test code, especially integration and end-to-end tests. Unit tests are
+typically co-located with the code they test.
 
 ## Code Organization Principles
 
-1. **Domain-Driven Design**: Code is organized around business domains rather than technical function.
+1. **Domain-Driven Design**: Code is organized around business domains rather
+   than technical function.
 
-2. **Clean Architecture**: The codebase follows clean architecture principles with clear separation of:
+2. **Clean Architecture**: The codebase follows clean architecture principles
+   with clear separation of:
    - Domain logic
    - Application business rules
    - Interface adapters
    - External frameworks and drivers
 
-3. **Dependency Injection**: Dependencies are passed to components rather than created within them.
+3. **Dependency Injection**: Dependencies are passed to components rather than
+   created within them.
 
-4. **Component Isolation**: Major system components are designed to work independently.
+4. **Component Isolation**: Major system components are designed to work
+   independently.
 
-5. **Interface-Based Design**: Components interact through interfaces, allowing mock implementations during testing.
+5. **Interface-Based Design**: Components interact through interfaces, allowing
+   mock implementations during testing.
 
 ## Important Design Patterns
 
-1. **Repository Pattern**: Used for database access, abstracting storage details.
+1. **Repository Pattern**: Used for database access, abstracting storage
+   details.
 
 2. **Service Layer**: Business logic is encapsulated in service objects.
 
-3. **Middleware Pattern**: Used for HTTP request processing (logging, authentication, etc.).
+3. **Middleware Pattern**: Used for HTTP request processing (logging,
+   authentication, etc.).
 
 4. **Factory Pattern**: Used for creating complex objects.
 
@@ -153,6 +173,8 @@ The application follows a clear import hierarchy:
 3. Project imports
 
 Project imports maintain the following dependency direction:
-- `cmd` → `internal/api` → `internal/service` → `internal/repository` → `internal/model`
+
+- `cmd` → `internal/api` → `internal/service` → `internal/repository` →
+  `internal/model`
 
 This ensures clean separation and prevents circular dependencies.

@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Configuration Microservice Architecture](#configuration-microservice-architecture)
   - [Table of Contents](#table-of-contents)
@@ -23,6 +22,7 @@
 # Configuration Microservice Architecture
 
 ## Table of Contents
+
 - [Configuration Microservice Architecture](#configuration-microservice-architecture)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
@@ -41,7 +41,9 @@
 
 ## Overview
 
-The Configuration microservice manages all system configuration aspects within the ubuntu-autoinstall-webhook system. It generates, validates, and distributes configuration artifacts needed for Ubuntu autoinstallation.
+The Configuration microservice manages all system configuration aspects within
+the ubuntu-autoinstall-webhook system. It generates, validates, and distributes
+configuration artifacts needed for Ubuntu autoinstallation.
 
 ## Core Responsibilities
 
@@ -54,12 +56,14 @@ The Configuration microservice manages all system configuration aspects within t
 ## Configuration Management
 
 ### Global Configuration
+
 - System-wide settings stored in the database
 - Includes network settings, installation defaults, and server configurations
 - Manages feature flags and optional component settings
 - Handles environment-specific configurations
 
 ### Per-System Configuration
+
 - Individual system configurations derived from templates and overrides
 - Stored in the database with unique identifiers
 - Contains both generated values and admin-specified settings
@@ -77,16 +81,19 @@ The Configuration microservice manages all system configuration aspects within t
 For each system, the service generates:
 
 ### Cloud-Init Files
+
 - `user-data`: Contains system provisioning instructions
 - `meta-data`: System identity information
 - `network-config`: Network configuration settings
 
 ### iPXE Boot Scripts
+
 - Boot configuration specific to each system's MAC address
 - Controls boot sequence and installation process
 - Contains URLs for kernel, initrd, and cloud-init locations
 
 ### Installation Variables
+
 - Generates `variables.sh` file with system-specific settings
 - Provides environment variables used during the installation process
 

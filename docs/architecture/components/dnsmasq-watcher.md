@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [DNSMasq Watcher Microservice Architecture](#dnsmasq-watcher-microservice-architecture)
   - [Table of Contents](#table-of-contents)
@@ -19,6 +18,7 @@
 # DNSMasq Watcher Microservice Architecture
 
 ## Table of Contents
+
 - [DNSMasq Watcher Microservice Architecture](#dnsmasq-watcher-microservice-architecture)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
@@ -33,7 +33,10 @@
 
 ## Overview
 
-The DNSMasq Watcher microservice monitors dnsmasq logs or API to detect new systems on the network. It extracts MAC addresses, IP addresses, and hostnames from DHCP requests and registers these systems for potential automatic installation.
+The DNSMasq Watcher microservice monitors dnsmasq logs or API to detect new
+systems on the network. It extracts MAC addresses, IP addresses, and hostnames
+from DHCP requests and registers these systems for potential automatic
+installation.
 
 ## Core Responsibilities
 
@@ -57,6 +60,7 @@ The DNSMasq Watcher microservice monitors dnsmasq logs or API to detect new syst
 ## System Detection
 
 ### Identification Process
+
 - Detects DHCP DISCOVER, REQUEST, and ACK messages
 - Extracts MAC address as primary system identifier
 - Captures assigned IP address from DHCP ACK
@@ -64,6 +68,7 @@ The DNSMasq Watcher microservice monitors dnsmasq logs or API to detect new syst
 - Cross-references with existing system records
 
 ### Deduplication Strategy
+
 - Uses MAC address as unique identifier
 - Updates existing system records rather than creating duplicates
 - Tracks IP address changes for the same MAC

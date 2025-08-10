@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Ubuntu Autoinstall Webhook System Architecture](#ubuntu-autoinstall-webhook-system-architecture)
   - [Table of Contents](#table-of-contents)
@@ -30,6 +29,7 @@
 # Ubuntu Autoinstall Webhook System Architecture
 
 ## Table of Contents
+
 - [System Overview](#system-overview)
 - [Architecture Principles](#architecture-principles)
 - [Component Interactions](#component-interactions)
@@ -40,9 +40,14 @@
 
 ## System Overview
 
-The Ubuntu Autoinstall Webhook system is a microservices-based application designed to automate the installation of Ubuntu systems through PXE boot and cloud-init. It provides both a web interface for administrators and a set of API endpoints for automation.
+The Ubuntu Autoinstall Webhook system is a microservices-based application
+designed to automate the installation of Ubuntu systems through PXE boot and
+cloud-init. It provides both a web interface for administrators and a set of API
+endpoints for automation.
 
-Despite being implemented as microservices, the system is packaged as a single Go binary with multiple commands, simplifying deployment while maintaining the benefits of a microservices architecture.
+Despite being implemented as microservices, the system is packaged as a single
+Go binary with multiple commands, simplifying deployment while maintaining the
+benefits of a microservices architecture.
 
 ### Core Components
 
@@ -58,7 +63,8 @@ Despite being implemented as microservices, the system is packaged as a single G
 The system architecture follows these core principles:
 
 1. **Separation of Concerns**: Each microservice has a distinct responsibility
-2. **Interface-Based Design**: Components interact through well-defined interfaces
+2. **Interface-Based Design**: Components interact through well-defined
+   interfaces
 3. **Testability**: All components are designed for comprehensive testing
 4. **Configurability**: All aspects of the system are configurable
 5. **Security-First**: Security is built into the design, not added later
@@ -66,7 +72,8 @@ The system architecture follows these core principles:
 
 ## Component Interactions
 
-The microservices communicate primarily through gRPC, with the following key interactions:
+The microservices communicate primarily through gRPC, with the following key
+interactions:
 
 ### Installation Workflow
 
@@ -105,17 +112,20 @@ The microservices communicate primarily through gRPC, with the following key int
 The system supports multiple deployment models:
 
 ### Single-Node Deployment
+
 - All services running on a single server
 - Suitable for small-scale deployments
 - Uses SQLite3 as the database backend
 
 ### Kubernetes Deployment
+
 - Services deployed as separate containers
 - Supports horizontal scaling for most components
 - Uses CockroachDB for distributed database
 - Leverages Kubernetes features for availability and scaling
 
 ### Hybrid Deployment
+
 - Core services deployed centrally
 - DNSMasq Watcher deployed at network edge points
 - Installation clients across the network
@@ -123,17 +133,20 @@ The system supports multiple deployment models:
 ## Security Architecture
 
 ### Authentication Methods
+
 - Mutual TLS for service-to-service communication
 - Pre-shared secrets for initial client authentication
 - Username/password or SSO for web UI
 - MAC address and IP-based verification for clients
 
 ### Authorization
+
 - RBAC for web UI access control
 - Service-to-service authorization via mTLS
 - Granular permissions model for administrative functions
 
 ### Data Protection
+
 - Encryption of sensitive data at rest
 - TLS for all network communication
 - Certificate lifecycle management
@@ -141,20 +154,25 @@ The system supports multiple deployment models:
 ## Scalability and Availability
 
 ### Stateless Services
+
 Most services are stateless and can be horizontally scaled:
+
 - Configuration Service
 - Certificate Issuer
 - Webserver
 - DNSMasq Watcher
 
 ### Stateful Services
+
 Services with state have special considerations:
+
 - Database Service: Uses CockroachDB for scalability when needed
 - File Editor: Uses leader election to prevent conflicts
 
 ## Data Flow
 
 ### Installation Data Flow
+
 1. Client system boots and obtains IP via DHCP
 2. DNSMasq Watcher detects the system and registers it
 3. Configuration is generated for the system
@@ -164,6 +182,7 @@ Services with state have special considerations:
 7. System is recorded as successfully installed
 
 ### Configuration Data Flow
+
 1. Administrator creates or modifies configuration
 2. Configuration is validated and stored in database
 3. Configuration is applied to relevant systems

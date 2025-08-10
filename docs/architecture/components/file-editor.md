@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [File Editor Microservice Architecture](#file-editor-microservice-architecture)
   - [Table of Contents](#table-of-contents)
@@ -21,6 +20,7 @@
 # File Editor Microservice Architecture
 
 ## Table of Contents
+
 - [File Editor Microservice Architecture](#file-editor-microservice-architecture)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
@@ -37,7 +37,10 @@
 
 ## Overview
 
-The File Editor microservice is responsible for all filesystem operations within the ubuntu-autoinstall-webhook system. It provides a safe interface for reading, writing, and validating files that are critical to the PXE boot process and Ubuntu autoinstallation.
+The File Editor microservice is responsible for all filesystem operations within
+the ubuntu-autoinstall-webhook system. It provides a safe interface for reading,
+writing, and validating files that are critical to the PXE boot process and
+Ubuntu autoinstallation.
 
 ## Core Responsibilities
 
@@ -49,7 +52,8 @@ The File Editor microservice is responsible for all filesystem operations within
 
 ## Leader Election
 
-To prevent file conflicts and ensure data integrity, only one instance of the File Editor can be active at any time:
+To prevent file conflicts and ensure data integrity, only one instance of the
+File Editor can be active at any time:
 
 - Uses a database lock or Kubernetes lease for leader election
 - Other instances remain in standby mode until leader fails
@@ -59,20 +63,29 @@ To prevent file conflicts and ensure data integrity, only one instance of the Fi
 ## Directory and File Management
 
 ### iPXE Boot Configuration Files
+
 - Writes and manages files in `/var/www/html/ipxe/boot/`
-- Uses consistent naming convention: `/var/www/html/ipxe/boot/mac-{MAC_ADDRESS}.ipxe`
+- Uses consistent naming convention:
+  `/var/www/html/ipxe/boot/mac-{MAC_ADDRESS}.ipxe`
 - Updates files when installation status changes
 
 ### Cloud-Init Directory Structure
-- Creates per-system directories using MAC address: `/var/www/html/cloud-init/{MAC_ADDRESS}/`
-- Creates installation directories: `/var/www/html/cloud-init/{MAC_ADDRESS}_install/`
+
+- Creates per-system directories using MAC address:
+  `/var/www/html/cloud-init/{MAC_ADDRESS}/`
+- Creates installation directories:
+  `/var/www/html/cloud-init/{MAC_ADDRESS}_install/`
 - Maintains symbolic links from hostname to MAC address:
-  - `/var/www/html/cloud-init/{HOSTNAME}/` → `/var/www/html/cloud-init/{MAC_ADDRESS}/`
-  - `/var/www/html/cloud-init/{HOSTNAME}_install/` → `/var/www/html/cloud-init/{MAC_ADDRESS}_install/`
+  - `/var/www/html/cloud-init/{HOSTNAME}/` →
+    `/var/www/html/cloud-init/{MAC_ADDRESS}/`
+  - `/var/www/html/cloud-init/{HOSTNAME}_install/` →
+    `/var/www/html/cloud-init/{MAC_ADDRESS}_install/`
 - Prevents hostname conflicts through validation
 
 ### Core Configuration Files
+
 For each system, manages the following files:
+
 - `meta-data`: System metadata (instance-id, local-hostname)
 - `network-config`: Network configuration (typically minimal)
 - `user-data`: Cloud-init instructions for system configuration
@@ -88,6 +101,7 @@ For each system, manages the following files:
 ## Interface
 
 The File Editor exposes a gRPC interface that allows other services to:
+
 - Request file creation or modification
 - Request file reads
 - Check if a file exists

@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [AI Communication Protocols](#ai-communication-protocols)
   - [General Communication Guidelines](#general-communication-guidelines)
@@ -34,7 +33,10 @@
 
 # AI Communication Protocols
 
-This document establishes protocols for how AI assistants should communicate with developers working on the Ubuntu Autoinstall Webhook project. Following these guidelines will ensure consistent, productive interactions that align with project goals.
+This document establishes protocols for how AI assistants should communicate
+with developers working on the Ubuntu Autoinstall Webhook project. Following
+these guidelines will ensure consistent, productive interactions that align with
+project goals.
 
 ## General Communication Guidelines
 
@@ -65,11 +67,13 @@ This document establishes protocols for how AI assistants should communicate wit
 When suggesting code:
 
 1. **Use Clear File Path Headers**
+
    ```
    // File: internal/api/systems.go
    ```
 
 2. **Include Context for Modifications**
+
    ```
    // Existing function to modify:
    func GetSystem(id string) (*System, error) {
@@ -154,7 +158,7 @@ For security-related topics:
 
 ### For Component Implementation
 
-```
+````
 # [Component Name] Implementation
 
 ## Overview
@@ -163,65 +167,82 @@ For security-related topics:
 ## Interface Definition
 ```go
 // [Interface code with documentation comments]
-```
+````
 
 ## Implementation
+
 ```go
 // [Implementation code with documentation comments]
 ```
 
 ## Usage Example
+
 ```go
 // [Example showing how to use this component]
 ```
 
 ## Test Cases
+
 ```go
 // [Example test cases]
 ```
 
 ## Security Considerations
+
 [Security-related notes, if applicable]
 
 ## Performance Considerations
+
 [Performance-related notes, if applicable]
+
 ```
 
 ### For Bug Fixes
 
 ```
+
 # Bug Fix: [Brief Description]
 
 ## Issue
+
 [Description of the bug and its impact]
 
 ## Root Cause
+
 [Analysis of what's causing the issue]
 
 ## Proposed Fix
+
 ```go
 // [Code changes to resolve the issue]
 ```
 
 ## Testing
+
 [How to verify the fix works correctly]
+
 ```
 
 ### For Code Review
 
 ```
+
 # Code Review: [File or Component Name]
 
 ## Overview
+
 [General assessment of the code]
 
 ## Key Observations
 
 ### Strengths
+
 - [Positive aspects of the code]
 
 ### Areas for Improvement
+
 1. [Issue #1]
+
    ```go
    // Current code
 
@@ -229,6 +250,7 @@ For security-related topics:
    ```
 
 2. [Issue #2]
+
    ```go
    // Current code
 
@@ -236,10 +258,13 @@ For security-related topics:
    ```
 
 ## Security Review
+
 [Security-related observations]
 
 ## Performance Review
+
 [Performance-related observations]
+
 ```
 
 ## Special Considerations
@@ -292,3 +317,4 @@ When working alongside human developers:
    - Explain the reasoning behind suggestions
    - Include references to Go best practices or design patterns
    - Share knowledge that helps developers grow their skills
+```

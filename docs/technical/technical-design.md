@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Ubuntu Autoinstall Webhook Technical Design Document](#ubuntu-autoinstall-webhook-technical-design-document)
   - [1. Introduction](#1-introduction)
@@ -61,11 +60,16 @@
 
 ### 1.1. Purpose
 
-This document provides a comprehensive technical design for the Ubuntu Autoinstall Webhook system, a solution designed to automate the installation of Ubuntu systems through PXE boot and cloud-init configurations. It serves as the primary reference for developers, architects, and technical staff implementing, maintaining, or extending the system.
+This document provides a comprehensive technical design for the Ubuntu
+Autoinstall Webhook system, a solution designed to automate the installation of
+Ubuntu systems through PXE boot and cloud-init configurations. It serves as the
+primary reference for developers, architects, and technical staff implementing,
+maintaining, or extending the system.
 
 ### 1.2. Scope
 
 This document covers:
+
 - The system architecture and component design
 - Technical specifications and protocols
 - Data structures and storage models
@@ -93,9 +97,13 @@ This document covers:
 
 ### 2.1. Architecture Overview
 
-The Ubuntu Autoinstall Webhook system follows a microservices architecture while being packaged as a single Go binary with multiple commands. This approach combines the benefits of microservices (separation of concerns, modular development) with the simplicity of deployment for a monolithic application.
+The Ubuntu Autoinstall Webhook system follows a microservices architecture while
+being packaged as a single Go binary with multiple commands. This approach
+combines the benefits of microservices (separation of concerns, modular
+development) with the simplicity of deployment for a monolithic application.
 
 The system consists of six core components:
+
 1. **File Editor Service**: Manages all filesystem operations
 2. **Database Service**: Provides persistent data storage
 3. **Configuration Service**: Generates and validates system configurations
@@ -108,7 +116,8 @@ The system consists of six core components:
 The system architecture adheres to the following core principles:
 
 1. **Separation of Concerns**: Each microservice has a distinct responsibility
-2. **Interface-Based Design**: Components interact through well-defined interfaces
+2. **Interface-Based Design**: Components interact through well-defined
+   interfaces
 3. **Testability**: Components are designed for comprehensive testing
 4. **Configurability**: All aspects of the system are configurable
 5. **Security-First**: Security is built into the design, not added later
@@ -116,9 +125,11 @@ The system architecture adheres to the following core principles:
 
 ### 2.3. Component Interaction
 
-The microservices communicate primarily through gRPC, with the following key interactions:
+The microservices communicate primarily through gRPC, with the following key
+interactions:
 
 **Installation Workflow**:
+
 1. DNSMasq Watcher detects a new system via DHCP request
 2. System information is stored in Database service
 3. Configuration service generates cloud-init and iPXE files
@@ -128,6 +139,7 @@ The microservices communicate primarily through gRPC, with the following key int
 7. Installation progress is reported back to Webserver
 
 **Administrative Workflow**:
+
 1. Admin accesses the web UI through Webserver
 2. Authentication is verified against Database
 3. Admin creates/modifies system configurations through web UI
@@ -171,14 +183,18 @@ The microservices communicate primarily through gRPC, with the following key int
 
 The File Editor service manages all filesystem operations within the system:
 
-- **Leader Election**: Uses database locks to ensure only one instance writes to the filesystem
-- **Directory Management**: Creates and maintains directory structures for cloud-init files
-- **File Operations**: Provides CRUD operations for files with atomic write guarantees
+- **Leader Election**: Uses database locks to ensure only one instance writes to
+  the filesystem
+- **Directory Management**: Creates and maintains directory structures for
+  cloud-init files
+- **File Operations**: Provides CRUD operations for files with atomic write
+  guarantees
 - **Validation**: Ensures file content meets expected formats before writing
 
 ### 4.2. Database Service
 
-The Database service provides persistent storage and abstracts database operations:
+The Database service provides persistent storage and abstracts database
+operations:
 
 - **Backend Support**: SQLite3 (default) and CockroachDB
 - **Schema Management**: Handles database migrations and schema evolution
@@ -190,9 +206,11 @@ The Database service provides persistent storage and abstracts database operatio
 The Configuration service manages all system configuration aspects:
 
 - **Template System**: Manages templates for cloud-init and iPXE files
-- **Configuration Generation**: Creates system-specific configurations from templates
+- **Configuration Generation**: Creates system-specific configurations from
+  templates
 - **Validation**: Ensures generated configurations are valid
-- **Caching**: Implements efficient caching for frequently accessed configurations
+- **Caching**: Implements efficient caching for frequently accessed
+  configurations
 
 ### 4.4. DNSMasq Watcher
 
@@ -271,31 +289,18 @@ The database schema consists of the following core tables:
 
 ### 5.2. File Structure
 
-The file system structure is organized as follows:
-/var/www/html/
-├── ipxe/
-│ └── boot/
-│ ├── mac-{MAC_ADDRESS}.ipxe
-│ └── ...
-├── cloud-init/
-│ ├── {MAC_ADDRESS}/
-│ │ ├── meta-data
-│ │ ├── network-config
-│ │ ├── user-data
-│ │ └── variables.sh
-│ ├── {MAC_ADDRESS}_install/
-│ │ └── ... (installation-specific files)
-│ ├── {HOSTNAME}/ -> {MAC_ADDRESS}/
-│ └── {HOSTNAME}_install/ -> {MAC_ADDRESS}_install/
-└── assets/
-├── kernel/
-├── initrd/
-└── web-ui/
-
+The file system structure is organized as follows: /var/www/html/ ├── ipxe/ │
+└── boot/ │ ├── mac-{MAC_ADDRESS}.ipxe │ └── ... ├── cloud-init/ │ ├──
+{MAC_ADDRESS}/ │ │ ├── meta-data │ │ ├── network-config │ │ ├── user-data │ │
+└── variables.sh │ ├── {MAC_ADDRESS}\_install/ │ │ └── ...
+(installation-specific files) │ ├── {HOSTNAME}/ -> {MAC_ADDRESS}/ │ └──
+{HOSTNAME}\_install/ -> {MAC_ADDRESS}\_install/ └── assets/ ├── kernel/ ├──
+initrd/ └── web-ui/
 
 ### 5.3. API Data Models
 
-The system uses Protocol Buffers for defining gRPC service interfaces and data models. Key data models include:
+The system uses Protocol Buffers for defining gRPC service interfaces and data
+models. Key data models include:
 
 - **SystemInfo**: Contains system identification and status information
 - **Configuration**: Represents a system configuration or template
@@ -390,7 +395,8 @@ The web UI follows an Angular SPA architecture with the following main sections:
 
 ### 7.1. Single-Node Deployment
 
-For small-scale deployments, the system runs as a single Go binary on one server:
+For small-scale deployments, the system runs as a single Go binary on one
+server:
 
 - All services running on a single server
 - SQLite3 as the database backend
@@ -400,7 +406,8 @@ For small-scale deployments, the system runs as a single Go binary on one server
 
 ### 7.2. Kubernetes Deployment
 
-For large-scale or high-availability deployments, the system can be deployed on Kubernetes:
+For large-scale or high-availability deployments, the system can be deployed on
+Kubernetes:
 
 - Services deployed as separate containers
 - CockroachDB for distributed database
@@ -433,7 +440,8 @@ For geographically distributed environments:
 - **Service Redundancy**: Multiple instances of each service can be deployed
 - **Database Replication**: CockroachDB provides high availability for data
 - **Leader Election**: Ensures only one instance handles critical operations
-- **Graceful Degradation**: System continues to function with reduced capability if some services are unavailable
+- **Graceful Degradation**: System continues to function with reduced capability
+  if some services are unavailable
 
 ### 8.3. Resource Requirements
 
@@ -457,7 +465,8 @@ Recommended system requirements for high-performance deployment:
 
 - **Service-to-Service**: mTLS with certificate-based authentication
 - **User-to-System**: Username/password or SSO integration
-- **Client-to-System**: Initial authentication with pre-shared secrets or MAC verification
+- **Client-to-System**: Initial authentication with pre-shared secrets or MAC
+  verification
 
 ### 9.2. Authorization
 

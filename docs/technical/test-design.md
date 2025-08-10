@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Ubuntu Autoinstall Webhook Test Design Document](#ubuntu-autoinstall-webhook-test-design-document)
   - [1. Introduction](#1-introduction)
@@ -62,11 +61,15 @@
 
 ### 1.1. Purpose
 
-This document outlines the testing strategy, methodologies, and specifications for the Ubuntu Autoinstall Webhook system. It serves as a comprehensive guide for quality assurance activities throughout the development lifecycle, ensuring the system meets its functional and non-functional requirements.
+This document outlines the testing strategy, methodologies, and specifications
+for the Ubuntu Autoinstall Webhook system. It serves as a comprehensive guide
+for quality assurance activities throughout the development lifecycle, ensuring
+the system meets its functional and non-functional requirements.
 
 ### 1.2. Scope
 
 This test design document covers:
+
 - Testing strategy and methodology
 - Test levels and types
 - Test specifications for components and integrated systems
@@ -104,9 +107,11 @@ The primary objectives of testing the Ubuntu Autoinstall Webhook system are:
 
 ### 2.2. Test Levels
 
-The testing approach includes multiple levels to ensure comprehensive quality assurance:
+The testing approach includes multiple levels to ensure comprehensive quality
+assurance:
 
-1. **Unit Testing**: Testing individual functions, methods, and classes in isolation
+1. **Unit Testing**: Testing individual functions, methods, and classes in
+   isolation
 2. **Integration Testing**: Testing interactions between components
 3. **System Testing**: Testing the complete system as a whole
 4. **Acceptance Testing**: Validating that the system meets user requirements
@@ -115,7 +120,8 @@ The testing approach includes multiple levels to ensure comprehensive quality as
 
 The following test types will be employed:
 
-1. **Functional Testing**: Verifies that components perform their required functions
+1. **Functional Testing**: Verifies that components perform their required
+   functions
 2. **Non-functional Testing**:
    - Performance Testing
    - Security Testing
@@ -152,12 +158,14 @@ Testing will be conducted in the following environments:
 ### 2.5. Entry and Exit Criteria
 
 **Entry Criteria**:
+
 - Code passes all linting and static analysis checks
 - Unit tests pass with minimum 80% coverage
 - Required test environment is available and configured
 - Test data is prepared and available
 
 **Exit Criteria**:
+
 - All planned tests executed
 - No critical or high-severity defects remain open
 - Code coverage meets or exceeds targets
@@ -234,6 +242,7 @@ Unit testing will follow these procedures:
 - **Execution**: Automated as part of the build process
 
 **Key Unit Testing Areas**:
+
 - Individual service methods and functions
 - Data validation logic
 - Error handling paths
@@ -249,6 +258,7 @@ Integration testing will focus on the following:
 - **Web UI**: Testing frontend-to-backend integration
 
 **Integration Test Approach**:
+
 - Use of integration test containers
 - gRPC service client/server testing
 - API contract testing
@@ -264,6 +274,7 @@ System testing will verify end-to-end functionality:
 - **Configuration Changes**: System adaptation to configuration changes
 
 **System Test Methods**:
+
 - Automated E2E test scripts
 - Manual testing of complex workflows
 - Virtual machine orchestration for client simulation
@@ -279,6 +290,7 @@ Performance testing will include:
 - **Endurance Testing**: System stability over extended periods
 
 **Performance Test Metrics**:
+
 - Response time for API calls and web UI operations
 - Throughput for installation requests
 - Resource utilization (CPU, memory, disk I/O)
@@ -295,6 +307,7 @@ Security testing will encompass:
 - **Penetration Testing**: Attempt to exploit the system
 
 **Security Testing Tools**:
+
 - Static Application Security Testing (SAST) tools
 - Dynamic Application Security Testing (DAST) tools
 - TLS/SSL configuration validation
@@ -314,6 +327,7 @@ UAT will focus on:
 ### 5.1. File Editor Service
 
 **Unit Test Areas**:
+
 - File creation, reading, updating, and deletion
 - Directory creation and management
 - Symbolic link operations
@@ -322,6 +336,7 @@ UAT will focus on:
 - Error handling and recovery
 
 **Test Cases**:
+
 1. Create file with valid content
 2. Attempt to create file with invalid content
 3. Read existing file
@@ -336,6 +351,7 @@ UAT will focus on:
 ### 5.2. Database Service
 
 **Unit Test Areas**:
+
 - CRUD operations for all entity types
 - Transaction management
 - Connection pooling
@@ -344,6 +360,7 @@ UAT will focus on:
 - Error handling
 
 **Test Cases**:
+
 1. Create new entity
 2. Read entity by ID
 3. Update existing entity
@@ -358,6 +375,7 @@ UAT will focus on:
 ### 5.3. Configuration Service
 
 **Unit Test Areas**:
+
 - Template management
 - Configuration generation
 - Validation logic
@@ -366,6 +384,7 @@ UAT will focus on:
 - Configuration versioning
 
 **Test Cases**:
+
 1. Create new template
 2. Generate configuration from template
 3. Validate valid configuration
@@ -380,6 +399,7 @@ UAT will focus on:
 ### 5.4. DNSMasq Watcher
 
 **Unit Test Areas**:
+
 - Log file monitoring
 - DHCP event detection
 - System identification
@@ -388,6 +408,7 @@ UAT will focus on:
 - Error handling and recovery
 
 **Test Cases**:
+
 1. Detect DHCP DISCOVER event
 2. Parse MAC address from log entry
 3. Handle log rotation
@@ -402,6 +423,7 @@ UAT will focus on:
 ### 5.5. Certificate Issuer
 
 **Unit Test Areas**:
+
 - CA management
 - Certificate signing
 - CSR validation
@@ -410,6 +432,7 @@ UAT will focus on:
 - Certificate rotation
 
 **Test Cases**:
+
 1. Create root CA
 2. Create intermediate CA
 3. Process valid CSR
@@ -424,6 +447,7 @@ UAT will focus on:
 ### 5.6. Webserver
 
 **Unit Test Areas**:
+
 - HTTP request handling
 - Authentication and authorization
 - Static file serving
@@ -432,6 +456,7 @@ UAT will focus on:
 - Error handling and status codes
 
 **Test Cases**:
+
 1. Serve static HTML content
 2. Authenticate valid user credentials
 3. Reject invalid authentication attempts
@@ -448,6 +473,7 @@ UAT will focus on:
 ### 6.1. Service-to-Service Integration
 
 **Test Areas**:
+
 - gRPC communication between services
 - Service discovery and connection
 - Authentication between services
@@ -455,6 +481,7 @@ UAT will focus on:
 - Retry and circuit breaking
 
 **Test Cases**:
+
 1. Configuration service requests file write from File Editor
 2. DNSMasq Watcher registers system with Database
 3. Webserver retrieves configuration from Configuration service
@@ -469,6 +496,7 @@ UAT will focus on:
 ### 6.2. Frontend-to-Backend Integration
 
 **Test Areas**:
+
 - REST API contracts
 - Authentication flow
 - Form submissions and validation
@@ -476,6 +504,7 @@ UAT will focus on:
 - Error handling and user feedback
 
 **Test Cases**:
+
 1. Login and session management
 2. Create system via web UI
 3. Edit configuration template
@@ -490,6 +519,7 @@ UAT will focus on:
 ### 6.3. External System Integration
 
 **Test Areas**:
+
 - DNSMasq interaction
 - Filesystem operations
 - PXE boot process
@@ -497,6 +527,7 @@ UAT will focus on:
 - External authentication systems
 
 **Test Cases**:
+
 1. DNSMasq log processing
 2. Serving files for PXE boot
 3. Client retrieval of boot files
@@ -513,6 +544,7 @@ UAT will focus on:
 ### 7.1. Functional Testing
 
 **Test Areas**:
+
 - Complete system functionality
 - Feature interactions
 - Configuration options
@@ -520,6 +552,7 @@ UAT will focus on:
 - Edge cases
 
 **Test Cases**:
+
 1. End-to-end system setup and configuration
 2. Full range of administrative functions
 3. System behavior with various configuration options
@@ -534,6 +567,7 @@ UAT will focus on:
 ### 7.2. Installation Workflow Testing
 
 **Test Areas**:
+
 - Complete installation workflow
 - PXE boot process
 - Cloud-init configuration
@@ -541,6 +575,7 @@ UAT will focus on:
 - Post-installation tasks
 
 **Test Cases**:
+
 1. PXE boot of physical machine
 2. PXE boot of virtual machine
 3. Installation with minimal configuration
@@ -555,6 +590,7 @@ UAT will focus on:
 ### 7.3. Administration Workflow Testing
 
 **Test Areas**:
+
 - User management
 - System configuration
 - Template management
@@ -562,6 +598,7 @@ UAT will focus on:
 - Troubleshooting tools
 
 **Test Cases**:
+
 1. User creation and role assignment
 2. Template creation and editing
 3. System settings configuration
@@ -578,6 +615,7 @@ UAT will focus on:
 ### 8.1. Testing Tools
 
 **Unit and Integration Testing**:
+
 - Go testing package
 - Testify for assertions and mocks
 - GoMock for interface mocking
@@ -585,22 +623,26 @@ UAT will focus on:
 - GitHub Actions for CI testing
 
 **API Testing**:
+
 - Postman for manual API testing
 - Newman for automated API tests
 - gRPCurl for gRPC testing
 
 **Web UI Testing**:
+
 - Jest for JavaScript testing
 - Cypress for E2E testing
 - Angular Testing Library
 - Selenium for cross-browser testing
 
 **Performance Testing**:
+
 - JMeter for load testing
 - Gatling for performance scenarios
 - Go benchmarks for component performance
 
 **Security Testing**:
+
 - OWASP ZAP for vulnerability scanning
 - SonarQube for static analysis
 - TLS Scanner for SSL/TLS configuration
@@ -609,18 +651,21 @@ UAT will focus on:
 ### 8.2. Test Data Management
 
 **Test Data Sources**:
+
 - Generated test data
 - Anonymized production data
 - Static test fixtures
 - Randomized test data generators
 
 **Test Data Strategies**:
+
 - Database seeding for known states
 - API-based test data creation
 - Docker volume mounting for filesystem data
 - Environment-specific configuration files
 
 **Test Data Considerations**:
+
 - Data isolation between test runs
 - Clean-up procedures after tests
 - Realistic data for performance testing
@@ -629,24 +674,28 @@ UAT will focus on:
 ### 8.3. Test Environments
 
 **Local Development Environment**:
+
 - Docker Compose for service orchestration
 - Local database instance
 - Mock external services
 - Hot-reloading for rapid iteration
 
 **CI Testing Environment**:
+
 - Ephemeral containers for each test run
 - In-memory or containerized databases
 - Network isolation between services
 - Automatic setup and teardown
 
 **Integration Testing Environment**:
+
 - Persistent environment with full deployment
 - Shared database instance
 - Monitored for performance characteristics
 - Reset to known state between major test suites
 
 **Production-like Environment**:
+
 - Hardware similar to production
 - Network topology mirroring production
 - Realistic data volumes
@@ -655,18 +704,21 @@ UAT will focus on:
 ### 8.4. Test Automation
 
 **Automation Framework**:
+
 - Custom Go automation framework
 - Test case management integration
 - Parameterized test execution
 - Parallel test execution
 
 **CI/CD Integration**:
+
 - GitHub Actions workflows
 - Automated test execution on pull requests
 - Required status checks before merging
 - Nightly comprehensive test runs
 
 **Reporting and Visualization**:
+
 - Test results published to dashboard
 - Historical performance trends
 - Code coverage visualization
@@ -677,24 +729,28 @@ UAT will focus on:
 ### 9.1. Test Execution Process
 
 **Test Planning**:
+
 1. Identify test requirements from specifications
 2. Create or update test cases
 3. Prepare test environment and data
 4. Schedule test execution
 
 **Test Execution**:
+
 1. Set up test environment
 2. Execute automated test suites
 3. Conduct manual testing where required
 4. Document test results and observations
 
 **Test Analysis**:
+
 1. Review test results
 2. Identify failed tests and issues
 3. Categorize and prioritize failures
 4. Report defects to development team
 
 **Test Reporting**:
+
 1. Generate test execution summary
 2. Compile metrics and statistics
 3. Highlight key risks or concerns
@@ -703,6 +759,7 @@ UAT will focus on:
 ### 9.2. Defect Management
 
 **Defect Lifecycle**:
+
 1. Discovery and reporting
 2. Triage and prioritization
 3. Assignment to developer
@@ -710,6 +767,7 @@ UAT will focus on:
 5. Verification and closure
 
 **Defect Classification**:
+
 - Critical: System crash or data loss
 - High: Major functionality broken
 - Medium: Function works but with limitations
@@ -717,6 +775,7 @@ UAT will focus on:
 - Enhancement: Suggested improvements
 
 **Defect Tracking**:
+
 - GitHub Issues for defect tracking
 - Required information for each defect
 - Reproduction steps and environment details
@@ -726,12 +785,14 @@ UAT will focus on:
 ### 9.3. Test Reporting
 
 **Regular Reports**:
+
 - Daily test execution summary
 - Weekly defect trend analysis
 - Sprint test coverage report
 - Release candidate quality assessment
 
 **Report Contents**:
+
 - Test execution statistics
 - Defect metrics and trends
 - Code coverage percentages
@@ -740,6 +801,7 @@ UAT will focus on:
 - Risk assessment
 
 **Dashboards and Visualization**:
+
 - Real-time test execution status
 - Historical quality metrics
 - Coverage trends over time
@@ -750,12 +812,14 @@ UAT will focus on:
 ### 10.1. Code Coverage
 
 **Coverage Types**:
+
 - Statement coverage (minimum 80%)
 - Branch coverage (minimum 70%)
 - Function coverage (minimum 90%)
 - Integration coverage (minimum 75%)
 
 **Coverage Analysis**:
+
 - Identify under-tested components
 - Highlight complex code with low coverage
 - Track coverage trends over time
@@ -764,6 +828,7 @@ UAT will focus on:
 ### 10.2. Defect Metrics
 
 **Defect Measurements**:
+
 - Defect density (defects per KLOC)
 - Defect discovery rate
 - Defect fix rate
@@ -771,6 +836,7 @@ UAT will focus on:
 - Defect severity distribution
 
 **Quality Gates**:
+
 - No open critical defects for release
 - Maximum defect density thresholds
 - Maximum number of regressions
@@ -779,6 +845,7 @@ UAT will focus on:
 ### 10.3. Performance Metrics
 
 **Performance Measurements**:
+
 - Response time percentiles (P50, P90, P99)
 - Throughput (requests per second)
 - Resource utilization under load
@@ -786,6 +853,7 @@ UAT will focus on:
 - Installation completion time
 
 **Performance Baselines**:
+
 - Establish baseline performance metrics
 - Compare against baselines for regression
 - Set thresholds for acceptable performance

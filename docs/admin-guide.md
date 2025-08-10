@@ -2,7 +2,6 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Ubuntu Autoinstall Webhook Admin Guide](#ubuntu-autoinstall-webhook-admin-guide)
   - [1. Installation](#1-installation)
@@ -319,6 +318,7 @@
       - [13.4.2. Common API Endpoints](#1342-common-api-endpoints)
       - [13.4.3. Example API Requests](#1343-example-api-requests)
     - [13.5. Network Requirements](#135-network-requirements)
+  - [13. Appendices](#13-appendices-2)
     - [13.1. Command Line Reference](#131-command-line-reference-1)
       - [13.1.1. General Commands](#1311-general-commands-1)
       - [13.1.2. Service Management Commands](#1312-service-management-commands-1)
@@ -422,6 +422,7 @@
 ### 1.1. System Requirements
 
 **Minimum Requirements**:
+
 - **CPU**: 2 cores
 - **RAM**: 4 GB
 - **Storage**: 20 GB
@@ -429,6 +430,7 @@
 - **Operating System**: Ubuntu 20.04 LTS or newer
 
 **Recommended Requirements**:
+
 - **CPU**: 4+ cores
 - **RAM**: 8+ GB
 - **Storage**: 50+ GB SSD
@@ -436,6 +438,7 @@
 - **Operating System**: Ubuntu 22.04 LTS
 
 **Additional Requirements**:
+
 - DHCP server with PXE boot support (can be the same machine)
 - Network support for PXE booting
 - Permissions to manage network infrastructure
@@ -522,26 +525,31 @@ kubectl apply -f https://github.com/jdfalk/ubuntu-autoinstall-webhook/deployment
 After installing the system, complete these initial configuration steps:
 
 1. **Create the initial admin user**:
+
 ```bash
 ubuntu-autoinstall-webhook create-admin --username admin --email admin@example.com
 ```
 
 2. **Generate the root certificate**:
+
 ```bash
 ubuntu-autoinstall-webhook cert-init --ca-name "Ubuntu Autoinstall Webhook CA"
 ```
 
 3. **Verify the installation**:
+
 ```bash
 ubuntu-autoinstall-webhook health-check
 ```
 
 4. **Start the service**:
+
 ```bash
 sudo systemctl start ubuntu-autoinstall-webhook
 ```
 
 5. **Enable the service to start at boot**:
+
 ```bash
 sudo systemctl enable ubuntu-autoinstall-webhook
 ```
@@ -554,7 +562,8 @@ The system uses YAML configuration files located in the following directories:
 
 - **Main configuration**: `/etc/ubuntu-autoinstall-webhook/config.yaml`
 - **Database configuration**: `/etc/ubuntu-autoinstall-webhook/database.yaml`
-- **Certificate configuration**: `/etc/ubuntu-autoinstall-webhook/certificates.yaml`
+- **Certificate configuration**:
+  `/etc/ubuntu-autoinstall-webhook/certificates.yaml`
 - **Template directory**: `/etc/ubuntu-autoinstall-webhook/templates/`
 
 **Example main configuration file** (`config.yaml`):
@@ -609,7 +618,8 @@ authentication:
 
 ### 2.2. Environment Variables
 
-The following environment variables can be used to override configuration values:
+The following environment variables can be used to override configuration
+values:
 
 | Variable            | Description                | Example                          |
 | ------------------- | -------------------------- | -------------------------------- |
@@ -656,7 +666,8 @@ Server options:
 
 ### 3.1. Running as a Systemd Service
 
-The system can be configured as a systemd service for automatic startup and management.
+The system can be configured as a systemd service for automatic startup and
+management.
 
 **Create systemd service file**:
 
@@ -710,16 +721,19 @@ Running the service in Docker provides isolation and simplified deployment.
 **Creating a persistent Docker setup**:
 
 1. Create a directory structure:
+
 ```bash
 mkdir -p ubuntu-autoinstall-webhook/{config,data,logs}
 ```
 
 2. Create a configuration file:
+
 ```bash
 nano ubuntu-autoinstall-webhook/config/config.yaml
 ```
 
 3. Run with docker-compose:
+
 ```bash
 docker-compose up -d
 ```
@@ -768,7 +782,8 @@ kubectl set image deployment/ubuntu-autoinstall-webhook ubuntu-autoinstall-webho
 
 ### 3.4. Service Dependencies
 
-The Ubuntu Autoinstall Webhook system depends on the following external services:
+The Ubuntu Autoinstall Webhook system depends on the following external
+services:
 
 1. **DHCP Server** (typically dnsmasq)
    - Required for handling PXE boot requests
@@ -857,19 +872,19 @@ Example LDAP configuration:
 authentication:
   method: ldap
   ldap:
-    url: "ldap://ldap.example.com:389"
-    base_dn: "dc=example,dc=com"
-    user_dn_pattern: "cn={0},ou=users,dc=example,dc=com"
-    user_search_base: "ou=users"
-    user_search_filter: "(uid={0})"
-    group_search_base: "ou=groups"
-    group_search_filter: "(member={0})"
-    manager_dn: "cn=admin,dc=example,dc=com"
-    manager_password: "password"
+    url: 'ldap://ldap.example.com:389'
+    base_dn: 'dc=example,dc=com'
+    user_dn_pattern: 'cn={0},ou=users,dc=example,dc=com'
+    user_search_base: 'ou=users'
+    user_search_filter: '(uid={0})'
+    group_search_base: 'ou=groups'
+    group_search_filter: '(member={0})'
+    manager_dn: 'cn=admin,dc=example,dc=com'
+    manager_password: 'password'
     user_attribute_mappings:
-      username: "uid"
-      email: "mail"
-      display_name: "displayName"
+      username: 'uid'
+      email: 'mail'
+      display_name: 'displayName'
 ```
 
 ### 4.2. User Roles and Permissions
@@ -894,17 +909,17 @@ Custom roles can be created with specific permission sets:
 
 ```yaml
 roles:
-  - name: "DevOps"
-    description: "Role for DevOps team members"
+  - name: 'DevOps'
+    description: 'Role for DevOps team members'
     permissions:
-      - "systems:read"
-      - "systems:create"
-      - "systems:update"
-      - "systems:install"
-      - "templates:read"
-      - "templates:use"
-      - "installations:read"
-      - "logs:read"
+      - 'systems:read'
+      - 'systems:create'
+      - 'systems:update'
+      - 'systems:install'
+      - 'templates:read'
+      - 'templates:use'
+      - 'installations:read'
+      - 'logs:read'
 ```
 
 ### 4.3. Managing Users
@@ -994,16 +1009,16 @@ authentication:
     providers:
       github:
         enabled: true
-        client_id: "your-client-id"
-        client_secret: "your-client-secret"
-        auth_url: "https://github.com/login/oauth/authorize"
-        token_url: "https://github.com/login/oauth/access_token"
-        user_info_url: "https://api.github.com/user"
-        scope: "read:user,user:email"
+        client_id: 'your-client-id'
+        client_secret: 'your-client-secret'
+        auth_url: 'https://github.com/login/oauth/authorize'
+        token_url: 'https://github.com/login/oauth/access_token'
+        user_info_url: 'https://api.github.com/user'
+        scope: 'read:user,user:email'
         user_attribute_mappings:
-          username: "login"
-          email: "email"
-          display_name: "name"
+          username: 'login'
+          email: 'email'
+          display_name: 'name'
       google:
         enabled: false
         # Configuration for Google OAuth2
@@ -1015,20 +1030,21 @@ authentication:
 authentication:
   method: saml
   saml:
-    idp_metadata_url: "https://idp.example.com/metadata"
-    sp_entity_id: "https://ubuntu-autoinstall-webhook.example.com"
-    assertion_consumer_service_url: "https://ubuntu-autoinstall-webhook.example.com/api/v1/auth/saml/callback"
+    idp_metadata_url: 'https://idp.example.com/metadata'
+    sp_entity_id: 'https://ubuntu-autoinstall-webhook.example.com'
+    assertion_consumer_service_url: 'https://ubuntu-autoinstall-webhook.example.com/api/v1/auth/saml/callback'
     user_attribute_mappings:
-      username: "NameID"
-      email: "Email"
-      display_name: "DisplayName"
+      username: 'NameID'
+      email: 'Email'
+      display_name: 'DisplayName'
 ```
 
 ## 5. Security Management
 
 ### 5.1. PKI Infrastructure
 
-The system maintains its own Public Key Infrastructure (PKI) to secure communications:
+The system maintains its own Public Key Infrastructure (PKI) to secure
+communications:
 
 1. **Root CA**: Self-signed certificate authority
 2. **Intermediate CA**: Optional for larger deployments
@@ -1075,7 +1091,8 @@ ubuntu-autoinstall-webhook cert-gen-crl
 
 ### 5.3. TLS Configuration
 
-The system uses secure TLS configurations by default. The following settings can be customized in `config.yaml`:
+The system uses secure TLS configurations by default. The following settings can
+be customized in `config.yaml`:
 
 ```yaml
 server:
@@ -1083,14 +1100,14 @@ server:
     enabled: true
     cert_file: /etc/ubuntu-autoinstall-webhook/certs/server.crt
     key_file: /etc/ubuntu-autoinstall-webhook/certs/server.key
-    min_version: "TLS1.2"
+    min_version: 'TLS1.2'
     cipher_suites:
       - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
       - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
       - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
       - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
     prefer_server_cipher_suites: true
-    client_auth: "request"  # options: "no", "request", "require"
+    client_auth: 'request' # options: "no", "request", "require"
     client_ca_file: /etc/ubuntu-autoinstall-webhook/certs/ca.crt
 ```
 
@@ -1137,8 +1154,8 @@ api:
   ip_restrictions:
     enabled: false
     allowed_ips:
-      - "192.168.1.0/24"
-      - "10.0.0.5"
+      - '192.168.1.0/24'
+      - '10.0.0.5'
   token_expiry:
     access_token_minutes: 15
     refresh_token_days: 7
@@ -1186,6 +1203,7 @@ The system handles the following types of sensitive data:
 
 1. **Encryption at Rest**:
    - Database encryption options:
+
    ```yaml
    database:
      encryption:
@@ -1200,9 +1218,9 @@ The system handles the following types of sensitive data:
    secrets:
      provider: vault
      vault:
-       address: "https://vault.example.com:8200"
-       token_file: "/etc/ubuntu-autoinstall-webhook/vault-token"
-       path_prefix: "ubuntu-autoinstall-webhook"
+       address: 'https://vault.example.com:8200'
+       token_file: '/etc/ubuntu-autoinstall-webhook/vault-token'
+       path_prefix: 'ubuntu-autoinstall-webhook'
    ```
 
 ### 5.7. System Hardening
@@ -1261,7 +1279,7 @@ sqlite3 /var/lib/ubuntu-autoinstall-webhook/database.db ".backup '/path/to/backu
 
 **CockroachDB Backup**:
 
-```bash
+````bash
 # Using built-in backup command
 ubuntu-autoinstall-webhook backup --component database --output /path/to/backup/cockroach-backup
 
@@ -1394,7 +1412,7 @@ sudo mkdir -p /var/lib/ubuntu-autoinstall-webhook
 
 # Set ownership
 sudo chown -R nobody:nogroup /var/lib/ubuntu-autoinstall-webhook
-```
+````
 
 #### 1.2.2. Docker Installation
 
@@ -1448,26 +1466,31 @@ kubectl apply -f https://github.com/jdfalk/ubuntu-autoinstall-webhook/deployment
 After installing the system, complete these initial configuration steps:
 
 1. **Create the initial admin user**:
+
 ```bash
 ubuntu-autoinstall-webhook create-admin --username admin --email admin@example.com
 ```
 
 2. **Generate the root certificate**:
+
 ```bash
 ubuntu-autoinstall-webhook cert-init --ca-name "Ubuntu Autoinstall Webhook CA"
 ```
 
 3. **Verify the installation**:
+
 ```bash
 ubuntu-autoinstall-webhook health-check
 ```
 
 4. **Start the service**:
+
 ```bash
 sudo systemctl start ubuntu-autoinstall-webhook
 ```
 
 5. **Enable the service to start at boot**:
+
 ```bash
 sudo systemctl enable ubuntu-autoinstall-webhook
 ```
@@ -1480,7 +1503,8 @@ The system uses YAML configuration files located in the following directories:
 
 - **Main configuration**: `/etc/ubuntu-autoinstall-webhook/config.yaml`
 - **Database configuration**: `/etc/ubuntu-autoinstall-webhook/database.yaml`
-- **Certificate configuration**: `/etc/ubuntu-autoinstall-webhook/certificates.yaml`
+- **Certificate configuration**:
+  `/etc/ubuntu-autoinstall-webhook/certificates.yaml`
 - **Template directory**: `/etc/ubuntu-autoinstall-webhook/templates/`
 
 **Example main configuration file** (`config.yaml`):
@@ -1535,7 +1559,8 @@ authentication:
 
 ### 2.2. Environment Variables
 
-The following environment variables can be used to override configuration values:
+The following environment variables can be used to override configuration
+values:
 
 | Variable            | Description                | Example                          |
 | ------------------- | -------------------------- | -------------------------------- |
@@ -1582,7 +1607,8 @@ Server options:
 
 ### 3.1. Running as a Systemd Service
 
-The system can be configured as a systemd service for automatic startup and management.
+The system can be configured as a systemd service for automatic startup and
+management.
 
 **Create systemd service file**:
 
@@ -1636,16 +1662,19 @@ Running the service in Docker provides isolation and simplified deployment.
 **Creating a persistent Docker setup**:
 
 1. Create a directory structure:
+
 ```bash
 mkdir -p ubuntu-autoinstall-webhook/{config,data,logs}
 ```
 
 2. Create a configuration file:
+
 ```bash
 nano ubuntu-autoinstall-webhook/config/config.yaml
 ```
 
 3. Run with docker-compose:
+
 ```bash
 docker-compose up -d
 ```
@@ -1694,7 +1723,8 @@ kubectl set image deployment/ubuntu-autoinstall-webhook ubuntu-autoinstall-webho
 
 ### 3.4. Service Dependencies
 
-The Ubuntu Autoinstall Webhook system depends on the following external services:
+The Ubuntu Autoinstall Webhook system depends on the following external
+services:
 
 1. **DHCP Server** (typically dnsmasq)
    - Required for handling PXE boot requests
@@ -1783,19 +1813,19 @@ Example LDAP configuration:
 authentication:
   method: ldap
   ldap:
-    url: "ldap://ldap.example.com:389"
-    base_dn: "dc=example,dc=com"
-    user_dn_pattern: "cn={0},ou=users,dc=example,dc=com"
-    user_search_base: "ou=users"
-    user_search_filter: "(uid={0})"
-    group_search_base: "ou=groups"
-    group_search_filter: "(member={0})"
-    manager_dn: "cn=admin,dc=example,dc=com"
-    manager_password: "password"
+    url: 'ldap://ldap.example.com:389'
+    base_dn: 'dc=example,dc=com'
+    user_dn_pattern: 'cn={0},ou=users,dc=example,dc=com'
+    user_search_base: 'ou=users'
+    user_search_filter: '(uid={0})'
+    group_search_base: 'ou=groups'
+    group_search_filter: '(member={0})'
+    manager_dn: 'cn=admin,dc=example,dc=com'
+    manager_password: 'password'
     user_attribute_mappings:
-      username: "uid"
-      email: "mail"
-      display_name: "displayName"
+      username: 'uid'
+      email: 'mail'
+      display_name: 'displayName'
 ```
 
 ### 4.2. User Roles and Permissions
@@ -1820,17 +1850,17 @@ Custom roles can be created with specific permission sets:
 
 ```yaml
 roles:
-  - name: "DevOps"
-    description: "Role for DevOps team members"
+  - name: 'DevOps'
+    description: 'Role for DevOps team members'
     permissions:
-      - "systems:read"
-      - "systems:create"
-      - "systems:update"
-      - "systems:install"
-      - "templates:read"
-      - "templates:use"
-      - "installations:read"
-      - "logs:read"
+      - 'systems:read'
+      - 'systems:create'
+      - 'systems:update'
+      - 'systems:install'
+      - 'templates:read'
+      - 'templates:use'
+      - 'installations:read'
+      - 'logs:read'
 ```
 
 ### 4.3. Managing Users
@@ -1920,16 +1950,16 @@ authentication:
     providers:
       github:
         enabled: true
-        client_id: "your-client-id"
-        client_secret: "your-client-secret"
-        auth_url: "https://github.com/login/oauth/authorize"
-        token_url: "https://github.com/login/oauth/access_token"
-        user_info_url: "https://api.github.com/user"
-        scope: "read:user,user:email"
+        client_id: 'your-client-id'
+        client_secret: 'your-client-secret'
+        auth_url: 'https://github.com/login/oauth/authorize'
+        token_url: 'https://github.com/login/oauth/access_token'
+        user_info_url: 'https://api.github.com/user'
+        scope: 'read:user,user:email'
         user_attribute_mappings:
-          username: "login"
-          email: "email"
-          display_name: "name"
+          username: 'login'
+          email: 'email'
+          display_name: 'name'
       google:
         enabled: false
         # Configuration for Google OAuth2
@@ -1941,20 +1971,21 @@ authentication:
 authentication:
   method: saml
   saml:
-    idp_metadata_url: "https://idp.example.com/metadata"
-    sp_entity_id: "https://ubuntu-autoinstall-webhook.example.com"
-    assertion_consumer_service_url: "https://ubuntu-autoinstall-webhook.example.com/api/v1/auth/saml/callback"
+    idp_metadata_url: 'https://idp.example.com/metadata'
+    sp_entity_id: 'https://ubuntu-autoinstall-webhook.example.com'
+    assertion_consumer_service_url: 'https://ubuntu-autoinstall-webhook.example.com/api/v1/auth/saml/callback'
     user_attribute_mappings:
-      username: "NameID"
-      email: "Email"
-      display_name: "DisplayName"
+      username: 'NameID'
+      email: 'Email'
+      display_name: 'DisplayName'
 ```
 
 ## 5. Security Management
 
 ### 5.1. PKI Infrastructure
 
-The system maintains its own Public Key Infrastructure (PKI) to secure communications:
+The system maintains its own Public Key Infrastructure (PKI) to secure
+communications:
 
 1. **Root CA**: Self-signed certificate authority
 2. **Intermediate CA**: Optional for larger deployments
@@ -2001,7 +2032,8 @@ ubuntu-autoinstall-webhook cert-gen-crl
 
 ### 5.3. TLS Configuration
 
-The system uses secure TLS configurations by default. The following settings can be customized in `config.yaml`:
+The system uses secure TLS configurations by default. The following settings can
+be customized in `config.yaml`:
 
 ```yaml
 server:
@@ -2009,14 +2041,14 @@ server:
     enabled: true
     cert_file: /etc/ubuntu-autoinstall-webhook/certs/server.crt
     key_file: /etc/ubuntu-autoinstall-webhook/certs/server.key
-    min_version: "TLS1.2"
+    min_version: 'TLS1.2'
     cipher_suites:
       - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
       - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
       - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
       - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
     prefer_server_cipher_suites: true
-    client_auth: "request"  # options: "no", "request", "require"
+    client_auth: 'request' # options: "no", "request", "require"
     client_ca_file: /etc/ubuntu-autoinstall-webhook/certs/ca.crt
 ```
 
@@ -2063,8 +2095,8 @@ api:
   ip_restrictions:
     enabled: false
     allowed_ips:
-      - "192.168.1.0/24"
-      - "10.0.0.5"
+      - '192.168.1.0/24'
+      - '10.0.0.5'
   token_expiry:
     access_token_minutes: 15
     refresh_token_days: 7
@@ -2112,6 +2144,7 @@ The system handles the following types of sensitive data:
 
 1. **Encryption at Rest**:
    - Database encryption options:
+
    ```yaml
    database:
      encryption:
@@ -2126,9 +2159,9 @@ The system handles the following types of sensitive data:
    secrets:
      provider: vault
      vault:
-       address: "https://vault.example.com:8200"
-       token_file: "/etc/ubuntu-autoinstall-webhook/vault-token"
-       path_prefix: "ubuntu-autoinstall-webhook"
+       address: 'https://vault.example.com:8200'
+       token_file: '/etc/ubuntu-autoinstall-webhook/vault-token'
+       path_prefix: 'ubuntu-autoinstall-webhook'
    ```
 
 ### 5.7. System Hardening
@@ -2173,7 +2206,9 @@ The system handles the following types of sensitive data:
 
 ## 6. Backup and Recovery
 
-Maintaining regular backups is critical for any production system. The Ubuntu Autoinstall Webhook system stores important data in multiple locations that need to be backed up consistently.
+Maintaining regular backups is critical for any production system. The Ubuntu
+Autoinstall Webhook system stores important data in multiple locations that need
+to be backed up consistently.
 
 ### 6.1. Backup Strategy
 
@@ -2181,7 +2216,8 @@ A comprehensive backup strategy for the system should include:
 
 #### 6.1.1. Database Backup
 
-The database contains critical system data including system records, templates, and installation status information.
+The database contains critical system data including system records, templates,
+and installation status information.
 
 **SQLite3 Backup (Default Database)**
 
@@ -2219,7 +2255,8 @@ cockroach sql --execute="BACKUP DATABASE ubuntu_autoinstall TO 's3://bucket-name
 
 #### 6.1.2. Configuration Files Backup
 
-Essential configuration files are stored in the `/etc/ubuntu-autoinstall-webhook/` directory:
+Essential configuration files are stored in the
+`/etc/ubuntu-autoinstall-webhook/` directory:
 
 ```bash
 # Create a backup of configuration files
@@ -2228,7 +2265,8 @@ tar -czf /path/to/backup/config-$(date +%Y-%m-%d).tar.gz /etc/ubuntu-autoinstall
 
 #### 6.1.3. PKI Infrastructure Backup
 
-The Certificate Authority private keys and certificates are critical for secure system operation:
+The Certificate Authority private keys and certificates are critical for secure
+system operation:
 
 ```bash
 # Backup certificate store
@@ -2246,7 +2284,8 @@ tar -czf /path/to/backup/templates-$(date +%Y-%m-%d).tar.gz /var/lib/ubuntu-auto
 
 ### 6.2. Automated Backup Configuration
 
-To automate the backup process, create a backup script and schedule it with cron:
+To automate the backup process, create a backup script and schedule it with
+cron:
 
 ```bash
 #!/bin/bash
@@ -2381,7 +2420,8 @@ To recover just the certificate store:
 ### 6.5. Disaster Recovery Planning
 
 1. **Document Your Environment**:
-   - Keep an updated inventory of all servers, network configurations, and service dependencies
+   - Keep an updated inventory of all servers, network configurations, and
+     service dependencies
    - Document all custom configurations and modifications
 
 2. **Define Recovery Objectives**:
@@ -2402,7 +2442,8 @@ To recover just the certificate store:
 
 ## 7. Monitoring and Logging
 
-Effective monitoring and logging are essential for maintaining the health, security, and performance of your Ubuntu Autoinstall Webhook deployment.
+Effective monitoring and logging are essential for maintaining the health,
+security, and performance of your Ubuntu Autoinstall Webhook deployment.
 
 ### 7.1. System Logging
 
@@ -2412,13 +2453,15 @@ The Ubuntu Autoinstall Webhook system writes logs to several locations:
 
 - **Service Logs**: `/var/log/ubuntu-autoinstall-webhook/*.log`
 - **Installation Logs**: `/var/log/ubuntu-autoinstall-webhook/installations/`
-- **Web Access Logs**: `/var/log/ubuntu-autoinstall-webhook/webserver/access.log`
+- **Web Access Logs**:
+  `/var/log/ubuntu-autoinstall-webhook/webserver/access.log`
 - **Web Error Logs**: `/var/log/ubuntu-autoinstall-webhook/webserver/error.log`
 - **System Journal**: Service logs are also sent to systemd journal
 
 #### 7.1.2. Log Configuration
 
-Log settings can be adjusted in the main configuration file at `/etc/ubuntu-autoinstall-webhook/config.yaml`:
+Log settings can be adjusted in the main configuration file at
+`/etc/ubuntu-autoinstall-webhook/config.yaml`:
 
 ```yaml
 logging:
@@ -2448,7 +2491,8 @@ curl -X PUT http://localhost:8080/api/v1/config/loglevel \
 
 #### 7.1.3. Log Rotation
 
-Logs are automatically rotated using logrotate. The default configuration rotates logs daily and keeps 14 days of history:
+Logs are automatically rotated using logrotate. The default configuration
+rotates logs daily and keeps 14 days of history:
 
 ```bash
 # /etc/logrotate.d/ubuntu-autoinstall-webhook
@@ -2485,6 +2529,7 @@ curl -s http://localhost:8080/health | jq
 ```
 
 Sample output:
+
 ```json
 {
   "status": "healthy",
@@ -2501,6 +2546,7 @@ curl -s http://localhost:8080/health/components | jq
 ```
 
 Sample output:
+
 ```json
 {
   "status": "healthy",
@@ -2531,7 +2577,9 @@ Sample output:
 
 #### 7.2.2. Monitoring with Prometheus
 
-The system exposes metrics in Prometheus format at `http://localhost:8080/metrics`. These metrics can be collected by a Prometheus server for monitoring and alerting.
+The system exposes metrics in Prometheus format at
+`http://localhost:8080/metrics`. These metrics can be collected by a Prometheus
+server for monitoring and alerting.
 
 Example Prometheus configuration to scrape metrics:
 
@@ -2559,9 +2607,13 @@ Key metrics exposed include:
 
 #### 7.2.3. Grafana Dashboards
 
-A sample Grafana dashboard is available to visualize system metrics. Import the dashboard JSON from `/usr/share/ubuntu-autoinstall-webhook/dashboards/system-overview.json` into your Grafana instance.
+A sample Grafana dashboard is available to visualize system metrics. Import the
+dashboard JSON from
+`/usr/share/ubuntu-autoinstall-webhook/dashboards/system-overview.json` into
+your Grafana instance.
 
 The dashboard includes panels for:
+
 - Request rates and latencies
 - Installation success/failure metrics
 - Resource utilization
@@ -2577,43 +2629,51 @@ Create alert rules for common failure scenarios:
 ```yaml
 # /etc/prometheus/rules/ubuntu-autoinstall-webhook.yml
 groups:
-- name: ubuntu-autoinstall-webhook
-  rules:
-  - alert: HighErrorRate
-    expr: rate(webhook_http_requests_total{status_code=~"5.."}[5m]) > 0.01
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: "High error rate detected"
-      description: "Error rate is {{ $value | humanizePercentage }} for the past 5 minutes"
+  - name: ubuntu-autoinstall-webhook
+    rules:
+      - alert: HighErrorRate
+        expr: rate(webhook_http_requests_total{status_code=~"5.."}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High error rate detected'
+          description:
+            'Error rate is {{ $value | humanizePercentage }} for the past 5
+            minutes'
 
-  - alert: ServiceDown
-    expr: up{job="ubuntu-autoinstall-webhook"} == 0
-    for: 1m
-    labels:
-      severity: critical
-    annotations:
-      summary: "Service is down"
-      description: "The Ubuntu Autoinstall Webhook service is not responding"
+      - alert: ServiceDown
+        expr: up{job="ubuntu-autoinstall-webhook"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Service is down'
+          description:
+            'The Ubuntu Autoinstall Webhook service is not responding'
 
-  - alert: ComponentUnhealthy
-    expr: webhook_component_health{status="unhealthy"} > 0
-    for: 3m
-    labels:
-      severity: critical
-    annotations:
-      summary: "Component is unhealthy"
-      description: "The {{ $labels.component }} component is reporting unhealthy status"
+      - alert: ComponentUnhealthy
+        expr: webhook_component_health{status="unhealthy"} > 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Component is unhealthy'
+          description:
+            'The {{ $labels.component }} component is reporting unhealthy status'
 
-  - alert: HighInstallationFailureRate
-    expr: rate(webhook_installations_failed[30m]) / rate(webhook_installations_total[30m]) > 0.2
-    for: 10m
-    labels:
-      severity: warning
-    annotations:
-      summary: "High installation failure rate"
-      description: "Installation failure rate is {{ $value | humanizePercentage }} in the past 30 minutes"
+      - alert: HighInstallationFailureRate
+        expr:
+          rate(webhook_installations_failed[30m]) /
+          rate(webhook_installations_total[30m]) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High installation failure rate'
+          description:
+            'Installation failure rate is {{ $value | humanizePercentage }} in
+            the past 30 minutes'
 ```
 
 #### 7.3.2. Email Notifications
@@ -2636,20 +2696,20 @@ route:
   group_interval: 5m
   repeat_interval: 4h
   routes:
-  - match:
-      severity: critical
-    receiver: 'team-pager'
-    repeat_interval: 1h
+    - match:
+        severity: critical
+      receiver: 'team-pager'
+      repeat_interval: 1h
 
 receivers:
-- name: 'team-email'
-  email_configs:
-  - to: 'team@example.com'
+  - name: 'team-email'
+    email_configs:
+      - to: 'team@example.com'
 
-- name: 'team-pager'
-  email_configs:
-  - to: 'oncall@example.com'
-  - to: 'backup-oncall@example.com'
+  - name: 'team-pager'
+    email_configs:
+      - to: 'oncall@example.com'
+      - to: 'backup-oncall@example.com'
 ```
 
 #### 7.3.3. Webhook Notifications
@@ -2658,22 +2718,24 @@ For integration with services like Slack, Microsoft Teams, or PagerDuty:
 
 ```yaml
 receivers:
-- name: 'slack-notifications'
-  slack_configs:
-  - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXX'
-    channel: '#alerts'
-    text: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}\n{{ end }}"
-    send_resolved: true
+  - name: 'slack-notifications'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXX'
+        channel: '#alerts'
+        text:
+          "{{ range .Alerts }}{{ .Annotations.summary }}\n{{
+          .Annotations.description }}\n{{ end }}"
+        send_resolved: true
 
-- name: 'pagerduty'
-  pagerduty_configs:
-  - service_key: '1234567890abcdef'
-    description: '{{ .CommonAnnotations.summary }}'
-    client: 'AlertManager'
-    client_url: 'https://alertmanager.example.com'
-    details:
-      firing: '{{ .Alerts.Firing | len }}'
-      description: '{{ .CommonAnnotations.description }}'
+  - name: 'pagerduty'
+    pagerduty_configs:
+      - service_key: '1234567890abcdef'
+        description: '{{ .CommonAnnotations.summary }}'
+        client: 'AlertManager'
+        client_url: 'https://alertmanager.example.com'
+        details:
+          firing: '{{ .Alerts.Firing | len }}'
+          description: '{{ .CommonAnnotations.description }}'
 ```
 
 ### 7.4. Log Analysis
@@ -2683,33 +2745,39 @@ receivers:
 Understanding common log patterns helps with troubleshooting:
 
 **Successful Installation Start**:
+
 ```
 {"level":"info","timestamp":"2023-01-15T12:34:56Z","message":"Installation started","system":"server1","mac":"00:11:22:33:44:55","template":"minimal-server"}
 ```
 
 **Installation Completion**:
+
 ```
 {"level":"info","timestamp":"2023-01-15T13:00:00Z","message":"Installation completed successfully","system":"server1","mac":"00:11:22:33:44:55","duration_seconds":1504}
 ```
 
 **Installation Failure**:
+
 ```
 {"level":"error","timestamp":"2023-01-15T12:40:00Z","message":"Installation failed","system":"server2","mac":"AA:BB:CC:DD:EE:FF","error":"Disk partitioning failed","stage":"storage_configuration"}
 ```
 
 **System Discovery**:
+
 ```
 {"level":"info","timestamp":"2023-01-15T12:30:00Z","message":"New system discovered","mac":"00:11:22:33:44:55","ip":"192.168.1.100"}
 ```
 
 **Service Error**:
+
 ```
 {"level":"error","timestamp":"2023-01-15T14:00:00Z","message":"Service error","component":"database","error":"connection refused","attempt":3}
 ```
 
 #### 7.4.2. Using jq for Log Analysis
 
-The JSON log format allows for powerful filtering and analysis with tools like `jq`:
+The JSON log format allows for powerful filtering and analysis with tools like
+`jq`:
 
 ```bash
 # Find all failed installations
@@ -2729,7 +2797,8 @@ cat /var/log/ubuntu-autoinstall-webhook/webhook.log | jq -c 'select(.message == 
 
 #### 7.4.3. Centralized Logging
 
-For production environments, sending logs to a centralized logging system is recommended:
+For production environments, sending logs to a centralized logging system is
+recommended:
 
 **Configuring rsyslog forwarding**:
 
@@ -2746,18 +2815,18 @@ Configure Filebeat to ship logs to Elasticsearch:
 
 ```yaml
 filebeat.inputs:
-- type: log
-  enabled: true
-  paths:
-    - /var/log/ubuntu-autoinstall-webhook/*.log
-  json.keys_under_root: true
-  json.add_error_key: true
-  fields:
-    application: ubuntu-autoinstall-webhook
-  fields_under_root: true
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/ubuntu-autoinstall-webhook/*.log
+    json.keys_under_root: true
+    json.add_error_key: true
+    fields:
+      application: ubuntu-autoinstall-webhook
+    fields_under_root: true
 
 output.elasticsearch:
-  hosts: ["elasticsearch.example.com:9200"]
+  hosts: ['elasticsearch.example.com:9200']
 ```
 
 ### 7.5. Audit Logging
@@ -2766,7 +2835,8 @@ The system maintains separate audit logs for security-relevant events:
 
 #### 7.5.1. Audit Log Location
 
-Audit logs are stored in `/var/log/ubuntu-autoinstall-webhook/audit.log` and contain records of:
+Audit logs are stored in `/var/log/ubuntu-autoinstall-webhook/audit.log` and
+contain records of:
 
 - User authentication attempts (successful and failed)
 - Administrative actions (user/role changes, system configuration)
@@ -2793,7 +2863,8 @@ Audit logs use a structured JSON format for easier parsing:
 
 #### 7.5.3. Audit Log Retention
 
-Audit logs have a separate retention policy from regular logs. By default, they are kept for 1 year:
+Audit logs have a separate retention policy from regular logs. By default, they
+are kept for 1 year:
 
 ```
 # /etc/logrotate.d/ubuntu-autoinstall-webhook-audit
@@ -2827,7 +2898,8 @@ cat /var/log/ubuntu-autoinstall-webhook/audit.log | \
 
 ## 8. Performance Tuning
 
-As your Ubuntu Autoinstall Webhook deployment grows, you may need to optimize performance to support larger environments and more concurrent installations.
+As your Ubuntu Autoinstall Webhook deployment grows, you may need to optimize
+performance to support larger environments and more concurrent installations.
 
 ### 8.1. Resource Requirements
 
@@ -2853,7 +2925,8 @@ ubuntu-autoinstall    soft    nproc       16384
 ubuntu-autoinstall    hard    nproc       16384
 ```
 
-Update systemd service limits in `/etc/systemd/system/ubuntu-autoinstall-webhook.service.d/override.conf`:
+Update systemd service limits in
+`/etc/systemd/system/ubuntu-autoinstall-webhook.service.d/override.conf`:
 
 ```
 [Service]
@@ -2973,7 +3046,7 @@ webserver:
   read_timeout_seconds: 30
   write_timeout_seconds: 60
   idle_timeout_seconds: 120
-  max_header_bytes: 1048576  # 1MB
+  max_header_bytes: 1048576 # 1MB
   shutdown_timeout_seconds: 30
 ```
 
@@ -2992,9 +3065,9 @@ Optimize static file serving:
 ```yaml
 webserver:
   static_files:
-    cache_control: "public, max-age=86400"
+    cache_control: 'public, max-age=86400'
     gzip: true
-    min_compress_size: 1024  # 1KB
+    min_compress_size: 1024 # 1KB
 ```
 
 #### 8.4.4. Load Balancing
@@ -3115,17 +3188,18 @@ For large deployments, add Redis caching:
 
 ```yaml
 cache:
-  type: "redis"
+  type: 'redis'
   redis:
-    address: "redis:6379"
-    password: ""
+    address: 'redis:6379'
+    password: ''
     db: 0
     pool_size: 10
 ```
 
 #### 8.7.3. Content Delivery
 
-For geographically distributed deployments, consider using a CDN for static boot files.
+For geographically distributed deployments, consider using a CDN for static boot
+files.
 
 ### 8.8. Monitoring Performance
 
@@ -3213,7 +3287,10 @@ For very large deployments, consider separating services:
 
 ## 9. Security Management
 
-Security is a critical aspect of the Ubuntu Autoinstall Webhook system, especially as it manages the installation of operating systems across your infrastructure. This section covers security best practices, configuration, and management.
+Security is a critical aspect of the Ubuntu Autoinstall Webhook system,
+especially as it manages the installation of operating systems across your
+infrastructure. This section covers security best practices, configuration, and
+management.
 
 ### 9.1. Authentication and Authorization
 
@@ -3226,7 +3303,8 @@ The system supports multiple authentication methods:
 3. **OAuth2/OpenID Connect**: Integration with identity providers
 4. **API Token Authentication**: For programmatic access
 
-Configure authentication methods in `/etc/ubuntu-autoinstall-webhook/config.yaml`:
+Configure authentication methods in
+`/etc/ubuntu-autoinstall-webhook/config.yaml`:
 
 ```yaml
 auth:
@@ -3242,25 +3320,25 @@ auth:
   # LDAP configuration
   ldap:
     enabled: false
-    server: "ldap.example.com"
+    server: 'ldap.example.com'
     port: 636
     use_ssl: true
-    bind_dn: "cn=service-account,ou=users,dc=example,dc=com"
-    bind_password: "secret"
-    search_base: "ou=users,dc=example,dc=com"
-    search_filter: "(sAMAccountName=%s)"
-    group_search_base: "ou=groups,dc=example,dc=com"
-    group_search_filter: "(member=%s)"
-    admin_group: "ubuntu-autoinstall-admins"
+    bind_dn: 'cn=service-account,ou=users,dc=example,dc=com'
+    bind_password: 'secret'
+    search_base: 'ou=users,dc=example,dc=com'
+    search_filter: '(sAMAccountName=%s)'
+    group_search_base: 'ou=groups,dc=example,dc=com'
+    group_search_filter: '(member=%s)'
+    admin_group: 'ubuntu-autoinstall-admins'
 
   # OAuth2 configuration
   oauth2:
     enabled: false
-    provider: "github"
-    client_id: "your-client-id"
-    client_secret: "your-client-secret"
-    redirect_url: "https://webhook.example.com/auth/callback"
-    scopes: ["user:email"]
+    provider: 'github'
+    client_id: 'your-client-id'
+    client_secret: 'your-client-secret'
+    redirect_url: 'https://webhook.example.com/auth/callback'
+    scopes: ['user:email']
 ```
 
 #### 9.1.2. Role-Based Access Control (RBAC)
@@ -3277,20 +3355,20 @@ Custom roles can be defined in the configuration:
 ```yaml
 rbac:
   custom_roles:
-    - name: "TemplateManager"
-      description: "Can create and edit templates"
+    - name: 'TemplateManager'
+      description: 'Can create and edit templates'
       permissions:
-        - "templates:read"
-        - "templates:write"
-        - "systems:read"
+        - 'templates:read'
+        - 'templates:write'
+        - 'systems:read'
 
-    - name: "SecurityAuditor"
-      description: "Audit security settings and logs"
+    - name: 'SecurityAuditor'
+      description: 'Audit security settings and logs'
       permissions:
-        - "logs:read"
-        - "certificates:read"
-        - "users:read"
-        - "audit:read"
+        - 'logs:read'
+        - 'certificates:read'
+        - 'users:read'
+        - 'audit:read'
 ```
 
 Assign roles to users through the web interface or API.
@@ -3323,8 +3401,8 @@ ubuntu-autoinstall-webhook tokens revoke --id="token-id"
 ```yaml
 api:
   tokens:
-    max_lifetime_hours: 8760  # 1 year
-    default_lifetime_hours: 720  # 30 days
+    max_lifetime_hours: 8760 # 1 year
+    default_lifetime_hours: 720 # 30 days
     inactive_timeout_hours: 72
 ```
 
@@ -3332,20 +3410,21 @@ api:
 
 #### 9.2.1. Web Interface TLS
 
-Configure TLS for the web interface in `/etc/ubuntu-autoinstall-webhook/config.yaml`:
+Configure TLS for the web interface in
+`/etc/ubuntu-autoinstall-webhook/config.yaml`:
 
 ```yaml
 webserver:
   tls:
     enabled: true
-    cert_file: "/etc/ubuntu-autoinstall-webhook/certs/server.crt"
-    key_file: "/etc/ubuntu-autoinstall-webhook/certs/server.key"
-    min_version: "1.2"  # TLS 1.2
+    cert_file: '/etc/ubuntu-autoinstall-webhook/certs/server.crt'
+    key_file: '/etc/ubuntu-autoinstall-webhook/certs/server.key'
+    min_version: '1.2' # TLS 1.2
     preferred_cipher_suites:
-      - "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
-      - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
-      - "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
-    hsts_max_age_seconds: 31536000  # 1 year
+      - 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384'
+      - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+      - 'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
+    hsts_max_age_seconds: 31536000 # 1 year
     hsts_include_subdomains: true
 ```
 
@@ -3406,13 +3485,13 @@ webserver:
     # Enable mutual TLS
     mutual_tls:
       enabled: true
-      client_ca_file: "/etc/ubuntu-autoinstall-webhook/certs/client-ca.crt"
-      client_verification: "require"  # Options: require, optional
+      client_ca_file: '/etc/ubuntu-autoinstall-webhook/certs/client-ca.crt'
+      client_verification: 'require' # Options: require, optional
 
   # Exempt paths from mTLS (for initial access)
   tls_exempt_paths:
-    - "/api/v1/auth/login"
-    - "/api/v1/cert/request"
+    - '/api/v1/auth/login'
+    - '/api/v1/cert/request'
 ```
 
 ### 9.3. Network Security
@@ -3463,19 +3542,20 @@ Example network configuration:
 +-------------------+
 ```
 
-Configure multiple network interfaces in `/etc/ubuntu-autoinstall-webhook/config.yaml`:
+Configure multiple network interfaces in
+`/etc/ubuntu-autoinstall-webhook/config.yaml`:
 
 ```yaml
 webserver:
   interfaces:
-    admin: "10.1.0.5"  # Management interface
-    provision: "10.2.0.5"  # Provisioning interface
+    admin: '10.1.0.5' # Management interface
+    provision: '10.2.0.5' # Provisioning interface
 
   # Bind services to specific interfaces
   bind:
-    web_interface: "admin"
-    installation_files: "provision"
-    tftp: "provision"
+    web_interface: 'admin'
+    installation_files: 'provision'
+    tftp: 'provision'
 ```
 
 #### 9.3.3. Traffic Encryption
@@ -3503,7 +3583,7 @@ Configure the system to support UEFI Secure Boot:
 installation:
   secure_boot:
     enabled: true
-    keys_path: "/etc/ubuntu-autoinstall-webhook/secure-boot-keys/"
+    keys_path: '/etc/ubuntu-autoinstall-webhook/secure-boot-keys/'
     require_signed_kernels: true
 ```
 
@@ -3514,7 +3594,7 @@ Secure the installation process with authentication:
 ```yaml
 installation:
   authentication:
-    method: "token"  # Options: none, token, certificate
+    method: 'token' # Options: none, token, certificate
     token_lifetime_minutes: 30
     max_attempts: 3
 ```
@@ -3527,8 +3607,8 @@ Configure disk encryption for installations:
 installation:
   encryption:
     enabled: true
-    method: "luks"  # Options: luks, zfs
-    key_management: "tpm"  # Options: passphrase, tpm, network
+    method: 'luks' # Options: luks, zfs
+    key_management: 'tpm' # Options: passphrase, tpm, network
 ```
 
 ### 9.5. Vulnerability Management
@@ -3601,9 +3681,9 @@ find /etc/ubuntu-autoinstall-webhook -type d -exec chmod 750 {} \;
 webserver:
   security:
     allowed_ip_ranges:
-      - "10.0.0.0/8"
-      - "172.16.0.0/12"
-      - "192.168.0.0/16"
+      - '10.0.0.0/8'
+      - '172.16.0.0/12'
+      - '192.168.0.0/16'
 ```
 
 ### 9.6. Data Protection
@@ -3615,7 +3695,7 @@ Configure how sensitive data is handled:
 ```yaml
 security:
   sensitive_data:
-    encryption_key_file: "/etc/ubuntu-autoinstall-webhook/keys/data-encryption.key"
+    encryption_key_file: '/etc/ubuntu-autoinstall-webhook/keys/data-encryption.key'
     encrypt_passwords: true
     encrypt_ssh_keys: true
     encrypt_api_tokens: true
@@ -3667,7 +3747,8 @@ mv /etc/ubuntu-autoinstall-webhook/keys/data-encryption-new.key \
 
 ## 10. Troubleshooting
 
-This section provides guidance for identifying, diagnosing, and resolving common issues with the Ubuntu Autoinstall Webhook system.
+This section provides guidance for identifying, diagnosing, and resolving common
+issues with the Ubuntu Autoinstall Webhook system.
 
 ### 10.1. Diagnostic Tools
 
@@ -3680,6 +3761,7 @@ ubuntu-autoinstall-webhook status check
 ```
 
 This command checks:
+
 - Service status for all components
 - Database connectivity
 - File system permissions
@@ -3807,6 +3889,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
 **Possible Causes and Solutions**:
 
 1. **Service Not Running**:
+
    ```bash
    systemctl status ubuntu-autoinstall-webhook
    # If not running
@@ -3816,6 +3899,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
    ```
 
 2. **Network/Firewall Issues**:
+
    ```bash
    # Check if port is listening
    ss -tulpn | grep 8443
@@ -3837,6 +3921,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
    ```
 
 4. **File Permission Issues**:
+
    ```bash
    # Check permissions on web files
    find /var/www/ubuntu-autoinstall-webhook -type f -exec ls -l {} \;
@@ -3852,6 +3937,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
 **Possible Causes and Solutions**:
 
 1. **Database Service Down**:
+
    ```bash
    # For SQLite
    ls -la /var/lib/ubuntu-autoinstall-webhook/database.sqlite3
@@ -3861,6 +3947,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
    ```
 
 2. **Permission Problems**:
+
    ```bash
    # Check ownership and permissions
    ls -la /var/lib/ubuntu-autoinstall-webhook/
@@ -3880,6 +3967,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
    ```
 
 4. **Database Corruption**:
+
    ```bash
    # Check and repair SQLite database
    sqlite3 /var/lib/ubuntu-autoinstall-webhook/database.sqlite3 "PRAGMA integrity_check;"
@@ -3895,6 +3983,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
 **Possible Causes and Solutions**:
 
 1. **Expired Certificates**:
+
    ```bash
    # Check certificate expiration
    ubuntu-autoinstall-webhook cert list --show-expiry
@@ -3928,6 +4017,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
 **Common Issues**:
 
 1. **Permission Denied**:
+
    ```bash
    # Check ownership and permissions
    ls -la /var/www/html/ipxe/boot/
@@ -3938,6 +4028,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
    ```
 
 2. **Leader Election Conflicts**:
+
    ```bash
    # Check leader status
    ubuntu-autoinstall-webhook service status --component=file-editor
@@ -3951,6 +4042,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
 **Common Issues**:
 
 1. **Log File Access**:
+
    ```bash
    # Check log file accessibility
    ls -la /var/log/dnsmasq.log
@@ -3960,6 +4052,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
    ```
 
 2. **DNSMasq Not Logging**:
+
    ```bash
    # Verify DNSMasq logging is enabled
    grep "log-dhcp" /etc/dnsmasq.conf
@@ -3985,6 +4078,7 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
 **Common Issues**:
 
 1. **CA Not Initialized**:
+
    ```bash
    # Check CA status
    ubuntu-autoinstall-webhook cert ca-status
@@ -3994,12 +4088,14 @@ ubuntu-autoinstall-webhook network test --ports=8080,8443,69
    ```
 
 2. **CSR Failures**:
+
    ```bash
    # Review recent CSR failures
    grep "CSR validation failed" /var/log/ubuntu-autoinstall-webhook/cert-issuer.log
    ```
 
 3. **Key Permission Issues**:
+
    ```bash
    # Check key permissions
    ls -la /var/lib/ubuntu-autoinstall-webhook/certificates/private/
@@ -4039,7 +4135,7 @@ Enable verbose logging in cloud-init by adding to user-data:
 ```yaml
 debug:
   verbose: true
-output: {all: '| tee -a /var/log/cloud-init-output.log'}
+output: { all: '| tee -a /var/log/cloud-init-output.log' }
 ```
 
 Configure cloud-init to report back to webhook server:
@@ -4143,6 +4239,7 @@ ubuntu-autoinstall-webhook support bundle \
 ```
 
 The bundle includes:
+
 - System information
 - Service configuration (with sensitive data redacted)
 - Recent logs
@@ -4152,8 +4249,11 @@ The bundle includes:
 #### 10.6.2. Community Support
 
 For community support options:
-- GitHub Issues: [https://github.com/jdfalk/ubuntu-autoinstall-webhook/issues](https://github.com/jdfalk/ubuntu-autoinstall-webhook/issues)
-- Community Forums: [https://discourse.ubuntu.com/c/server/autoinstall](https://discourse.ubuntu.com/c/server/autoinstall)
+
+- GitHub Issues:
+  [https://github.com/jdfalk/ubuntu-autoinstall-webhook/issues](https://github.com/jdfalk/ubuntu-autoinstall-webhook/issues)
+- Community Forums:
+  [https://discourse.ubuntu.com/c/server/autoinstall](https://discourse.ubuntu.com/c/server/autoinstall)
 
 #### 10.6.3. Commercial Support
 
@@ -4161,7 +4261,9 @@ No support this software is offered as-is.
 
 ## 11. Upgrading and Maintenance
 
-Regular upgrading and maintenance are crucial for keeping your Ubuntu Autoinstall Webhook system secure, performant, and reliable. This section covers procedures for upgrades, migrations, and routine maintenance tasks.
+Regular upgrading and maintenance are crucial for keeping your Ubuntu
+Autoinstall Webhook system secure, performant, and reliable. This section covers
+procedures for upgrades, migrations, and routine maintenance tasks.
 
 ### 11.1. Version Upgrades
 
@@ -4170,15 +4272,17 @@ Regular upgrading and maintenance are crucial for keeping your Ubuntu Autoinstal
 Before performing any upgrade, follow these preparatory steps:
 
 1. **Create a backup**:
+
    ```bash
    # Back up all system data
    ubuntu-autoinstall-webhook backup create --full --output=/path/to/backups/
    ```
 
-2. **Review release notes**:
-   Check the release documentation for breaking changes, new features, and migration requirements.
+2. **Review release notes**: Check the release documentation for breaking
+   changes, new features, and migration requirements.
 
 3. **Verify system health**:
+
    ```bash
    # Check current system status
    ubuntu-autoinstall-webhook status check --verbose
@@ -4266,21 +4370,25 @@ systemctl start ubuntu-autoinstall-webhook
 After upgrading, perform these verification steps:
 
 1. **Check service status**:
+
    ```bash
    systemctl status ubuntu-autoinstall-webhook
    ```
 
 2. **Verify version**:
+
    ```bash
    ubuntu-autoinstall-webhook --version
    ```
 
 3. **Run database migrations** (if needed):
+
    ```bash
    ubuntu-autoinstall-webhook db migrate
    ```
 
 4. **Check logs for errors**:
+
    ```bash
    journalctl -u ubuntu-autoinstall-webhook -n 50
    ```
@@ -4323,6 +4431,7 @@ ubuntu-autoinstall-webhook db rollback --to-version=4
 Perform regular database optimization for better performance:
 
 **For SQLite**:
+
 ```bash
 # Optimize SQLite database
 ubuntu-autoinstall-webhook db optimize
@@ -4332,6 +4441,7 @@ sqlite3 /var/lib/ubuntu-autoinstall-webhook/database.sqlite3 "VACUUM; ANALYZE;"
 ```
 
 **For CockroachDB**:
+
 ```bash
 # Run statistics update
 cockroach sql --execute="SET CLUSTER SETTING sql.stats.automatic_collection.enabled = true;"
@@ -4551,15 +4661,18 @@ Always have a rollback plan for major upgrades:
 
 ## 12. Advanced Configuration
 
-This section covers advanced configuration options and customizations for the Ubuntu Autoinstall Webhook system.
+This section covers advanced configuration options and customizations for the
+Ubuntu Autoinstall Webhook system.
 
 ### 12.1. Customizing Templates
 
 #### 12.1.1. Template Engine Overview
 
-The Ubuntu Autoinstall Webhook system uses a powerful templating engine to generate installation configurations. The template engine:
+The Ubuntu Autoinstall Webhook system uses a powerful templating engine to
+generate installation configurations. The template engine:
 
-- Supports multiple output formats (cloud-init user-data, network-config, meta-data, iPXE scripts)
+- Supports multiple output formats (cloud-init user-data, network-config,
+  meta-data, iPXE scripts)
 - Uses Go templates as the base syntax
 - Provides custom functions for system-specific operations
 - Supports inheritance and composition
@@ -4611,6 +4724,7 @@ Hostname: {{ customUpper .System.Hostname }}
 The system provides several advanced template functions:
 
 **Network Functions**:
+
 ```
 {{ cidrHost "192.168.1.0/24" 5 }}           // Returns: 192.168.1.5
 {{ cidrSubnet "10.0.0.0/16" 8 10 }}         // Returns: 10.0.10.0/24
@@ -4618,6 +4732,7 @@ The system provides several advanced template functions:
 ```
 
 **Cryptographic Functions**:
+
 ```
 {{ sha256sum "data" }}                      // Returns SHA256 hash
 {{ genPassword 16 }}                         // Generates random 16-char password
@@ -4625,6 +4740,7 @@ The system provides several advanced template functions:
 ```
 
 **Data Manipulation**:
+
 ```
 {{ toJSON .System }}                         // Convert to JSON
 {{ fromYAML $yamlData }}                     // Parse YAML to object
@@ -4632,6 +4748,7 @@ The system provides several advanced template functions:
 ```
 
 **Conditional Logic**:
+
 ```
 {{ if eq .System.Role "webserver" }}
 packages:
@@ -4670,7 +4787,8 @@ packages:
   - php
 ```
 
-When a template extends another, it inherits all settings, with the child template's settings overriding the parent's when conflicts occur.
+When a template extends another, it inherits all settings, with the child
+template's settings overriding the parent's when conflicts occur.
 
 ### 12.2. API Customization
 
@@ -4747,12 +4865,12 @@ api:
 
     # Per-endpoint overrides
     endpoint_overrides:
-      - path: "/api/v1/systems"
-        method: "GET"
+      - path: '/api/v1/systems'
+        method: 'GET'
         requests_per_minute: 120
 
-      - path: "/api/v1/installations"
-        method: "POST"
+      - path: '/api/v1/installations'
+        method: 'POST'
         requests_per_minute: 30
 ```
 
@@ -4852,19 +4970,19 @@ networking:
   vlans:
     enabled: true
     interfaces:
-      - name: "eth0.100"
-        parent: "eth0"
+      - name: 'eth0.100'
+        parent: 'eth0'
         id: 100
-        address: "10.100.0.5/24"
-        gateway: "10.100.0.1"
-        service_bindings: ["web"]
+        address: '10.100.0.5/24'
+        gateway: '10.100.0.1'
+        service_bindings: ['web']
 
-      - name: "eth0.200"
-        parent: "eth0"
+      - name: 'eth0.200'
+        parent: 'eth0'
         id: 200
-        address: "10.200.0.5/24"
-        gateway: "10.200.0.1"
-        service_bindings: ["pxe"]
+        address: '10.200.0.5/24'
+        gateway: '10.200.0.1'
+        service_bindings: ['pxe']
 ```
 
 Create corresponding VLAN interfaces on the system:
@@ -4932,11 +5050,11 @@ networking:
   bonding:
     enabled: true
     interfaces:
-      - name: "bond0"
-        mode: "802.3ad"
-        slaves: ["eth0", "eth1"]
-        address: "192.168.1.5/24"
-        gateway: "192.168.1.1"
+      - name: 'bond0'
+        mode: '802.3ad'
+        slaves: ['eth0', 'eth1']
+        address: '192.168.1.5/24'
+        gateway: '192.168.1.1'
         options:
           miimon: 100
           lacp_rate: fast
@@ -4984,8 +5102,8 @@ Enable IPv6 support:
 networking:
   ipv6:
     enabled: true
-    address: "2001:db8::5/64"
-    gateway: "2001:db8::1"
+    address: '2001:db8::5/64'
+    gateway: '2001:db8::1'
 ```
 
 Configure the system for IPv6:
@@ -5023,17 +5141,17 @@ Configure a basic cluster with multiple instances:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml on each node
 cluster:
   enabled: true
-  node_name: "node1"  # Unique for each node
+  node_name: 'node1' # Unique for each node
   nodes:
-    - name: "node1"
-      address: "192.168.1.10"
-      role: "primary"
-    - name: "node2"
-      address: "192.168.1.11"
-      role: "secondary"
-    - name: "node3"
-      address: "192.168.1.12"
-      role: "secondary"
+    - name: 'node1'
+      address: '192.168.1.10'
+      role: 'primary'
+    - name: 'node2'
+      address: '192.168.1.11'
+      role: 'secondary'
+    - name: 'node3'
+      address: '192.168.1.12'
+      role: 'secondary'
 
   quorum:
     required: true
@@ -5047,13 +5165,13 @@ Configure a shared storage for installation files:
 ```yaml
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 storage:
-  type: "shared"
+  type: 'shared'
   shared:
-    type: "nfs"
-    mount_point: "/var/lib/ubuntu-autoinstall-webhook/shared"
-    server: "nfs.example.com"
-    export: "/exports/ubuntu-autoinstall"
-    options: "rw,sync,no_subtree_check"
+    type: 'nfs'
+    mount_point: '/var/lib/ubuntu-autoinstall-webhook/shared'
+    server: 'nfs.example.com'
+    export: '/exports/ubuntu-autoinstall'
+    options: 'rw,sync,no_subtree_check'
 ```
 
 Mount the NFS share:
@@ -5123,26 +5241,26 @@ Configure integration with a Configuration Management Database:
 integrations:
   cmdb:
     enabled: true
-    type: "servicenow"
-    url: "https://example.service-now.com/api"
+    type: 'servicenow'
+    url: 'https://example.service-now.com/api'
     auth:
-      type: "basic"
-      username: "integration-user"
-      password: "integration-password"
+      type: 'basic'
+      username: 'integration-user'
+      password: 'integration-password'
 
     # Field mappings
     mappings:
-      system_id: "sys_id"
-      hostname: "name"
-      mac_address: "mac_address"
-      ip_address: "ip_address"
-      status: "status"
+      system_id: 'sys_id'
+      hostname: 'name'
+      mac_address: 'mac_address'
+      ip_address: 'ip_address'
+      status: 'status'
 
     # Synchronization settings
     sync:
       enabled: true
       interval_minutes: 60
-      direction: "bidirectional"
+      direction: 'bidirectional'
 ```
 
 #### 12.5.2. Monitoring System Integration
@@ -5153,18 +5271,18 @@ Configure integration with monitoring systems:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 integrations:
   monitoring:
-    - type: "prometheus"
+    - type: 'prometheus'
       enabled: true
-      endpoint: "/metrics"
+      endpoint: '/metrics'
       labels:
-        environment: "production"
-        service: "ubuntu-autoinstall"
+        environment: 'production'
+        service: 'ubuntu-autoinstall'
 
-    - type: "nagios"
+    - type: 'nagios'
       enabled: true
-      nrdp_url: "https://nagios.example.com/nrdp/"
-      token: "your-nagios-token"
-      host_name: "ubuntu-autoinstall"
+      nrdp_url: 'https://nagios.example.com/nrdp/'
+      token: 'your-nagios-token'
+      host_name: 'ubuntu-autoinstall'
       interval_minutes: 5
 ```
 
@@ -5176,15 +5294,15 @@ Configure custom webhook notifications:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 notifications:
   webhooks:
-    - name: "slack-alerts"
-      url: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXX"
+    - name: 'slack-alerts'
+      url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXX'
       events:
         - system.discovered
         - installation.started
         - installation.completed
         - installation.failed
       headers:
-        Content-Type: "application/json"
+        Content-Type: 'application/json'
       template: |
         {
           "text": "Event: {{ .Event.Type }}",
@@ -5199,12 +5317,12 @@ notifications:
           ]
         }
 
-    - name: "teams-notification"
-      url: "https://outlook.office.com/webhook/..."
+    - name: 'teams-notification'
+      url: 'https://outlook.office.com/webhook/...'
       events:
         - installation.failed
       headers:
-        Content-Type: "application/json"
+        Content-Type: 'application/json'
       template: |
         {
           "@type": "MessageCard",
@@ -5234,14 +5352,14 @@ Configure S3-compatible object storage:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 storage:
   installation_files:
-    type: "s3"
+    type: 's3'
     s3:
-      endpoint: "https://s3.amazonaws.com"
-      region: "us-east-1"
-      bucket: "ubuntu-autoinstall-files"
-      prefix: "files/"
-      access_key: "YOUR_ACCESS_KEY"
-      secret_key: "YOUR_SECRET_KEY"
+      endpoint: 'https://s3.amazonaws.com'
+      region: 'us-east-1'
+      bucket: 'ubuntu-autoinstall-files'
+      prefix: 'files/'
+      access_key: 'YOUR_ACCESS_KEY'
+      secret_key: 'YOUR_SECRET_KEY'
       use_path_style: false
 ```
 
@@ -5252,18 +5370,18 @@ Configure external database storage:
 ```yaml
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 database:
-  type: "cockroach"
+  type: 'cockroach'
   cockroach:
-    host: "db.example.com"
+    host: 'db.example.com'
     port: 26257
-    database: "ubuntu_autoinstall"
-    user: "ubuntu_autoinstall"
-    password: "your_password"
+    database: 'ubuntu_autoinstall'
+    user: 'ubuntu_autoinstall'
+    password: 'your_password'
     ssl:
-      mode: "verify-full"
-      ca_cert: "/etc/ubuntu-autoinstall-webhook/certs/ca.crt"
-      client_cert: "/etc/ubuntu-autoinstall-webhook/certs/client.crt"
-      client_key: "/etc/ubuntu-autoinstall-webhook/certs/client.key"
+      mode: 'verify-full'
+      ca_cert: '/etc/ubuntu-autoinstall-webhook/certs/ca.crt'
+      client_cert: '/etc/ubuntu-autoinstall-webhook/certs/client.crt'
+      client_key: '/etc/ubuntu-autoinstall-webhook/certs/client.key'
 ```
 
 #### 12.6.3. Backup to Remote Storage
@@ -5274,19 +5392,19 @@ Configure backups to remote storage:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 backup:
   enabled: true
-  schedule: "0 2 * * *"  # 2 AM daily
+  schedule: '0 2 * * *' # 2 AM daily
   retention:
     days: 30
     count: 10
 
   storage:
-    type: "sftp"
+    type: 'sftp'
     sftp:
-      host: "backup.example.com"
+      host: 'backup.example.com'
       port: 22
-      user: "backup-user"
-      key_file: "/etc/ubuntu-autoinstall-webhook/keys/backup-key"
-      path: "/backups/ubuntu-autoinstall/"
+      user: 'backup-user'
+      key_file: '/etc/ubuntu-autoinstall-webhook/keys/backup-key'
+      path: '/backups/ubuntu-autoinstall/'
 ```
 
 ### 12.7. Custom Authentication and Authorization
@@ -5301,33 +5419,33 @@ auth:
   ldap:
     enabled: true
     servers:
-      - uri: "ldaps://ldap1.example.com"
+      - uri: 'ldaps://ldap1.example.com'
         priority: 1
-      - uri: "ldaps://ldap2.example.com"
+      - uri: 'ldaps://ldap2.example.com'
         priority: 2
 
-    bind_dn: "cn=service-account,ou=ServiceAccounts,dc=example,dc=com"
-    bind_password: "your_password"
+    bind_dn: 'cn=service-account,ou=ServiceAccounts,dc=example,dc=com'
+    bind_password: 'your_password'
 
     user:
-      base_dn: "ou=Users,dc=example,dc=com"
-      filter: "(&(objectClass=person)(sAMAccountName=%s))"
-      username_attribute: "sAMAccountName"
-      name_attribute: "displayName"
-      email_attribute: "mail"
+      base_dn: 'ou=Users,dc=example,dc=com'
+      filter: '(&(objectClass=person)(sAMAccountName=%s))'
+      username_attribute: 'sAMAccountName'
+      name_attribute: 'displayName'
+      email_attribute: 'mail'
 
     group:
-      base_dn: "ou=Groups,dc=example,dc=com"
-      filter: "(&(objectClass=group)(member=%s))"
-      name_attribute: "cn"
+      base_dn: 'ou=Groups,dc=example,dc=com'
+      filter: '(&(objectClass=group)(member=%s))'
+      name_attribute: 'cn'
 
     role_mappings:
-      - ldap_group: "AutoinstallAdmins"
-        role: "admin"
-      - ldap_group: "AutoinstallOperators"
-        role: "operator"
-      - ldap_group: "AutoinstallUsers"
-        role: "installer"
+      - ldap_group: 'AutoinstallAdmins'
+        role: 'admin'
+      - ldap_group: 'AutoinstallOperators'
+        role: 'operator'
+      - ldap_group: 'AutoinstallUsers'
+        role: 'installer'
 ```
 
 #### 12.7.2. OpenID Connect Configuration
@@ -5340,33 +5458,33 @@ auth:
   oidc:
     enabled: true
     providers:
-      - name: "google"
-        client_id: "your_client_id"
-        client_secret: "your_client_secret"
-        discovery_url: "https://accounts.google.com/.well-known/openid-configuration"
-        scopes: ["openid", "profile", "email"]
+      - name: 'google'
+        client_id: 'your_client_id'
+        client_secret: 'your_client_secret'
+        discovery_url: 'https://accounts.google.com/.well-known/openid-configuration'
+        scopes: ['openid', 'profile', 'email']
         claims:
-          username: "email"
-          name: "name"
-          email: "email"
+          username: 'email'
+          name: 'name'
+          email: 'email'
 
-      - name: "azure_ad"
-        client_id: "your_client_id"
-        client_secret: "your_client_secret"
-        discovery_url: "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
-        scopes: ["openid", "profile", "email"]
+      - name: 'azure_ad'
+        client_id: 'your_client_id'
+        client_secret: 'your_client_secret'
+        discovery_url: 'https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration'
+        scopes: ['openid', 'profile', 'email']
         claims:
-          username: "preferred_username"
-          name: "name"
-          email: "email"
+          username: 'preferred_username'
+          name: 'name'
+          email: 'email'
 
     role_mappings:
-      - claim: "groups"
+      - claim: 'groups'
         values:
-          - value: "autoinstall_admins"
-            role: "admin"
-          - value: "autoinstall_operators"
-            role: "operator"
+          - value: 'autoinstall_admins'
+            role: 'admin'
+          - value: 'autoinstall_operators'
+            role: 'operator'
 ```
 
 #### 12.7.3. Custom Authorization Rules
@@ -5377,30 +5495,30 @@ Configure fine-grained authorization rules:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 authorization:
   rules:
-    - name: "ReadOnlyForNonProduction"
-      description: "Read-only access to non-production systems"
+    - name: 'ReadOnlyForNonProduction'
+      description: 'Read-only access to non-production systems'
       match:
         roles:
-          - "viewer"
+          - 'viewer'
         resources:
-          - type: "system"
+          - type: 'system'
             attributes:
-              environment: "non-production"
+              environment: 'non-production'
       permissions:
-        - "read"
+        - 'read'
 
-    - name: "FullAccessToOwnedSystems"
-      description: "Full access to systems created by the user"
+    - name: 'FullAccessToOwnedSystems'
+      description: 'Full access to systems created by the user'
       match:
         resources:
-          - type: "system"
+          - type: 'system'
             attributes:
-              created_by: "${user.id}"
+              created_by: '${user.id}'
       permissions:
-        - "read"
-        - "write"
-        - "delete"
-        - "install"
+        - 'read'
+        - 'write'
+        - 'delete'
+        - 'install'
 ```
 
 ### 12.8. Advanced Logging
@@ -5414,29 +5532,29 @@ Configure advanced structured logging:
 logging:
   structured:
     enabled: true
-    format: "json"
+    format: 'json'
 
   levels:
-    default: "info"
+    default: 'info'
     components:
-      webserver: "info"
-      database: "warn"
-      file_editor: "info"
-      dnsmasq_watcher: "debug"
-      certificate_issuer: "info"
+      webserver: 'info'
+      database: 'warn'
+      file_editor: 'info'
+      dnsmasq_watcher: 'debug'
+      certificate_issuer: 'info'
 
   output:
     console:
       enabled: true
-      format: "text"
+      format: 'text'
     file:
       enabled: true
-      format: "json"
-      path: "/var/log/ubuntu-autoinstall-webhook/webhook.log"
+      format: 'json'
+      path: '/var/log/ubuntu-autoinstall-webhook/webhook.log'
     syslog:
       enabled: true
-      format: "json"
-      facility: "local0"
+      format: 'json'
+      facility: 'local0'
 ```
 
 #### 12.8.2. Remote Logging Configuration
@@ -5447,26 +5565,26 @@ Configure logging to remote systems:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 logging:
   remote:
-    - type: "elasticsearch"
+    - type: 'elasticsearch'
       enabled: true
-      url: "https://elasticsearch.example.com:9200"
-      index: "ubuntu-autoinstall-logs"
-      username: "elastic"
-      password: "your_password"
+      url: 'https://elasticsearch.example.com:9200'
+      index: 'ubuntu-autoinstall-logs'
+      username: 'elastic'
+      password: 'your_password'
       batch_size: 100
       flush_interval_seconds: 5
 
-    - type: "fluentd"
+    - type: 'fluentd'
       enabled: true
-      host: "fluentd.example.com"
+      host: 'fluentd.example.com'
       port: 24224
-      tag: "ubuntu-autoinstall"
+      tag: 'ubuntu-autoinstall'
 
-    - type: "graylog"
+    - type: 'graylog'
       enabled: true
-      server: "graylog.example.com"
+      server: 'graylog.example.com'
       port: 12201
-      protocol: "tcp"
+      protocol: 'tcp'
       tls:
         enabled: true
         skip_verify: false
@@ -5481,12 +5599,12 @@ Configure distributed tracing:
 logging:
   tracing:
     enabled: true
-    type: "opentelemetry"
-    service_name: "ubuntu-autoinstall-webhook"
+    type: 'opentelemetry'
+    service_name: 'ubuntu-autoinstall-webhook'
 
     opentelemetry:
-      endpoint: "http://jaeger.example.com:14268/api/traces"
-      propagation: "w3c"
+      endpoint: 'http://jaeger.example.com:14268/api/traces'
+      propagation: 'w3c'
       sample_ratio: 0.1
 ```
 
@@ -5496,9 +5614,10 @@ logging:
 
 #### 13.1.1. Complete Configuration Schema
 
-Below is a reference for all configuration options available in `/etc/ubuntu-autoinstall-webhook/config.yaml`:
+Below is a reference for all configuration options available in
+`/etc/ubuntu-autoinstall-webhook/config.yaml`:
 
-```yaml
+````yaml
 # General settings
 general:
   # Application name - for display in UI and logs
@@ -5654,7 +5773,7 @@ go build -buildmode=plugin -o custom.so custom.go
 
 # Restart the service to load the new plugin
 systemctl restart ubuntu-autoinstall-webhook
-```
+````
 
 Now you can use your custom function in templates:
 
@@ -5667,6 +5786,7 @@ Hostname: {{ customUpper .System.Hostname }}
 The system provides several advanced template functions:
 
 **Network Functions**:
+
 ```
 {{ cidrHost "192.168.1.0/24" 5 }}           // Returns: 192.168.1.5
 {{ cidrSubnet "10.0.0.0/16" 8 10 }}         // Returns: 10.0.10.0/24
@@ -5674,6 +5794,7 @@ The system provides several advanced template functions:
 ```
 
 **Cryptographic Functions**:
+
 ```
 {{ sha256sum "data" }}                      // Returns SHA256 hash
 {{ genPassword 16 }}                         // Generates random 16-char password
@@ -5681,6 +5802,7 @@ The system provides several advanced template functions:
 ```
 
 **Data Manipulation**:
+
 ```
 {{ toJSON .System }}                         // Convert to JSON
 {{ fromYAML $yamlData }}                     // Parse YAML to object
@@ -5688,6 +5810,7 @@ The system provides several advanced template functions:
 ```
 
 **Conditional Logic**:
+
 ```
 {{ if eq .System.Role "webserver" }}
 packages:
@@ -5726,7 +5849,8 @@ packages:
   - php
 ```
 
-When a template extends another, it inherits all settings, with the child template's settings overriding the parent's when conflicts occur.
+When a template extends another, it inherits all settings, with the child
+template's settings overriding the parent's when conflicts occur.
 
 ### 12.2. API Customization
 
@@ -5803,12 +5927,12 @@ api:
 
     # Per-endpoint overrides
     endpoint_overrides:
-      - path: "/api/v1/systems"
-        method: "GET"
+      - path: '/api/v1/systems'
+        method: 'GET'
         requests_per_minute: 120
 
-      - path: "/api/v1/installations"
-        method: "POST"
+      - path: '/api/v1/installations'
+        method: 'POST'
         requests_per_minute: 30
 ```
 
@@ -5908,19 +6032,19 @@ networking:
   vlans:
     enabled: true
     interfaces:
-      - name: "eth0.100"
-        parent: "eth0"
+      - name: 'eth0.100'
+        parent: 'eth0'
         id: 100
-        address: "10.100.0.5/24"
-        gateway: "10.100.0.1"
-        service_bindings: ["web"]
+        address: '10.100.0.5/24'
+        gateway: '10.100.0.1'
+        service_bindings: ['web']
 
-      - name: "eth0.200"
-        parent: "eth0"
+      - name: 'eth0.200'
+        parent: 'eth0'
         id: 200
-        address: "10.200.0.5/24"
-        gateway: "10.200.0.1"
-        service_bindings: ["pxe"]
+        address: '10.200.0.5/24'
+        gateway: '10.200.0.1'
+        service_bindings: ['pxe']
 ```
 
 Create corresponding VLAN interfaces on the system:
@@ -5988,11 +6112,11 @@ networking:
   bonding:
     enabled: true
     interfaces:
-      - name: "bond0"
-        mode: "802.3ad"
-        slaves: ["eth0", "eth1"]
-        address: "192.168.1.5/24"
-        gateway: "192.168.1.1"
+      - name: 'bond0'
+        mode: '802.3ad'
+        slaves: ['eth0', 'eth1']
+        address: '192.168.1.5/24'
+        gateway: '192.168.1.1'
         options:
           miimon: 100
           lacp_rate: fast
@@ -6040,8 +6164,8 @@ Enable IPv6 support:
 networking:
   ipv6:
     enabled: true
-    address: "2001:db8::5/64"
-    gateway: "2001:db8::1"
+    address: '2001:db8::5/64'
+    gateway: '2001:db8::1'
 ```
 
 Configure the system for IPv6:
@@ -6079,17 +6203,17 @@ Configure a basic cluster with multiple instances:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml on each node
 cluster:
   enabled: true
-  node_name: "node1"  # Unique for each node
+  node_name: 'node1' # Unique for each node
   nodes:
-    - name: "node1"
-      address: "192.168.1.10"
-      role: "primary"
-    - name: "node2"
-      address: "192.168.1.11"
-      role: "secondary"
-    - name: "node3"
-      address: "192.168.1.12"
-      role: "secondary"
+    - name: 'node1'
+      address: '192.168.1.10'
+      role: 'primary'
+    - name: 'node2'
+      address: '192.168.1.11'
+      role: 'secondary'
+    - name: 'node3'
+      address: '192.168.1.12'
+      role: 'secondary'
 
   quorum:
     required: true
@@ -6103,13 +6227,13 @@ Configure a shared storage for installation files:
 ```yaml
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 storage:
-  type: "shared"
+  type: 'shared'
   shared:
-    type: "nfs"
-    mount_point: "/var/lib/ubuntu-autoinstall-webhook/shared"
-    server: "nfs.example.com"
-    export: "/exports/ubuntu-autoinstall"
-    options: "rw,sync,no_subtree_check"
+    type: 'nfs'
+    mount_point: '/var/lib/ubuntu-autoinstall-webhook/shared'
+    server: 'nfs.example.com'
+    export: '/exports/ubuntu-autoinstall'
+    options: 'rw,sync,no_subtree_check'
 ```
 
 Mount the NFS share:
@@ -6179,26 +6303,26 @@ Configure integration with a Configuration Management Database:
 integrations:
   cmdb:
     enabled: true
-    type: "servicenow"
-    url: "https://example.service-now.com/api"
+    type: 'servicenow'
+    url: 'https://example.service-now.com/api'
     auth:
-      type: "basic"
-      username: "integration-user"
-      password: "integration-password"
+      type: 'basic'
+      username: 'integration-user'
+      password: 'integration-password'
 
     # Field mappings
     mappings:
-      system_id: "sys_id"
-      hostname: "name"
-      mac_address: "mac_address"
-      ip_address: "ip_address"
-      status: "status"
+      system_id: 'sys_id'
+      hostname: 'name'
+      mac_address: 'mac_address'
+      ip_address: 'ip_address'
+      status: 'status'
 
     # Synchronization settings
     sync:
       enabled: true
       interval_minutes: 60
-      direction: "bidirectional"
+      direction: 'bidirectional'
 ```
 
 #### 12.5.2. Monitoring System Integration
@@ -6209,18 +6333,18 @@ Configure integration with monitoring systems:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 integrations:
   monitoring:
-    - type: "prometheus"
+    - type: 'prometheus'
       enabled: true
-      endpoint: "/metrics"
+      endpoint: '/metrics'
       labels:
-        environment: "production"
-        service: "ubuntu-autoinstall"
+        environment: 'production'
+        service: 'ubuntu-autoinstall'
 
-    - type: "nagios"
+    - type: 'nagios'
       enabled: true
-      nrdp_url: "https://nagios.example.com/nrdp/"
-      token: "your-nagios-token"
-      host_name: "ubuntu-autoinstall"
+      nrdp_url: 'https://nagios.example.com/nrdp/'
+      token: 'your-nagios-token'
+      host_name: 'ubuntu-autoinstall'
       interval_minutes: 5
 ```
 
@@ -6232,15 +6356,15 @@ Configure custom webhook notifications:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 notifications:
   webhooks:
-    - name: "slack-alerts"
-      url: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXX"
+    - name: 'slack-alerts'
+      url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXX'
       events:
         - system.discovered
         - installation.started
         - installation.completed
         - installation.failed
       headers:
-        Content-Type: "application/json"
+        Content-Type: 'application/json'
       template: |
         {
           "text": "Event: {{ .Event.Type }}",
@@ -6255,12 +6379,12 @@ notifications:
           ]
         }
 
-    - name: "teams-notification"
-      url: "https://outlook.office.com/webhook/..."
+    - name: 'teams-notification'
+      url: 'https://outlook.office.com/webhook/...'
       events:
         - installation.failed
       headers:
-        Content-Type: "application/json"
+        Content-Type: 'application/json'
       template: |
         {
           "@type": "MessageCard",
@@ -6290,14 +6414,14 @@ Configure S3-compatible object storage:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 storage:
   installation_files:
-    type: "s3"
+    type: 's3'
     s3:
-      endpoint: "https://s3.amazonaws.com"
-      region: "us-east-1"
-      bucket: "ubuntu-autoinstall-files"
-      prefix: "files/"
-      access_key: "YOUR_ACCESS_KEY"
-      secret_key: "YOUR_SECRET_KEY"
+      endpoint: 'https://s3.amazonaws.com'
+      region: 'us-east-1'
+      bucket: 'ubuntu-autoinstall-files'
+      prefix: 'files/'
+      access_key: 'YOUR_ACCESS_KEY'
+      secret_key: 'YOUR_SECRET_KEY'
       use_path_style: false
 ```
 
@@ -6308,18 +6432,18 @@ Configure external database storage:
 ```yaml
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 database:
-  type: "cockroach"
+  type: 'cockroach'
   cockroach:
-    host: "db.example.com"
+    host: 'db.example.com'
     port: 26257
-    database: "ubuntu_autoinstall"
-    user: "ubuntu_autoinstall"
-    password: "your_password"
+    database: 'ubuntu_autoinstall'
+    user: 'ubuntu_autoinstall'
+    password: 'your_password'
     ssl:
-      mode: "verify-full"
-      ca_cert: "/etc/ubuntu-autoinstall-webhook/certs/ca.crt"
-      client_cert: "/etc/ubuntu-autoinstall-webhook/certs/client.crt"
-      client_key: "/etc/ubuntu-autoinstall-webhook/certs/client.key"
+      mode: 'verify-full'
+      ca_cert: '/etc/ubuntu-autoinstall-webhook/certs/ca.crt'
+      client_cert: '/etc/ubuntu-autoinstall-webhook/certs/client.crt'
+      client_key: '/etc/ubuntu-autoinstall-webhook/certs/client.key'
 ```
 
 #### 12.6.3. Backup to Remote Storage
@@ -6330,19 +6454,19 @@ Configure backups to remote storage:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 backup:
   enabled: true
-  schedule: "0 2 * * *"  # 2 AM daily
+  schedule: '0 2 * * *' # 2 AM daily
   retention:
     days: 30
     count: 10
 
   storage:
-    type: "sftp"
+    type: 'sftp'
     sftp:
-      host: "backup.example.com"
+      host: 'backup.example.com'
       port: 22
-      user: "backup-user"
-      key_file: "/etc/ubuntu-autoinstall-webhook/keys/backup-key"
-      path: "/backups/ubuntu-autoinstall/"
+      user: 'backup-user'
+      key_file: '/etc/ubuntu-autoinstall-webhook/keys/backup-key'
+      path: '/backups/ubuntu-autoinstall/'
 ```
 
 ### 12.7. Custom Authentication and Authorization
@@ -6357,33 +6481,33 @@ auth:
   ldap:
     enabled: true
     servers:
-      - uri: "ldaps://ldap1.example.com"
+      - uri: 'ldaps://ldap1.example.com'
         priority: 1
-      - uri: "ldaps://ldap2.example.com"
+      - uri: 'ldaps://ldap2.example.com'
         priority: 2
 
-    bind_dn: "cn=service-account,ou=ServiceAccounts,dc=example,dc=com"
-    bind_password: "your_password"
+    bind_dn: 'cn=service-account,ou=ServiceAccounts,dc=example,dc=com'
+    bind_password: 'your_password'
 
     user:
-      base_dn: "ou=Users,dc=example,dc=com"
-      filter: "(&(objectClass=person)(sAMAccountName=%s))"
-      username_attribute: "sAMAccountName"
-      name_attribute: "displayName"
-      email_attribute: "mail"
+      base_dn: 'ou=Users,dc=example,dc=com'
+      filter: '(&(objectClass=person)(sAMAccountName=%s))'
+      username_attribute: 'sAMAccountName'
+      name_attribute: 'displayName'
+      email_attribute: 'mail'
 
     group:
-      base_dn: "ou=Groups,dc=example,dc=com"
-      filter: "(&(objectClass=group)(member=%s))"
-      name_attribute: "cn"
+      base_dn: 'ou=Groups,dc=example,dc=com'
+      filter: '(&(objectClass=group)(member=%s))'
+      name_attribute: 'cn'
 
     role_mappings:
-      - ldap_group: "AutoinstallAdmins"
-        role: "admin"
-      - ldap_group: "AutoinstallOperators"
-        role: "operator"
-      - ldap_group: "AutoinstallUsers"
-        role: "installer"
+      - ldap_group: 'AutoinstallAdmins'
+        role: 'admin'
+      - ldap_group: 'AutoinstallOperators'
+        role: 'operator'
+      - ldap_group: 'AutoinstallUsers'
+        role: 'installer'
 ```
 
 #### 12.7.2. OpenID Connect Configuration
@@ -6396,33 +6520,33 @@ auth:
   oidc:
     enabled: true
     providers:
-      - name: "google"
-        client_id: "your_client_id"
-        client_secret: "your_client_secret"
-        discovery_url: "https://accounts.google.com/.well-known/openid-configuration"
-        scopes: ["openid", "profile", "email"]
+      - name: 'google'
+        client_id: 'your_client_id'
+        client_secret: 'your_client_secret'
+        discovery_url: 'https://accounts.google.com/.well-known/openid-configuration'
+        scopes: ['openid', 'profile', 'email']
         claims:
-          username: "email"
-          name: "name"
-          email: "email"
+          username: 'email'
+          name: 'name'
+          email: 'email'
 
-      - name: "azure_ad"
-        client_id: "your_client_id"
-        client_secret: "your_client_secret"
-        discovery_url: "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
-        scopes: ["openid", "profile", "email"]
+      - name: 'azure_ad'
+        client_id: 'your_client_id'
+        client_secret: 'your_client_secret'
+        discovery_url: 'https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration'
+        scopes: ['openid', 'profile', 'email']
         claims:
-          username: "preferred_username"
-          name: "name"
-          email: "email"
+          username: 'preferred_username'
+          name: 'name'
+          email: 'email'
 
     role_mappings:
-      - claim: "groups"
+      - claim: 'groups'
         values:
-          - value: "autoinstall_admins"
-            role: "admin"
-          - value: "autoinstall_operators"
-            role: "operator"
+          - value: 'autoinstall_admins'
+            role: 'admin'
+          - value: 'autoinstall_operators'
+            role: 'operator'
 ```
 
 #### 12.7.3. Custom Authorization Rules
@@ -6433,30 +6557,30 @@ Configure fine-grained authorization rules:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 authorization:
   rules:
-    - name: "ReadOnlyForNonProduction"
-      description: "Read-only access to non-production systems"
+    - name: 'ReadOnlyForNonProduction'
+      description: 'Read-only access to non-production systems'
       match:
         roles:
-          - "viewer"
+          - 'viewer'
         resources:
-          - type: "system"
+          - type: 'system'
             attributes:
-              environment: "non-production"
+              environment: 'non-production'
       permissions:
-        - "read"
+        - 'read'
 
-    - name: "FullAccessToOwnedSystems"
-      description: "Full access to systems created by the user"
+    - name: 'FullAccessToOwnedSystems'
+      description: 'Full access to systems created by the user'
       match:
         resources:
-          - type: "system"
+          - type: 'system'
             attributes:
-              created_by: "${user.id}"
+              created_by: '${user.id}'
       permissions:
-        - "read"
-        - "write"
-        - "delete"
-        - "install"
+        - 'read'
+        - 'write'
+        - 'delete'
+        - 'install'
 ```
 
 ### 12.8. Advanced Logging
@@ -6470,29 +6594,29 @@ Configure advanced structured logging:
 logging:
   structured:
     enabled: true
-    format: "json"
+    format: 'json'
 
   levels:
-    default: "info"
+    default: 'info'
     components:
-      webserver: "info"
-      database: "warn"
-      file_editor: "info"
-      dnsmasq_watcher: "debug"
-      certificate_issuer: "info"
+      webserver: 'info'
+      database: 'warn'
+      file_editor: 'info'
+      dnsmasq_watcher: 'debug'
+      certificate_issuer: 'info'
 
   output:
     console:
       enabled: true
-      format: "text"
+      format: 'text'
     file:
       enabled: true
-      format: "json"
-      path: "/var/log/ubuntu-autoinstall-webhook/webhook.log"
+      format: 'json'
+      path: '/var/log/ubuntu-autoinstall-webhook/webhook.log'
     syslog:
       enabled: true
-      format: "json"
-      facility: "local0"
+      format: 'json'
+      facility: 'local0'
 ```
 
 #### 12.8.2. Remote Logging Configuration
@@ -6503,26 +6627,26 @@ Configure logging to remote systems:
 # In /etc/ubuntu-autoinstall-webhook/config.yaml
 logging:
   remote:
-    - type: "elasticsearch"
+    - type: 'elasticsearch'
       enabled: true
-      url: "https://elasticsearch.example.com:9200"
-      index: "ubuntu-autoinstall-logs"
-      username: "elastic"
-      password: "your_password"
+      url: 'https://elasticsearch.example.com:9200'
+      index: 'ubuntu-autoinstall-logs'
+      username: 'elastic'
+      password: 'your_password'
       batch_size: 100
       flush_interval_seconds: 5
 
-    - type: "fluentd"
+    - type: 'fluentd'
       enabled: true
-      host: "fluentd.example.com"
+      host: 'fluentd.example.com'
       port: 24224
-      tag: "ubuntu-autoinstall"
+      tag: 'ubuntu-autoinstall'
 
-    - type: "graylog"
+    - type: 'graylog'
       enabled: true
-      server: "graylog.example.com"
+      server: 'graylog.example.com'
       port: 12201
-      protocol: "tcp"
+      protocol: 'tcp'
       tls:
         enabled: true
         skip_verify: false
@@ -6537,12 +6661,12 @@ Configure distributed tracing:
 logging:
   tracing:
     enabled: true
-    type: "opentelemetry"
-    service_name: "ubuntu-autoinstall-webhook"
+    type: 'opentelemetry'
+    service_name: 'ubuntu-autoinstall-webhook'
 
     opentelemetry:
-      endpoint: "http://jaeger.example.com:14268/api/traces"
-      propagation: "w3c"
+      endpoint: 'http://jaeger.example.com:14268/api/traces'
+      propagation: 'w3c'
       sample_ratio: 0.1
 ```
 
@@ -6550,7 +6674,9 @@ logging:
 
 ### 13.1. Command Line Reference
 
-The Ubuntu Autoinstall Webhook system provides a comprehensive command-line interface (CLI) for administration and maintenance tasks. This section serves as a quick reference for the available commands.
+The Ubuntu Autoinstall Webhook system provides a comprehensive command-line
+interface (CLI) for administration and maintenance tasks. This section serves as
+a quick reference for the available commands.
 
 #### 13.1.1. General Commands
 
@@ -6759,7 +6885,9 @@ ubuntu-autoinstall-webhook logs tail [--component=COMPONENT] [--level=LEVEL]
 
 ### 13.2. Configuration File Reference
 
-This section provides a comprehensive reference for the configuration options available in the main configuration file, located at `/etc/ubuntu-autoinstall-webhook/config.yaml`.
+This section provides a comprehensive reference for the configuration options
+available in the main configuration file, located at
+`/etc/ubuntu-autoinstall-webhook/config.yaml`.
 
 #### 13.2.1. Basic Configuration
 
@@ -6767,13 +6895,13 @@ This section provides a comprehensive reference for the configuration options av
 # Basic server configuration
 server:
   # Unique identifier for this server instance
-  id: "server1"
+  id: 'server1'
   # Server display name
-  name: "Production Server"
+  name: 'Production Server'
   # Environment (production, staging, development)
-  environment: "production"
+  environment: 'production'
   # Data directory
-  data_dir: "/var/lib/ubuntu-autoinstall-webhook"
+  data_dir: '/var/lib/ubuntu-autoinstall-webhook'
 ```
 
 #### 13.2.2. Web Server Configuration
@@ -6783,7 +6911,7 @@ webserver:
   # HTTP settings
   http:
     enabled: true
-    address: "0.0.0.0"
+    address: '0.0.0.0'
     port: 8080
     read_timeout_seconds: 30
     write_timeout_seconds: 60
@@ -6793,31 +6921,31 @@ webserver:
   # HTTPS settings
   https:
     enabled: true
-    address: "0.0.0.0"
+    address: '0.0.0.0'
     port: 8443
-    cert_file: "/etc/ubuntu-autoinstall-webhook/certs/server.crt"
-    key_file: "/etc/ubuntu-autoinstall-webhook/certs/server.key"
-    min_version: "1.2"  # TLS 1.2
+    cert_file: '/etc/ubuntu-autoinstall-webhook/certs/server.crt'
+    key_file: '/etc/ubuntu-autoinstall-webhook/certs/server.key'
+    min_version: '1.2' # TLS 1.2
 
   # CORS settings
   cors:
     enabled: true
     allowed_origins:
-      - "https://example.com"
+      - 'https://example.com'
     allowed_methods:
-      - "GET"
-      - "POST"
-      - "PUT"
-      - "DELETE"
+      - 'GET'
+      - 'POST'
+      - 'PUT'
+      - 'DELETE'
     allowed_headers:
-      - "Content-Type"
-      - "Authorization"
+      - 'Content-Type'
+      - 'Authorization'
     max_age_seconds: 3600
 
   # Static file serving
   static_files:
-    path: "/var/www/html"
-    cache_control: "public, max-age=86400"
+    path: '/var/www/html'
+    cache_control: 'public, max-age=86400'
     gzip: true
     min_compress_size: 1024
 ```
@@ -6827,30 +6955,30 @@ webserver:
 ```yaml
 database:
   # Database type: sqlite, cockroachdb
-  type: "sqlite"
+  type: 'sqlite'
 
   # SQLite configuration
   sqlite:
-    file: "/var/lib/ubuntu-autoinstall-webhook/database.sqlite3"
+    file: '/var/lib/ubuntu-autoinstall-webhook/database.sqlite3'
     pragmas:
-      journal_mode: "WAL"
-      synchronous: "NORMAL"
-      temp_store: "MEMORY"
+      journal_mode: 'WAL'
+      synchronous: 'NORMAL'
+      temp_store: 'MEMORY'
       mmap_size: 30000000000
       cache_size: -64000
 
   # CockroachDB configuration
   cockroach:
-    host: "localhost"
+    host: 'localhost'
     port: 26257
-    database: "ubuntu_autoinstall"
-    user: "ubuntu_autoinstall"
-    password: "password"  # Better to use password_file
-    password_file: "/etc/ubuntu-autoinstall-webhook/db_password"
-    ssl_mode: "verify-full"
-    ssl_ca: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-ca.crt"
-    ssl_cert: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.crt"
-    ssl_key: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.key"
+    database: 'ubuntu_autoinstall'
+    user: 'ubuntu_autoinstall'
+    password: 'password' # Better to use password_file
+    password_file: '/etc/ubuntu-autoinstall-webhook/db_password'
+    ssl_mode: 'verify-full'
+    ssl_ca: '/etc/ubuntu-autoinstall-webhook/certs/cockroach-ca.crt'
+    ssl_cert: '/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.crt'
+    ssl_key: '/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.key'
     max_open_conns: 25
     max_idle_conns: 10
     conn_max_lifetime_minutes: 60
@@ -6868,9 +6996,9 @@ database:
 auth:
   # Session settings
   session:
-    name: "webhook_session"
-    secret: "random-session-secret"  # Better to use secret_file
-    secret_file: "/etc/ubuntu-autoinstall-webhook/session_secret"
+    name: 'webhook_session'
+    secret: 'random-session-secret' # Better to use secret_file
+    secret_file: '/etc/ubuntu-autoinstall-webhook/session_secret'
     lifetime_hours: 24
     idle_timeout_minutes: 30
     cookie_secure: true
@@ -6888,33 +7016,33 @@ auth:
   # LDAP authentication
   ldap:
     enabled: false
-    server: "ldap.example.com"
+    server: 'ldap.example.com'
     port: 636
     use_ssl: true
-    bind_dn: "cn=service-account,ou=users,dc=example,dc=com"
-    bind_password: "secret"  # Better to use password_file
-    bind_password_file: "/etc/ubuntu-autoinstall-webhook/ldap_password"
-    search_base: "ou=users,dc=example,dc=com"
-    search_filter: "(sAMAccountName=%s)"
-    group_search_base: "ou=groups,dc=example,dc=com"
-    group_search_filter: "(member=%s)"
-    admin_group: "ubuntu-autoinstall-admins"
+    bind_dn: 'cn=service-account,ou=users,dc=example,dc=com'
+    bind_password: 'secret' # Better to use password_file
+    bind_password_file: '/etc/ubuntu-autoinstall-webhook/ldap_password'
+    search_base: 'ou=users,dc=example,dc=com'
+    search_filter: '(sAMAccountName=%s)'
+    group_search_base: 'ou=groups,dc=example,dc=com'
+    group_search_filter: '(member=%s)'
+    admin_group: 'ubuntu-autoinstall-admins'
 
   # OAuth2 configuration
   oauth2:
     enabled: false
-    provider: "github"
-    client_id: "your-client-id"
-    client_secret: "your-client-secret"  # Better to use secret_file
-    client_secret_file: "/etc/ubuntu-autoinstall-webhook/oauth_secret"
-    redirect_url: "https://webhook.example.com/auth/callback"
-    scopes: ["user:email"]
+    provider: 'github'
+    client_id: 'your-client-id'
+    client_secret: 'your-client-secret' # Better to use secret_file
+    client_secret_file: '/etc/ubuntu-autoinstall-webhook/oauth_secret'
+    redirect_url: 'https://webhook.example.com/auth/callback'
+    scopes: ['user:email']
 
   # API token settings
   tokens:
     enabled: true
-    max_lifetime_hours: 8760  # 1 year
-    default_lifetime_hours: 720  # 30 days
+    max_lifetime_hours: 8760 # 1 year
+    default_lifetime_hours: 720 # 30 days
     inactive_timeout_hours: 72
 ```
 
@@ -6925,41 +7053,41 @@ rbac:
   # Built-in roles configuration
   roles:
     admin:
-      description: "Full administrative access"
+      description: 'Full administrative access'
     operator:
-      description: "Manage systems and installations"
+      description: 'Manage systems and installations'
       permissions:
-        - "systems:*"
-        - "installations:*"
-        - "templates:read"
-        - "logs:read"
+        - 'systems:*'
+        - 'installations:*'
+        - 'templates:read'
+        - 'logs:read'
     installer:
-      description: "Initiate and monitor installations"
+      description: 'Initiate and monitor installations'
       permissions:
-        - "systems:read"
-        - "installations:read"
-        - "installations:write"
-        - "logs:read"
+        - 'systems:read'
+        - 'installations:read'
+        - 'installations:write'
+        - 'logs:read'
     viewer:
-      description: "Read-only access"
+      description: 'Read-only access'
       permissions:
-        - "*:read"
+        - '*:read'
 
   # Custom roles
   custom_roles:
-    - name: "TemplateManager"
-      description: "Can create and edit templates"
+    - name: 'TemplateManager'
+      description: 'Can create and edit templates'
       permissions:
-        - "templates:*"
-        - "systems:read"
+        - 'templates:*'
+        - 'systems:read'
 
-    - name: "SecurityAuditor"
-      description: "Audit security settings and logs"
+    - name: 'SecurityAuditor'
+      description: 'Audit security settings and logs'
       permissions:
-        - "logs:read"
-        - "certificates:read"
-        - "users:read"
-        - "audit:read"
+        - 'logs:read'
+        - 'certificates:read'
+        - 'users:read'
+        - 'audit:read'
 ```
 
 #### 13.2.6. Logging Configuration
@@ -6967,18 +7095,18 @@ rbac:
 ```yaml
 logging:
   # Log level: debug, info, warn, error
-  level: "info"
+  level: 'info'
 
   # Log format: text, json
-  format: "json"
+  format: 'json'
 
   # Output options: file, stdout, both
-  output: "both"
+  output: 'both'
 
   # File logging settings
   file:
-    directory: "/var/log/ubuntu-autoinstall-webhook"
-    filename: "webhook.log"
+    directory: '/var/log/ubuntu-autoinstall-webhook'
+    filename: 'webhook.log'
 
   # Log rotation settings
   rotate:
@@ -6989,16 +7117,16 @@ logging:
 
   # Component-specific log levels
   components:
-    file_editor: "info"
-    database: "info"
-    webserver: "info"
-    dnsmasq_watcher: "info"
-    cert_issuer: "info"
+    file_editor: 'info'
+    database: 'info'
+    webserver: 'info'
+    dnsmasq_watcher: 'info'
+    cert_issuer: 'info'
 
   # Audit log settings
   audit:
     enabled: true
-    file: "/var/log/ubuntu-autoinstall-webhook/audit.log"
+    file: '/var/log/ubuntu-autoinstall-webhook/audit.log'
     syslog: false
     retention_days: 365
 ```
@@ -7009,15 +7137,15 @@ logging:
 certificates:
   # CA settings
   ca:
-    root_cert: "/var/lib/ubuntu-autoinstall-webhook/certificates/ca.crt"
-    root_key: "/var/lib/ubuntu-autoinstall-webhook/certificates/private/ca.key"
+    root_cert: '/var/lib/ubuntu-autoinstall-webhook/certificates/ca.crt'
+    root_key: '/var/lib/ubuntu-autoinstall-webhook/certificates/private/ca.key'
 
   # Certificate defaults
   defaults:
-    country: "US"
-    organization: "Example Organization"
+    country: 'US'
+    organization: 'Example Organization'
     validity_days: 365
-    key_type: "rsa"
+    key_type: 'rsa'
     key_bits: 2048
 
   # Certificate types
@@ -7025,8 +7153,8 @@ certificates:
     server:
       validity_days: 365
       subject_alt_names:
-        - "webhook.example.com"
-        - "webhook.local"
+        - 'webhook.example.com'
+        - 'webhook.local'
     client:
       validity_days: 90
     service:
@@ -7044,16 +7172,16 @@ certificates:
 ```yaml
 installation:
   # Default Ubuntu version
-  default_ubuntu_version: "22.04"
+  default_ubuntu_version: '22.04'
 
   # Available Ubuntu versions
   ubuntu_versions:
-    - "20.04"
-    - "22.04"
-    - "24.04"
+    - '20.04'
+    - '22.04'
+    - '24.04'
 
   # Files directory
-  files_directory: "/var/www/html/ipxe"
+  files_directory: '/var/www/html/ipxe'
 
   # Installation timeouts
   timeouts:
@@ -7063,32 +7191,32 @@ installation:
 
   # iPXE configuration
   ipxe:
-    script_template: "/var/lib/ubuntu-autoinstall-webhook/templates/ipxe.script.tmpl"
+    script_template: '/var/lib/ubuntu-autoinstall-webhook/templates/ipxe.script.tmpl'
     timeout_seconds: 300
     retry_count: 3
     retry_delay_seconds: 5
 
   # Autoinstall configuration
   autoinstall:
-    template_directory: "/var/lib/ubuntu-autoinstall-webhook/templates"
-    user_data_template: "user-data.yaml.tmpl"
-    meta_data_template: "meta-data.yaml.tmpl"
-    vendor_data_template: "vendor-data.yaml.tmpl"
+    template_directory: '/var/lib/ubuntu-autoinstall-webhook/templates'
+    user_data_template: 'user-data.yaml.tmpl'
+    meta_data_template: 'meta-data.yaml.tmpl'
+    vendor_data_template: 'vendor-data.yaml.tmpl'
 
   # Authentication for installations
   authentication:
-    method: "token"  # none, token, certificate
+    method: 'token' # none, token, certificate
     token_lifetime_minutes: 30
     max_attempts: 3
 
   # Post-installation hooks
   post_install_hooks:
-    - name: "inventory-update"
-      url: "https://inventory.example.com/api/new-installation"
-      method: "POST"
+    - name: 'inventory-update'
+      url: 'https://inventory.example.com/api/new-installation'
+      method: 'POST'
       headers:
-        Content-Type: "application/json"
-        Authorization: "Bearer token"
+        Content-Type: 'application/json'
+        Authorization: 'Bearer token'
       retry_count: 3
 ```
 
@@ -7097,7 +7225,7 @@ installation:
 ```yaml
 dnsmasq_watcher:
   # Log file to watch
-  log_file: "/var/log/dnsmasq.log"
+  log_file: '/var/log/dnsmasq.log'
 
   # Poll interval in seconds
   poll_interval_seconds: 3
@@ -7107,10 +7235,10 @@ dnsmasq_watcher:
 
   # System registration
   auto_register: true
-  default_template: "minimal-server"
+  default_template: 'minimal-server'
 
   # Processing options
-  handle_duplicates: "update"  # ignore, update
+  handle_duplicates: 'update' # ignore, update
   max_queue_size: 100
 
   # Log rotation handling
@@ -7123,7 +7251,7 @@ dnsmasq_watcher:
 ```yaml
 cache:
   # Cache type: memory, redis
-  type: "memory"
+  type: 'memory'
 
   # Memory cache settings
   memory:
@@ -7132,8 +7260,8 @@ cache:
 
   # Redis cache settings
   redis:
-    address: "redis:6379"
-    password: ""
+    address: 'redis:6379'
+    password: ''
     db: 0
     pool_size: 10
     ttl_seconds: 300
@@ -7150,9 +7278,9 @@ cache:
 security:
   # IP restriction
   allowed_ip_ranges:
-    - "10.0.0.0/8"
-    - "172.16.0.0/12"
-    - "192.168.0.0/16"
+    - '10.0.0.0/8'
+    - '172.16.0.0/12'
+    - '192.168.0.0/16'
 
   # Rate limiting
   rate_limit:
@@ -7162,7 +7290,7 @@ security:
 
   # Sensitive data handling
   sensitive_data:
-    encryption_key_file: "/etc/ubuntu-autoinstall-webhook/keys/data-encryption.key"
+    encryption_key_file: '/etc/ubuntu-autoinstall-webhook/keys/data-encryption.key'
     encrypt_passwords: true
     encrypt_ssh_keys: true
     encrypt_api_tokens: true
@@ -7177,15 +7305,19 @@ security:
 
   # Security headers
   http_security_headers:
-    content_security_policy: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
-    x_frame_options: "DENY"
-    x_content_type_options: "nosniff"
-    referrer_policy: "strict-origin-when-cross-origin"
+    content_security_policy:
+      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'
+      data:;"
+    x_frame_options: 'DENY'
+    x_content_type_options: 'nosniff'
+    referrer_policy: 'strict-origin-when-cross-origin'
 ```
 
 ### 13.3. Default Templates
 
-The system includes several default templates that can be used as a starting point for your own templates. This section provides a reference for these templates and their intended use cases.
+The system includes several default templates that can be used as a starting
+point for your own templates. This section provides a reference for these
+templates and their intended use cases.
 
 #### 13.3.1. Minimal Server Template
 
@@ -7203,7 +7335,7 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: ubuntu
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: true
@@ -7237,12 +7369,12 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: ubuntu
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: false
     authorized-keys:
-      - ssh-rsa AAAA...  # Your SSH public key
+      - ssh-rsa AAAA... # Your SSH public key
   storage:
     layout:
       name: lvm
@@ -7279,7 +7411,7 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: developer
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: true
@@ -7322,7 +7454,7 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: ubuntu
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: true
@@ -7398,12 +7530,12 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: netadmin
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: false
     authorized-keys:
-      - ssh-rsa AAAA...  # Your SSH public key
+      - ssh-rsa AAAA... # Your SSH public key
   network:
     network:
       version: 2
@@ -7439,6 +7571,7 @@ autoinstall:
 The API supports two authentication methods:
 
 1. **API Token Authentication** (recommended for scripts and automation)
+
    ```
    Authorization: Bearer <token>
    ```
@@ -7453,6 +7586,7 @@ The API supports two authentication methods:
 Below are the common API endpoints organized by resource:
 
 **Systems**
+
 ```
 GET    /api/v1/systems            - List all systems
 POST   /api/v1/systems            - Create a new system
@@ -7463,6 +7597,7 @@ GET    /api/v1/systems/by-mac/{mac} - Get system by MAC address
 ```
 
 **Templates**
+
 ```
 GET    /api/v1/templates          - List all templates
 POST   /api/v1/templates          - Create a new template
@@ -7473,6 +7608,7 @@ GET    /api/v1/templates/{id}/render/{mac} - Render a template for a system
 ```
 
 **Installations**
+
 ```
 GET    /api/v1/installations      - List installations
 POST   /api/v1/installations      - Start a new installation
@@ -7483,6 +7619,7 @@ POST   /api/v1/installations/phone-home - Endpoint for system callbacks
 ```
 
 **Users**
+
 ```
 GET    /api/v1/users              - List users
 POST   /api/v1/users              - Create a new user
@@ -7493,6 +7630,7 @@ PUT    /api/v1/users/{id}/password - Change user password
 ```
 
 **Authentication**
+
 ```
 POST   /api/v1/auth/login         - Login with username/password
 POST   /api/v1/auth/logout        - Logout current session
@@ -7502,6 +7640,7 @@ DELETE /api/v1/auth/tokens/{id}   - Revoke an API token
 ```
 
 **Certificates**
+
 ```
 GET    /api/v1/certs              - List certificates
 POST   /api/v1/certs              - Create a new certificate
@@ -7511,6 +7650,7 @@ GET    /api/v1/certs/{id}/download - Download a certificate
 ```
 
 **Configuration**
+
 ```
 GET    /api/v1/config             - Get system configuration
 PUT    /api/v1/config             - Update system configuration
@@ -7519,6 +7659,7 @@ PUT    /api/v1/config/network     - Update network configuration
 ```
 
 **Status**
+
 ```
 GET    /api/v1/status             - Get system status
 GET    /api/v1/status/health      - Get health status
@@ -7528,6 +7669,7 @@ GET    /api/v1/status/metrics     - Get system metrics
 #### 13.4.3. Example API Requests
 
 **Authenticate and Get Token**
+
 ```bash
 curl -X POST "https://webhook.example.com:8443/api/v1/auth/login" \
   -H "Content-Type: application/json" \
@@ -7536,6 +7678,7 @@ curl -X POST "https://webhook.example.com:8443/api/v1/auth/login" \
 ```
 
 **Create a New System**
+
 ```bash
 curl -X POST "https://webhook.example.com:8443/api/v1/systems" \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -7548,6 +7691,7 @@ curl -X POST "https://webhook.example.com:8443/api/v1/systems" \
 ```
 
 **Start an Installation**
+
 ```bash
 curl -X POST "https://webhook.example.com:8443/api/v1/installations" \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -7560,7 +7704,8 @@ curl -X POST "https://webhook.example.com:8443/api/v1/installations" \
 
 ### 13.5. Network Requirements
 
-This reference table outlines the network ports and protocols used by the Ubuntu Autoinstall Webhook system:
+This reference table outlines the network ports and protocols used by the Ubuntu
+Autoinstall Webhook system:
 
 | Port | Protocol | Purpose                                 | Direction | Optional? |
 | ---- | -------- | --------------------------------------- | --------- | --------- |
@@ -7568,11 +7713,14 @@ This reference table outlines the network ports and protocols used by the Ubuntu
 | 8443 | TCP      | HTTPS web interface                     | Inbound   | No        |
 | 69   | UDP      | TFTP boot files                         | Inbound   | No        |
 | 53   | UDP/TCP  | DNS<!--                                 |
+
 ## 13. Appendices
 
 ### 13.1. Command Line Reference
 
-The Ubuntu Autoinstall Webhook system provides a comprehensive command-line interface (CLI) for administration and maintenance tasks. This section serves as a quick reference for the available commands.
+The Ubuntu Autoinstall Webhook system provides a comprehensive command-line
+interface (CLI) for administration and maintenance tasks. This section serves as
+a quick reference for the available commands.
 
 #### 13.1.1. General Commands
 
@@ -7781,7 +7929,9 @@ ubuntu-autoinstall-webhook logs tail [--component=COMPONENT] [--level=LEVEL]
 
 ### 13.2. Configuration File Reference
 
-This section provides a comprehensive reference for the configuration options available in the main configuration file, located at `/etc/ubuntu-autoinstall-webhook/config.yaml`.
+This section provides a comprehensive reference for the configuration options
+available in the main configuration file, located at
+`/etc/ubuntu-autoinstall-webhook/config.yaml`.
 
 #### 13.2.1. Basic Configuration
 
@@ -7789,13 +7939,13 @@ This section provides a comprehensive reference for the configuration options av
 # Basic server configuration
 server:
   # Unique identifier for this server instance
-  id: "server1"
+  id: 'server1'
   # Server display name
-  name: "Production Server"
+  name: 'Production Server'
   # Environment (production, staging, development)
-  environment: "production"
+  environment: 'production'
   # Data directory
-  data_dir: "/var/lib/ubuntu-autoinstall-webhook"
+  data_dir: '/var/lib/ubuntu-autoinstall-webhook'
 ```
 
 #### 13.2.2. Web Server Configuration
@@ -7805,7 +7955,7 @@ webserver:
   # HTTP settings
   http:
     enabled: true
-    address: "0.0.0.0"
+    address: '0.0.0.0'
     port: 8080
     read_timeout_seconds: 30
     write_timeout_seconds: 60
@@ -7815,31 +7965,31 @@ webserver:
   # HTTPS settings
   https:
     enabled: true
-    address: "0.0.0.0"
+    address: '0.0.0.0'
     port: 8443
-    cert_file: "/etc/ubuntu-autoinstall-webhook/certs/server.crt"
-    key_file: "/etc/ubuntu-autoinstall-webhook/certs/server.key"
-    min_version: "1.2"  # TLS 1.2
+    cert_file: '/etc/ubuntu-autoinstall-webhook/certs/server.crt'
+    key_file: '/etc/ubuntu-autoinstall-webhook/certs/server.key'
+    min_version: '1.2' # TLS 1.2
 
   # CORS settings
   cors:
     enabled: true
     allowed_origins:
-      - "https://example.com"
+      - 'https://example.com'
     allowed_methods:
-      - "GET"
-      - "POST"
-      - "PUT"
-      - "DELETE"
+      - 'GET'
+      - 'POST'
+      - 'PUT'
+      - 'DELETE'
     allowed_headers:
-      - "Content-Type"
-      - "Authorization"
+      - 'Content-Type'
+      - 'Authorization'
     max_age_seconds: 3600
 
   # Static file serving
   static_files:
-    path: "/var/www/html"
-    cache_control: "public, max-age=86400"
+    path: '/var/www/html'
+    cache_control: 'public, max-age=86400'
     gzip: true
     min_compress_size: 1024
 ```
@@ -7849,30 +7999,30 @@ webserver:
 ```yaml
 database:
   # Database type: sqlite, cockroachdb
-  type: "sqlite"
+  type: 'sqlite'
 
   # SQLite configuration
   sqlite:
-    file: "/var/lib/ubuntu-autoinstall-webhook/database.sqlite3"
+    file: '/var/lib/ubuntu-autoinstall-webhook/database.sqlite3'
     pragmas:
-      journal_mode: "WAL"
-      synchronous: "NORMAL"
-      temp_store: "MEMORY"
+      journal_mode: 'WAL'
+      synchronous: 'NORMAL'
+      temp_store: 'MEMORY'
       mmap_size: 30000000000
       cache_size: -64000
 
   # CockroachDB configuration
   cockroach:
-    host: "localhost"
+    host: 'localhost'
     port: 26257
-    database: "ubuntu_autoinstall"
-    user: "ubuntu_autoinstall"
-    password: "password"  # Better to use password_file
-    password_file: "/etc/ubuntu-autoinstall-webhook/db_password"
-    ssl_mode: "verify-full"
-    ssl_ca: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-ca.crt"
-    ssl_cert: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.crt"
-    ssl_key: "/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.key"
+    database: 'ubuntu_autoinstall'
+    user: 'ubuntu_autoinstall'
+    password: 'password' # Better to use password_file
+    password_file: '/etc/ubuntu-autoinstall-webhook/db_password'
+    ssl_mode: 'verify-full'
+    ssl_ca: '/etc/ubuntu-autoinstall-webhook/certs/cockroach-ca.crt'
+    ssl_cert: '/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.crt'
+    ssl_key: '/etc/ubuntu-autoinstall-webhook/certs/cockroach-client.key'
     max_open_conns: 25
     max_idle_conns: 10
     conn_max_lifetime_minutes: 60
@@ -7890,9 +8040,9 @@ database:
 auth:
   # Session settings
   session:
-    name: "webhook_session"
-    secret: "random-session-secret"  # Better to use secret_file
-    secret_file: "/etc/ubuntu-autoinstall-webhook/session_secret"
+    name: 'webhook_session'
+    secret: 'random-session-secret' # Better to use secret_file
+    secret_file: '/etc/ubuntu-autoinstall-webhook/session_secret'
     lifetime_hours: 24
     idle_timeout_minutes: 30
     cookie_secure: true
@@ -7910,33 +8060,33 @@ auth:
   # LDAP authentication
   ldap:
     enabled: false
-    server: "ldap.example.com"
+    server: 'ldap.example.com'
     port: 636
     use_ssl: true
-    bind_dn: "cn=service-account,ou=users,dc=example,dc=com"
-    bind_password: "secret"  # Better to use password_file
-    bind_password_file: "/etc/ubuntu-autoinstall-webhook/ldap_password"
-    search_base: "ou=users,dc=example,dc=com"
-    search_filter: "(sAMAccountName=%s)"
-    group_search_base: "ou=groups,dc=example,dc=com"
-    group_search_filter: "(member=%s)"
-    admin_group: "ubuntu-autoinstall-admins"
+    bind_dn: 'cn=service-account,ou=users,dc=example,dc=com'
+    bind_password: 'secret' # Better to use password_file
+    bind_password_file: '/etc/ubuntu-autoinstall-webhook/ldap_password'
+    search_base: 'ou=users,dc=example,dc=com'
+    search_filter: '(sAMAccountName=%s)'
+    group_search_base: 'ou=groups,dc=example,dc=com'
+    group_search_filter: '(member=%s)'
+    admin_group: 'ubuntu-autoinstall-admins'
 
   # OAuth2 configuration
   oauth2:
     enabled: false
-    provider: "github"
-    client_id: "your-client-id"
-    client_secret: "your-client-secret"  # Better to use secret_file
-    client_secret_file: "/etc/ubuntu-autoinstall-webhook/oauth_secret"
-    redirect_url: "https://webhook.example.com/auth/callback"
-    scopes: ["user:email"]
+    provider: 'github'
+    client_id: 'your-client-id'
+    client_secret: 'your-client-secret' # Better to use secret_file
+    client_secret_file: '/etc/ubuntu-autoinstall-webhook/oauth_secret'
+    redirect_url: 'https://webhook.example.com/auth/callback'
+    scopes: ['user:email']
 
   # API token settings
   tokens:
     enabled: true
-    max_lifetime_hours: 8760  # 1 year
-    default_lifetime_hours: 720  # 30 days
+    max_lifetime_hours: 8760 # 1 year
+    default_lifetime_hours: 720 # 30 days
     inactive_timeout_hours: 72
 ```
 
@@ -7947,41 +8097,41 @@ rbac:
   # Built-in roles configuration
   roles:
     admin:
-      description: "Full administrative access"
+      description: 'Full administrative access'
     operator:
-      description: "Manage systems and installations"
+      description: 'Manage systems and installations'
       permissions:
-        - "systems:*"
-        - "installations:*"
-        - "templates:read"
-        - "logs:read"
+        - 'systems:*'
+        - 'installations:*'
+        - 'templates:read'
+        - 'logs:read'
     installer:
-      description: "Initiate and monitor installations"
+      description: 'Initiate and monitor installations'
       permissions:
-        - "systems:read"
-        - "installations:read"
-        - "installations:write"
-        - "logs:read"
+        - 'systems:read'
+        - 'installations:read'
+        - 'installations:write'
+        - 'logs:read'
     viewer:
-      description: "Read-only access"
+      description: 'Read-only access'
       permissions:
-        - "*:read"
+        - '*:read'
 
   # Custom roles
   custom_roles:
-    - name: "TemplateManager"
-      description: "Can create and edit templates"
+    - name: 'TemplateManager'
+      description: 'Can create and edit templates'
       permissions:
-        - "templates:*"
-        - "systems:read"
+        - 'templates:*'
+        - 'systems:read'
 
-    - name: "SecurityAuditor"
-      description: "Audit security settings and logs"
+    - name: 'SecurityAuditor'
+      description: 'Audit security settings and logs'
       permissions:
-        - "logs:read"
-        - "certificates:read"
-        - "users:read"
-        - "audit:read"
+        - 'logs:read'
+        - 'certificates:read'
+        - 'users:read'
+        - 'audit:read'
 ```
 
 #### 13.2.6. Logging Configuration
@@ -7989,18 +8139,18 @@ rbac:
 ```yaml
 logging:
   # Log level: debug, info, warn, error
-  level: "info"
+  level: 'info'
 
   # Log format: text, json
-  format: "json"
+  format: 'json'
 
   # Output options: file, stdout, both
-  output: "both"
+  output: 'both'
 
   # File logging settings
   file:
-    directory: "/var/log/ubuntu-autoinstall-webhook"
-    filename: "webhook.log"
+    directory: '/var/log/ubuntu-autoinstall-webhook'
+    filename: 'webhook.log'
 
   # Log rotation settings
   rotate:
@@ -8011,16 +8161,16 @@ logging:
 
   # Component-specific log levels
   components:
-    file_editor: "info"
-    database: "info"
-    webserver: "info"
-    dnsmasq_watcher: "info"
-    cert_issuer: "info"
+    file_editor: 'info'
+    database: 'info'
+    webserver: 'info'
+    dnsmasq_watcher: 'info'
+    cert_issuer: 'info'
 
   # Audit log settings
   audit:
     enabled: true
-    file: "/var/log/ubuntu-autoinstall-webhook/audit.log"
+    file: '/var/log/ubuntu-autoinstall-webhook/audit.log'
     syslog: false
     retention_days: 365
 ```
@@ -8031,15 +8181,15 @@ logging:
 certificates:
   # CA settings
   ca:
-    root_cert: "/var/lib/ubuntu-autoinstall-webhook/certificates/ca.crt"
-    root_key: "/var/lib/ubuntu-autoinstall-webhook/certificates/private/ca.key"
+    root_cert: '/var/lib/ubuntu-autoinstall-webhook/certificates/ca.crt'
+    root_key: '/var/lib/ubuntu-autoinstall-webhook/certificates/private/ca.key'
 
   # Certificate defaults
   defaults:
-    country: "US"
-    organization: "Example Organization"
+    country: 'US'
+    organization: 'Example Organization'
     validity_days: 365
-    key_type: "rsa"
+    key_type: 'rsa'
     key_bits: 2048
 
   # Certificate types
@@ -8047,8 +8197,8 @@ certificates:
     server:
       validity_days: 365
       subject_alt_names:
-        - "webhook.example.com"
-        - "webhook.local"
+        - 'webhook.example.com'
+        - 'webhook.local'
     client:
       validity_days: 90
     service:
@@ -8066,16 +8216,16 @@ certificates:
 ```yaml
 installation:
   # Default Ubuntu version
-  default_ubuntu_version: "22.04"
+  default_ubuntu_version: '22.04'
 
   # Available Ubuntu versions
   ubuntu_versions:
-    - "20.04"
-    - "22.04"
-    - "24.04"
+    - '20.04'
+    - '22.04'
+    - '24.04'
 
   # Files directory
-  files_directory: "/var/www/html/ipxe"
+  files_directory: '/var/www/html/ipxe'
 
   # Installation timeouts
   timeouts:
@@ -8085,32 +8235,32 @@ installation:
 
   # iPXE configuration
   ipxe:
-    script_template: "/var/lib/ubuntu-autoinstall-webhook/templates/ipxe.script.tmpl"
+    script_template: '/var/lib/ubuntu-autoinstall-webhook/templates/ipxe.script.tmpl'
     timeout_seconds: 300
     retry_count: 3
     retry_delay_seconds: 5
 
   # Autoinstall configuration
   autoinstall:
-    template_directory: "/var/lib/ubuntu-autoinstall-webhook/templates"
-    user_data_template: "user-data.yaml.tmpl"
-    meta_data_template: "meta-data.yaml.tmpl"
-    vendor_data_template: "vendor-data.yaml.tmpl"
+    template_directory: '/var/lib/ubuntu-autoinstall-webhook/templates'
+    user_data_template: 'user-data.yaml.tmpl'
+    meta_data_template: 'meta-data.yaml.tmpl'
+    vendor_data_template: 'vendor-data.yaml.tmpl'
 
   # Authentication for installations
   authentication:
-    method: "token"  # none, token, certificate
+    method: 'token' # none, token, certificate
     token_lifetime_minutes: 30
     max_attempts: 3
 
   # Post-installation hooks
   post_install_hooks:
-    - name: "inventory-update"
-      url: "https://inventory.example.com/api/new-installation"
-      method: "POST"
+    - name: 'inventory-update'
+      url: 'https://inventory.example.com/api/new-installation'
+      method: 'POST'
       headers:
-        Content-Type: "application/json"
-        Authorization: "Bearer token"
+        Content-Type: 'application/json'
+        Authorization: 'Bearer token'
       retry_count: 3
 ```
 
@@ -8119,7 +8269,7 @@ installation:
 ```yaml
 dnsmasq_watcher:
   # Log file to watch
-  log_file: "/var/log/dnsmasq.log"
+  log_file: '/var/log/dnsmasq.log'
 
   # Poll interval in seconds
   poll_interval_seconds: 3
@@ -8129,10 +8279,10 @@ dnsmasq_watcher:
 
   # System registration
   auto_register: true
-  default_template: "minimal-server"
+  default_template: 'minimal-server'
 
   # Processing options
-  handle_duplicates: "update"  # ignore, update
+  handle_duplicates: 'update' # ignore, update
   max_queue_size: 100
 
   # Log rotation handling
@@ -8145,7 +8295,7 @@ dnsmasq_watcher:
 ```yaml
 cache:
   # Cache type: memory, redis
-  type: "memory"
+  type: 'memory'
 
   # Memory cache settings
   memory:
@@ -8154,8 +8304,8 @@ cache:
 
   # Redis cache settings
   redis:
-    address: "redis:6379"
-    password: ""
+    address: 'redis:6379'
+    password: ''
     db: 0
     pool_size: 10
     ttl_seconds: 300
@@ -8172,9 +8322,9 @@ cache:
 security:
   # IP restriction
   allowed_ip_ranges:
-    - "10.0.0.0/8"
-    - "172.16.0.0/12"
-    - "192.168.0.0/16"
+    - '10.0.0.0/8'
+    - '172.16.0.0/12'
+    - '192.168.0.0/16'
 
   # Rate limiting
   rate_limit:
@@ -8184,7 +8334,7 @@ security:
 
   # Sensitive data handling
   sensitive_data:
-    encryption_key_file: "/etc/ubuntu-autoinstall-webhook/keys/data-encryption.key"
+    encryption_key_file: '/etc/ubuntu-autoinstall-webhook/keys/data-encryption.key'
     encrypt_passwords: true
     encrypt_ssh_keys: true
     encrypt_api_tokens: true
@@ -8199,15 +8349,19 @@ security:
 
   # Security headers
   http_security_headers:
-    content_security_policy: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
-    x_frame_options: "DENY"
-    x_content_type_options: "nosniff"
-    referrer_policy: "strict-origin-when-cross-origin"
+    content_security_policy:
+      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'
+      data:;"
+    x_frame_options: 'DENY'
+    x_content_type_options: 'nosniff'
+    referrer_policy: 'strict-origin-when-cross-origin'
 ```
 
 ### 13.3. Default Templates
 
-The system includes several default templates that can be used as a starting point for your own templates. This section provides a reference for these templates and their intended use cases.
+The system includes several default templates that can be used as a starting
+point for your own templates. This section provides a reference for these
+templates and their intended use cases.
 
 #### 13.3.1. Minimal Server Template
 
@@ -8225,7 +8379,7 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: ubuntu
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: true
@@ -8259,12 +8413,12 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: ubuntu
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: false
     authorized-keys:
-      - ssh-rsa AAAA...  # Your SSH public key
+      - ssh-rsa AAAA... # Your SSH public key
   storage:
     layout:
       name: lvm
@@ -8301,7 +8455,7 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: developer
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: true
@@ -8344,7 +8498,7 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: ubuntu
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: true
@@ -8420,12 +8574,12 @@ autoinstall:
   identity:
     hostname: ${hostname}
     username: netadmin
-    password: $6$examplehash$...  # Use your own password hash
+    password: $6$examplehash$... # Use your own password hash
   ssh:
     install-server: true
     allow-pw: false
     authorized-keys:
-      - ssh-rsa AAAA...  # Your SSH public key
+      - ssh-rsa AAAA... # Your SSH public key
   network:
     network:
       version: 2
@@ -8456,7 +8610,10 @@ autoinstall:
 
 ### 13.4. API Reference
 
-The Ubuntu Autoinstall Webhook system provides a comprehensive REST API that allows for programmatic control of all system functions. This reference documents the available endpoints, authentication methods, and provides usage examples.
+The Ubuntu Autoinstall Webhook system provides a comprehensive REST API that
+allows for programmatic control of all system functions. This reference
+documents the available endpoints, authentication methods, and provides usage
+examples.
 
 #### 13.4.1. API Overview
 
@@ -8559,6 +8716,7 @@ GET /api/v1/systems
 ```
 
 Query Parameters:
+
 - `page`: Page number (default: 1)
 - `per_page`: Items per page (default: 25)
 - `status`: Filter by status (discovered, ready, installing, completed, failed)
@@ -8582,7 +8740,7 @@ Response:
       "last_seen": "2023-01-15T12:34:56Z",
       "created_at": "2023-01-10T08:30:00Z",
       "updated_at": "2023-01-15T12:34:56Z"
-    },
+    }
     // More systems...
   ],
   "pagination": {
@@ -8791,7 +8949,7 @@ Response:
       "parent_id": null,
       "created_at": "2023-01-01T00:00:00Z",
       "updated_at": "2023-01-10T12:30:45Z"
-    },
+    }
     // More templates...
   ]
 }
@@ -8873,7 +9031,7 @@ Response:
   "status": "success",
   "data": {
     "id": "8b0ec4d4-6b7f-5c8d-9e0f-1a2b3c4d5e6f",
-    "name": "web-server",
+    "name": "web-server"
     // Other template data...
   }
 }
@@ -8913,7 +9071,7 @@ Response:
   "status": "success",
   "data": {
     "id": "9c1fd5e5-7c8g-6d9h-0f1i-2a3b4c5d6e7f",
-    "name": "web-server-modified",
+    "name": "web-server-modified"
     // Other template data...
   }
 }
@@ -8993,6 +9151,7 @@ GET /api/v1/installations/{id}/logs
 ```
 
 Parameters:
+
 - `lines`: Number of lines to retrieve (default: 100)
 - `level`: Log level filter (info, warning, error)
 
@@ -9036,11 +9195,7 @@ Request:
   "valid_days": 365,
   "key_type": "rsa",
   "key_bits": 2048,
-  "sans": [
-    "webhook.example.com",
-    "webhook-alt.example.com",
-    "192.168.1.10"
-  ]
+  "sans": ["webhook.example.com", "webhook-alt.example.com", "192.168.1.10"]
 }
 ```
 
@@ -9066,6 +9221,7 @@ GET /api/v1/certificates/{id}/download
 ```
 
 Parameters:
+
 - `format`: The format to download (pem, der, pkcs12)
 - `include_chain`: Whether to include the CA chain (true, false)
 - `include_key`: Whether to include the private key (true, false)
@@ -9331,10 +9487,11 @@ curl -X POST https://your-server:8443/api/v1/installations/bulk \
 | 500         | server_error            | Internal server error                               |
 | 503         | service_unavailable     | The service is temporarily unavailable              |
 
-
 ### 13.5. Command Line Reference
 
-The Ubuntu Autoinstall Webhook system includes a comprehensive command-line interface (CLI) tool that provides administrative capabilities for managing all aspects of the system.
+The Ubuntu Autoinstall Webhook system includes a comprehensive command-line
+interface (CLI) tool that provides administrative capabilities for managing all
+aspects of the system.
 
 #### 13.5.1. Basic Usage
 
@@ -9343,6 +9500,7 @@ ubuntu-autoinstall-webhook [command] [subcommand] [options]
 ```
 
 Global options:
+
 - `--config=PATH`: Specify an alternative config file location
 - `--verbose`, `-v`: Enable verbose output
 - `--quiet`, `-q`: Suppress all output except errors
@@ -9355,6 +9513,7 @@ Global options:
 **Status Commands**
 
 Check system status:
+
 ```bash
 ubuntu-autoinstall-webhook status
 
@@ -9366,6 +9525,7 @@ ubuntu-autoinstall-webhook status --component=database
 ```
 
 Service control:
+
 ```bash
 # Start the service
 ubuntu-autoinstall-webhook service start
@@ -9414,6 +9574,7 @@ ubuntu-autoinstall-webhook maintenance cleanup-temp-files
 **Systems Commands**
 
 List systems:
+
 ```bash
 ubuntu-autoinstall-webhook systems list
 
@@ -9431,6 +9592,7 @@ ubuntu-autoinstall-webhook systems list --search="server01"
 ```
 
 Manage individual systems:
+
 ```bash
 # Show system details
 ubuntu-autoinstall-webhook systems show 550e8400-e29b-41d4-a716-446655440000
@@ -9594,7 +9756,8 @@ ubuntu-autoinstall-webhook logs show --lines=100
 
 ### 13.6. File Structure
 
-Understanding the file structure of the Ubuntu Autoinstall Webhook system is important for administration, troubleshooting, and customization.
+Understanding the file structure of the Ubuntu Autoinstall Webhook system is
+important for administration, troubleshooting, and customization.
 
 #### 13.6.1. Overview
 
@@ -9697,27 +9860,32 @@ Understanding the file structure of the Ubuntu Autoinstall Webhook system is imp
 
 #### 13.7.1. Hardware Requirements
 
-The hardware requirements for running Ubuntu Autoinstall Webhook depend on your deployment scale:
+The hardware requirements for running Ubuntu Autoinstall Webhook depend on your
+deployment scale:
 
 **Small Deployment (up to 100 systems)**
+
 - CPU: 2 cores
 - RAM: 4 GB
 - Storage: 20 GB available space (SSD recommended)
 - Network: 1 Gbps Ethernet
 
 **Medium Deployment (100-500 systems)**
+
 - CPU: 4 cores
 - RAM: 8 GB
 - Storage: 50 GB available space (SSD required)
 - Network: 1 Gbps Ethernet
 
 **Large Deployment (500+ systems)**
+
 - CPU: 8+ cores
 - RAM: 16+ GB
 - Storage: 100+ GB available space (NVMe SSD recommended)
 - Network: 10 Gbps Ethernet
 
 **Additional Storage Requirements**
+
 - Ubuntu ISO files: ~1-2 GB per Ubuntu version
 - Installation logs: ~5-10 MB per installation
 - Database growth: ~10 MB per 100 systems
@@ -9725,11 +9893,13 @@ The hardware requirements for running Ubuntu Autoinstall Webhook depend on your 
 #### 13.7.2. Software Requirements
 
 **Operating System**
+
 - Ubuntu 20.04 LTS or newer (recommended)
 - Debian 11 or newer
 - CentOS/RHEL 8 or newer
 
 **Dependencies**
+
 - systemd
 - TFTP server (tftpd-hpa or similar)
 - HTTP server (provided, or can use external Nginx/Apache)
@@ -9737,6 +9907,7 @@ The hardware requirements for running Ubuntu Autoinstall Webhook depend on your 
 - DNSMasq or ISC DHCP Server
 
 **Network Requirements**
+
 - DHCP server with PXE boot configuration
 - Network allows UDP port 69 (TFTP)
 - Network allows TCP ports 8080 and 8443 (HTTP/HTTPS)
@@ -9745,34 +9916,41 @@ The hardware requirements for running Ubuntu Autoinstall Webhook depend on your 
 #### 13.7.3. Capacity Planning
 
 **Concurrency Limits**
+
 - Default maximum concurrent installations: 25
 - Default maximum API requests per second: 100
 - Default maximum web sessions: 100
 
 **Scaling Factors**
+
 - For every 20 concurrent installations, add 1 CPU core and 2 GB RAM
 - Every 1000 managed systems requires approximately 1 GB of database storage
 - Every 100 concurrent web users requires approximately 2 GB RAM
 
 ### 13.8. Migration Guide
 
-This section provides guidance for migrating between major versions of the Ubuntu Autoinstall Webhook system.
+This section provides guidance for migrating between major versions of the
+Ubuntu Autoinstall Webhook system.
 
 #### 13.8.1. Version 1.x to 2.x Migration
 
 **Breaking Changes**
+
 - API endpoints moved from `/api/` to `/api/v1/`
 - Template format changed to YAML (previously JSON)
 - Database schema changes require migration
 - Minimum Ubuntu version is now 20.04 (previously 18.04)
 
 **Pre-Migration Steps**
+
 1. Create a full backup:
+
    ```bash
    ubuntu-autoinstall-webhook backup create --full --output=/path/to/backup-v1
    ```
 
 2. Review configuration for deprecated settings:
+
    ```bash
    ubuntu-autoinstall-webhook config validate --check-deprecated
    ```
@@ -9783,23 +9961,28 @@ This section provides guidance for migrating between major versions of the Ubunt
    ```
 
 **Migration Procedure**
+
 1. Stop the service:
+
    ```bash
    systemctl stop ubuntu-autoinstall-webhook
    ```
 
 2. Install the new version:
+
    ```bash
    apt-get update
    apt-get install --only-upgrade ubuntu-autoinstall-webhook
    ```
 
 3. Run the migration assistant:
+
    ```bash
    ubuntu-autoinstall-webhook migrate --from=1.x --to=2.x
    ```
 
 4. Verify the migration:
+
    ```bash
    ubuntu-autoinstall-webhook status check --verbose
    ```
@@ -9810,6 +9993,7 @@ This section provides guidance for migrating between major versions of the Ubunt
    ```
 
 **Post-Migration Tasks**
+
 1. Update API integrations to use new endpoint paths
 2. Convert custom scripts to work with new API format
 3. Verify that all systems and templates were migrated correctly
@@ -9821,22 +10005,26 @@ This section provides guidance for migrating between major versions of the Ubunt
 For scaling to distributed deployments:
 
 1. Prepare CockroachDB cluster:
+
    ```bash
    # Setup CockroachDB according to documentation
    cockroach start --insecure --store=/var/lib/cockroach --listen-addr=0.0.0.0:26257
    ```
 
 2. Create database:
+
    ```bash
    cockroach sql --insecure --execute "CREATE DATABASE ubuntu_autoinstall;"
    ```
 
 3. Export data from SQLite:
+
    ```bash
    ubuntu-autoinstall-webhook db export --format=sql --output=/tmp/export.sql
    ```
 
 4. Modify configuration:
+
    ```bash
    ubuntu-autoinstall-webhook config set database.type=cockroach
    ubuntu-autoinstall-webhook config set database.cockroach.host=localhost
@@ -9846,6 +10034,7 @@ For scaling to distributed deployments:
    ```
 
 5. Import data:
+
    ```bash
    ubuntu-autoinstall-webhook db import --file=/tmp/export.sql
    ```
@@ -9857,7 +10046,8 @@ For scaling to distributed deployments:
 
 ### 13.9. Security Best Practices
 
-This section provides recommended security practices for hardening your Ubuntu Autoinstall Webhook deployment.
+This section provides recommended security practices for hardening your Ubuntu
+Autoinstall Webhook deployment.
 
 #### 13.9.1. Network Security
 
@@ -9867,6 +10057,7 @@ This section provides recommended security practices for hardening your Ubuntu A
    - Use VLANs to isolate installation traffic
 
 2. **Firewall Configuration**
+
    ```bash
    # Allow only necessary ports
    ufw allow 8443/tcp comment 'HTTPS Web Interface'
@@ -9886,6 +10077,7 @@ This section provides recommended security practices for hardening your Ubuntu A
 #### 13.9.2. Authentication and Authorization
 
 1. **Password Policies**
+
    ```yaml
    # In config.yaml
    security:
@@ -9896,7 +10088,7 @@ This section provides recommended security practices for hardening your Ubuntu A
        require_digits: true
        require_special: true
        max_age_days: 90
-       prevent_reuse: 12  # Remember last 12 passwords
+       prevent_reuse: 12 # Remember last 12 passwords
    ```
 
 2. **Multi-Factor Authentication**
@@ -9918,6 +10110,7 @@ This section provides recommended security practices for hardening your Ubuntu A
    - Rotate encryption keys annually
 
 2. **Data Retention**
+
    ```yaml
    # In config.yaml
    security:
@@ -9984,7 +10177,8 @@ This section provides recommended security practices for hardening your Ubuntu A
 
 ### 13.10. Integration Guide
 
-This section provides guidance on integrating the Ubuntu Autoinstall Webhook system with other tools and services in your environment.
+This section provides guidance on integrating the Ubuntu Autoinstall Webhook
+system with other tools and services in your environment.
 
 #### 13.10.1. Configuration Management Tools
 
@@ -10005,35 +10199,35 @@ ansible-galaxy collection install ubuntu.autoinstall_webhook
   collections:
     - ubuntu.autoinstall_webhook
   vars:
-    webhook_url: "https://webhook.example.com:8443"
+    webhook_url: 'https://webhook.example.com:8443'
     webhook_api_token: "{{ lookup('env', 'WEBHOOK_API_TOKEN') }}"
   tasks:
     - name: Get all systems
       autoinstall_webhook_systems:
-        webhook_url: "{{ webhook_url }}"
-        api_token: "{{ webhook_api_token }}"
+        webhook_url: '{{ webhook_url }}'
+        api_token: '{{ webhook_api_token }}'
         state: present
       register: systems_result
 
     - name: Add new system
       autoinstall_webhook_systems:
-        webhook_url: "{{ webhook_url }}"
-        api_token: "{{ webhook_api_token }}"
+        webhook_url: '{{ webhook_url }}'
+        api_token: '{{ webhook_api_token }}'
         state: present
-        hostname: "new-server-01"
-        mac_address: "00:11:22:33:44:55"
-        template_id: "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+        hostname: 'new-server-01'
+        mac_address: '00:11:22:33:44:55'
+        template_id: '7a9fdcb3-5a70-4d7c-8339-e5328c786e0b'
       register: new_system
 
     - name: Start installation
       autoinstall_webhook_installation:
-        webhook_url: "{{ webhook_url }}"
-        api_token: "{{ webhook_api_token }}"
-        system_id: "{{ new_system.system.id }}"
-        template_id: "7a9fdcb3-5a70-4d7c-8339-e5328c786e0b"
+        webhook_url: '{{ webhook_url }}'
+        api_token: '{{ webhook_api_token }}'
+        system_id: '{{ new_system.system.id }}'
+        template_id: '7a9fdcb3-5a70-4d7c-8339-e5328c786e0b'
         variables:
-          hostname: "custom-hostname"
-          timezone: "America/New_York"
+          hostname: 'custom-hostname'
+          timezone: 'America/New_York'
 ```
 
 **Terraform Integration**
@@ -10147,25 +10341,28 @@ scrape_configs:
 
 ```yaml
 groups:
-- name: ubuntu-autoinstall-webhook
-  rules:
-  - alert: WebhookServiceDown
-    expr: up{job="ubuntu-autoinstall-webhook"} == 0
-    for: 2m
-    labels:
-      severity: critical
-    annotations:
-      summary: "Ubuntu Autoinstall Webhook service down"
-      description: "The webhook service has been down for more than 2 minutes."
+  - name: ubuntu-autoinstall-webhook
+    rules:
+      - alert: WebhookServiceDown
+        expr: up{job="ubuntu-autoinstall-webhook"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Ubuntu Autoinstall Webhook service down'
+          description:
+            'The webhook service has been down for more than 2 minutes.'
 
-  - alert: HighFailureRate
-    expr: sum(rate(webhook_installations_failed[15m])) / sum(rate(webhook_installations_total[15m])) > 0.3
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: "High installation failure rate"
-      description: "More than 30% of installation attempts are failing."
+      - alert: HighFailureRate
+        expr:
+          sum(rate(webhook_installations_failed[15m])) /
+          sum(rate(webhook_installations_total[15m])) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High installation failure rate'
+          description: 'More than 30% of installation attempts are failing.'
 ```
 
 **Grafana Dashboard**
@@ -10173,6 +10370,7 @@ groups:
 Grafana dashboard ID: 12345
 
 Key metrics visualized:
+
 - Active installations
 - Success/failure rates
 - API response times
@@ -10292,27 +10490,28 @@ notifications:
   providers:
     slack:
       enabled: true
-      webhook_url: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
-      channel: "#server-provisioning"
-      username: "Ubuntu Autoinstall Bot"
-      icon_emoji: ":ubuntu:"
+      webhook_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+      channel: '#server-provisioning'
+      username: 'Ubuntu Autoinstall Bot'
+      icon_emoji: ':ubuntu:'
   events:
     system_discovered:
       enabled: true
-      providers: ["slack"]
-      message: "New system discovered: {hostname} ({mac_address})"
+      providers: ['slack']
+      message: 'New system discovered: {hostname} ({mac_address})'
     installation_started:
       enabled: true
-      providers: ["slack"]
-      message: "Installation started for {hostname}"
+      providers: ['slack']
+      message: 'Installation started for {hostname}'
     installation_completed:
       enabled: true
-      providers: ["slack"]
-      message: "Installation completed for {hostname} in {duration_minutes} minutes"
+      providers: ['slack']
+      message:
+        'Installation completed for {hostname} in {duration_minutes} minutes'
     installation_failed:
       enabled: true
-      providers: ["slack"]
-      message: "⚠️ Installation FAILED for {hostname}: {error_message}"
+      providers: ['slack']
+      message: '⚠️ Installation FAILED for {hostname}: {error_message}'
 ```
 
 **Email Notifications**
@@ -10324,21 +10523,23 @@ notifications:
   providers:
     email:
       enabled: true
-      smtp_server: "smtp.example.com"
+      smtp_server: 'smtp.example.com'
       smtp_port: 587
-      smtp_user: "notifications@example.com"
-      smtp_password: "your-password"
-      sender: "Ubuntu Autoinstall <notifications@example.com>"
+      smtp_user: 'notifications@example.com'
+      smtp_password: 'your-password'
+      sender: 'Ubuntu Autoinstall <notifications@example.com>'
       use_tls: true
       recipients:
-        - "admin@example.com"
-        - "ops-team@example.com"
+        - 'admin@example.com'
+        - 'ops-team@example.com'
   events:
     certificate_expiring:
       enabled: true
-      providers: ["email"]
-      subject: "Certificate Expiring: {certificate_name}"
-      message: "The certificate {certificate_name} will expire in {days_remaining} days."
+      providers: ['email']
+      subject: 'Certificate Expiring: {certificate_name}'
+      message:
+        'The certificate {certificate_name} will expire in {days_remaining}
+        days.'
 ```
 
 **PagerDuty Integration**
@@ -10351,21 +10552,22 @@ notifications:
   providers:
     pagerduty:
       enabled: true
-      integration_key: "your-pagerduty-integration-key"
+      integration_key: 'your-pagerduty-integration-key'
       severity_mapping:
-        installation_failed: "error"
-        service_down: "critical"
-        certificate_expired: "warning"
+        installation_failed: 'error'
+        service_down: 'critical'
+        certificate_expired: 'warning'
   events:
     service_down:
       enabled: true
-      providers: ["pagerduty"]
-      message: "Ubuntu Autoinstall Webhook service is down"
+      providers: ['pagerduty']
+      message: 'Ubuntu Autoinstall Webhook service is down'
 ```
 
 ### 13.11. Performance Optimization Reference
 
-This reference provides specific optimization techniques for different aspects of the Ubuntu Autoinstall Webhook system.
+This reference provides specific optimization techniques for different aspects
+of the Ubuntu Autoinstall Webhook system.
 
 #### 13.11.1. HTTP Server Tuning
 
@@ -10375,7 +10577,7 @@ For systems with multiple CPU cores:
 
 ```yaml
 webserver:
-  worker_processes: auto  # Uses number of CPU cores
+  worker_processes: auto # Uses number of CPU cores
   worker_connections: 1024
   keepalive_timeout: 65
   client_max_body_size: 20M
@@ -10388,8 +10590,8 @@ Enable HTTP/2 for improved performance:
 ```yaml
 webserver:
   http2: true
-  ssl_protocols: "TLSv1.2 TLSv1.3"
-  ssl_ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305"
+  ssl_protocols: 'TLSv1.2 TLSv1.3'
+  ssl_ciphers: 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305'
   ssl_prefer_server_ciphers: true
 ```
 
@@ -10398,9 +10600,11 @@ webserver:
 ```yaml
 webserver:
   static_files:
-    cache_control: "public, max-age=86400"
+    cache_control: 'public, max-age=86400'
     gzip: true
-    gzip_types: "text/plain text/css text/xml application/json application/javascript application/xml"
+    gzip_types:
+      'text/plain text/css text/xml application/json application/javascript
+      application/xml'
     gzip_min_length: 1024
     etag: true
 ```
@@ -10418,7 +10622,7 @@ database:
       temp_store: MEMORY
       mmap_size: 30000000000
       cache_size: -64000
-    vacuum_interval_hours: 168  # Weekly
+    vacuum_interval_hours: 168 # Weekly
 ```
 
 **Connection Pooling**
@@ -10434,6 +10638,7 @@ database:
 **Query Optimization**
 
 Tables to index:
+
 - systems(mac_address)
 - systems(hostname)
 - systems(status)
@@ -10455,8 +10660,8 @@ cache:
   # Redis cache (for clustered deployments)
   redis:
     enabled: false
-    address: "redis:6379"
-    password: ""
+    address: 'redis:6379'
+    password: ''
     db: 0
 ```
 
@@ -10532,57 +10737,60 @@ ethtool -G eth0 rx 4096 tx 4096
 
 ### 13.12. Glossary
 
-**Autoinstall**
-: Ubuntu's automated installation system that uses cloud-init to provision systems without manual intervention.
+**Autoinstall** : Ubuntu's automated installation system that uses cloud-init to
+provision systems without manual intervention.
 
-**CA (Certificate Authority)**
-: An entity that issues digital certificates for secure communication.
+**CA (Certificate Authority)** : An entity that issues digital certificates for
+secure communication.
 
-**cloud-init**
-: A software package used for early initialization of cloud instances, handling the configuration of the system during boot.
+**cloud-init** : A software package used for early initialization of cloud
+instances, handling the configuration of the system during boot.
 
-**CSR (Certificate Signing Request)**
-: A message sent to request a digital certificate from a Certificate Authority.
+**CSR (Certificate Signing Request)** : A message sent to request a digital
+certificate from a Certificate Authority.
 
-**DHCP (Dynamic Host Configuration Protocol)**
-: A network protocol that automatically assigns IP addresses and other network configuration to devices.
+**DHCP (Dynamic Host Configuration Protocol)** : A network protocol that
+automatically assigns IP addresses and other network configuration to devices.
 
-**iPXE**
-: An enhanced implementation of the PXE boot firmware that supports booting from a variety of network protocols.
+**iPXE** : An enhanced implementation of the PXE boot firmware that supports
+booting from a variety of network protocols.
 
-**ISO**
-: A disk image format that contains an exact copy of a file system, often used for distributing operating system installation media.
+**ISO** : A disk image format that contains an exact copy of a file system,
+often used for distributing operating system installation media.
 
-**JWT (JSON Web Token)**
-: A compact, URL-safe means of representing claims to be transferred between two parties.
+**JWT (JSON Web Token)** : A compact, URL-safe means of representing claims to
+be transferred between two parties.
 
-**MAC Address**
-: Media Access Control address, a unique identifier assigned to a network interface controller.
+**MAC Address** : Media Access Control address, a unique identifier assigned to
+a network interface controller.
 
-**mTLS (Mutual Transport Layer Security)**
-: A security protocol where both the client and server authenticate each other using digital certificates.
+**mTLS (Mutual Transport Layer Security)** : A security protocol where both the
+client and server authenticate each other using digital certificates.
 
-**PXE (Preboot Execution Environment)**
-: An environment to boot computers using a network interface card independently of storage devices or installed operating systems.
+**PXE (Preboot Execution Environment)** : An environment to boot computers using
+a network interface card independently of storage devices or installed operating
+systems.
 
-**RBAC (Role-Based Access Control)**
-: An approach to restricting system access to authorized users based on roles.
+**RBAC (Role-Based Access Control)** : An approach to restricting system access
+to authorized users based on roles.
 
-**TFTP (Trivial File Transfer Protocol)**
-: A simple protocol for transferring files between network devices, commonly used in PXE boot processes.
+**TFTP (Trivial File Transfer Protocol)** : A simple protocol for transferring
+files between network devices, commonly used in PXE boot processes.
 
-**User-data**
-: A cloud-init configuration file that specifies actions to perform during the initial boot of a cloud instance.
+**User-data** : A cloud-init configuration file that specifies actions to
+perform during the initial boot of a cloud instance.
 
-**Metal-data**
-: A cloud-init configuration file that provides instance-specific information to the cloud instance.
+**Metal-data** : A cloud-init configuration file that provides instance-specific
+information to the cloud instance.
 
-**Webhook**
-: A mechanism that allows one application to provide other applications with real-time information by delivering data to a specified URL when certain events occur.
+**Webhook** : A mechanism that allows one application to provide other
+applications with real-time information by delivering data to a specified URL
+when certain events occur.
 
 ### 13.13. Troubleshooting Reference
 
-This reference provides quick solutions for common issues encountered with the Ubuntu Autoinstall Webhook system.
+This reference provides quick solutions for common issues encountered with the
+Ubuntu Autoinstall Webhook system.
 
 #### 13.13.1. Installation Issues
 
@@ -10665,24 +10873,38 @@ This section documents common system messages and their meanings.
 
 ### 13.15. Conclusion
 
-The Ubuntu Autoinstall Webhook system provides a comprehensive solution for automating Ubuntu server deployments across your infrastructure. This administrator guide has covered all aspects of setting up, configuring, maintaining, securing, and integrating the system.
+The Ubuntu Autoinstall Webhook system provides a comprehensive solution for
+automating Ubuntu server deployments across your infrastructure. This
+administrator guide has covered all aspects of setting up, configuring,
+maintaining, securing, and integrating the system.
 
 Key points to remember:
 
-1. **Regular Maintenance**: Perform routine maintenance tasks such as database optimization, log rotation, and certificate renewal to ensure system health.
+1. **Regular Maintenance**: Perform routine maintenance tasks such as database
+   optimization, log rotation, and certificate renewal to ensure system health.
 
-2. **Security First**: Follow security best practices, including regular updates, proper authentication configuration, network segmentation, and audit logging.
+2. **Security First**: Follow security best practices, including regular
+   updates, proper authentication configuration, network segmentation, and audit
+   logging.
 
-3. **Scalability Planning**: As your deployment grows, consider the performance optimization techniques and scaling strategies outlined in this guide.
+3. **Scalability Planning**: As your deployment grows, consider the performance
+   optimization techniques and scaling strategies outlined in this guide.
 
-4. **Backup Strategy**: Implement a comprehensive backup strategy to protect your configuration, certificates, and database.
+4. **Backup Strategy**: Implement a comprehensive backup strategy to protect
+   your configuration, certificates, and database.
 
-5. **Monitoring and Logging**: Set up proper monitoring and logging to quickly identify and resolve issues.
+5. **Monitoring and Logging**: Set up proper monitoring and logging to quickly
+   identify and resolve issues.
 
-6. **Integration**: Leverage the API and integration options to incorporate the system into your existing infrastructure management tools.
+6. **Integration**: Leverage the API and integration options to incorporate the
+   system into your existing infrastructure management tools.
 
-By following the guidance in this document, you can ensure a reliable, secure, and efficient automated installation infrastructure that meets your organization's needs.
+By following the guidance in this document, you can ensure a reliable, secure,
+and efficient automated installation infrastructure that meets your
+organization's needs.
 
-For the latest updates, community support, and additional resources, visit the official project repository at [https://github.com/jdfalk/ubuntu-autoinstall-webhook](https://github.com/jdfalk/ubuntu-autoinstall-webhook).
+For the latest updates, community support, and additional resources, visit the
+official project repository at
+[https://github.com/jdfalk/ubuntu-autoinstall-webhook](https://github.com/jdfalk/ubuntu-autoinstall-webhook).
 
 Thank you for using Ubuntu Autoinstall Webhook!

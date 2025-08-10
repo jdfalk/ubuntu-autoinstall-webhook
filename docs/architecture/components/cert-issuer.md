@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Certificate Issuer Microservice Architecture](#certificate-issuer-microservice-architecture)
   - [Table of Contents](#table-of-contents)
@@ -24,6 +23,7 @@
 # Certificate Issuer Microservice Architecture
 
 ## Table of Contents
+
 - [Certificate Issuer Microservice Architecture](#certificate-issuer-microservice-architecture)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
@@ -43,7 +43,9 @@
 
 ## Overview
 
-The Certificate Issuer microservice manages the PKI infrastructure for the ubuntu-autoinstall-webhook system. It handles certificate requests, issuance, and revocation for secure communication between clients and services.
+The Certificate Issuer microservice manages the PKI infrastructure for the
+ubuntu-autoinstall-webhook system. It handles certificate requests, issuance,
+and revocation for secure communication between clients and services.
 
 ## Core Responsibilities
 
@@ -56,18 +58,21 @@ The Certificate Issuer microservice manages the PKI infrastructure for the ubunt
 ## Certificate Authority Management
 
 ### Root CA
+
 - Self-signed certificate with 20-year validity
 - Generated on initial startup unless provided
 - Stored securely in the database or filesystem
 - Used only to sign intermediate CAs
 
 ### Intermediate CA
+
 - Signed by the root CA with 2-year validity
 - Used for signing all server and client certificates
 - Can be rotated without affecting the root CA
 - Full chain provided with issued certificates
 
 ### External CA Integration
+
 - Optional integration with cert-manager
 - Support for external PKI systems
 - Ability to import existing CA certificates
@@ -75,17 +80,20 @@ The Certificate Issuer microservice manages the PKI infrastructure for the ubunt
 ## Certificate Lifecycle
 
 ### Certificate Issuance
+
 - Processes CSRs from clients and services
 - Validates CSR information against system records
 - Issues certificates with appropriate validity periods
 - Returns certificates with the full trust chain
 
 ### Certificate Renewal
+
 - Monitors certificate expiration
 - Supports automatic renewal workflows
 - Handles grace periods for renewal
 
 ### Certificate Revocation
+
 - Maintains CRLs for revoked certificates
 - Supports OCSP for online revocation checking
 - Handles emergency revocation procedures

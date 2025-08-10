@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Database Microservice Architecture](#database-microservice-architecture)
   - [Table of Contents](#table-of-contents)
@@ -24,6 +23,7 @@
 # Database Microservice Architecture
 
 ## Table of Contents
+
 - [Database Microservice Architecture](#database-microservice-architecture)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
@@ -43,7 +43,10 @@
 
 ## Overview
 
-The Database microservice is the central persistence layer for the ubuntu-autoinstall-webhook system. It abstracts database operations and provides a consistent API for data storage and retrieval regardless of the underlying database technology.
+The Database microservice is the central persistence layer for the
+ubuntu-autoinstall-webhook system. It abstracts database operations and provides
+a consistent API for data storage and retrieval regardless of the underlying
+database technology.
 
 ## Core Responsibilities
 
@@ -58,12 +61,14 @@ The Database microservice is the central persistence layer for the ubuntu-autoin
 The Database microservice supports two database backends:
 
 ### SQLite3 (Default)
+
 - File-based storage suitable for single-instance deployments
 - Simple setup with minimal configuration
 - Lower concurrency capabilities
 - Stores UUID primary keys as strings
 
 ### CockroachDB
+
 - Distributed SQL database for high availability
 - Supports multiple service instances and horizontal scaling
 - Higher performance for large-scale deployments
@@ -74,21 +79,25 @@ The Database microservice supports two database backends:
 The service automatically manages the following core tables:
 
 ### Systems
+
 - Stores information about systems being installed or managed
 - Primary key: UUID
 - Tracks MAC address, hostname, IP address, status
 
 ### Configurations
+
 - Stores installation configurations and templates
 - Primary key: UUID
 - Relates to Systems through foreign keys
 
 ### Installation Status
+
 - Tracks installation progress for systems
 - Primary key: UUID
 - Stores timestamps for installation phases
 
 ### Users and Roles
+
 - Manages authentication and authorization information
 - Primary key: UUID
 - Supports role hierarchies for the web frontend

@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Webserver Microservice Architecture](#webserver-microservice-architecture)
   - [Table of Contents](#table-of-contents)
@@ -23,6 +22,7 @@
 # Webserver Microservice Architecture
 
 ## Table of Contents
+
 - [Webserver Microservice Architecture](#webserver-microservice-architecture)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
@@ -41,7 +41,9 @@
 
 ## Overview
 
-The Webserver microservice serves as the primary external interface for the ubuntu-autoinstall-webhook system. It hosts both the web-based administration interface and the API endpoints used by installation clients.
+The Webserver microservice serves as the primary external interface for the
+ubuntu-autoinstall-webhook system. It hosts both the web-based administration
+interface and the API endpoints used by installation clients.
 
 ## Core Responsibilities
 
@@ -60,6 +62,7 @@ The Webserver microservice serves as the primary external interface for the ubun
 - Supports theme customization
 
 ### Frontend Features
+
 - Dashboard with system installation status
 - Configuration management interface
 - Template editor with validation
@@ -69,12 +72,14 @@ The Webserver microservice serves as the primary external interface for the ubun
 ## API Services
 
 ### RESTful API
+
 - API endpoints for web frontend
 - Documentation via OpenAPI/Swagger
 - Versioned API for backwards compatibility
 - Rate limiting and request validation
 
 ### gRPC API
+
 - High-performance API for installation clients
 - Streaming support for real-time updates
 - Protocol buffer-based type safety
@@ -83,11 +88,13 @@ The Webserver microservice serves as the primary external interface for the ubun
 ## Authentication and Authorization
 
 ### Authentication Methods
+
 - Username/password authentication
 - API token-based authentication
 - Certificate-based authentication for mutual TLS
 
 ### Role-Based Access Control (RBAC)
+
 - Hierarchical role system
 - Granular permissions model
 - Role assignment and management

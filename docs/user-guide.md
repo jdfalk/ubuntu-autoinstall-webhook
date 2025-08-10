@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Ubuntu Autoinstall Webhook User Guide](#ubuntu-autoinstall-webhook-user-guide)
   - [1. Introduction](#1-introduction)
@@ -69,20 +68,34 @@
 
 ### 1.1. About This System
 
-The Ubuntu Autoinstall Webhook system is a powerful tool designed to automate the installation of Ubuntu systems through PXE (Preboot Execution Environment) boot and cloud-init configurations. This system streamlines the process of deploying Ubuntu across multiple machines, eliminating manual installation steps and ensuring consistent configurations.
+The Ubuntu Autoinstall Webhook system is a powerful tool designed to automate
+the installation of Ubuntu systems through PXE (Preboot Execution Environment)
+boot and cloud-init configurations. This system streamlines the process of
+deploying Ubuntu across multiple machines, eliminating manual installation steps
+and ensuring consistent configurations.
 
-Whether you're managing a small lab environment or a large-scale data center, this system provides the tools you need to efficiently deploy and manage Ubuntu installations through a user-friendly web interface and robust API.
+Whether you're managing a small lab environment or a large-scale data center,
+this system provides the tools you need to efficiently deploy and manage Ubuntu
+installations through a user-friendly web interface and robust API.
 
 ### 1.2. Key Features
 
-- **Automated Ubuntu Installation**: Deploy Ubuntu to bare-metal systems automatically via PXE boot
-- **Customizable Templates**: Create and manage templates for different installation scenarios
-- **Web-Based Management**: Easy-to-use web interface for managing systems and configurations
-- **Real-Time Monitoring**: Track installation progress and view logs in real time
-- **Automatic System Discovery**: Detect new systems on the network through DHCP requests
-- **Secure Communication**: Built-in certificate authority for secure client-server communication
-- **API Access**: Comprehensive API for automation and integration with other systems
-- **Role-Based Access Control**: Granular permissions for multi-user environments
+- **Automated Ubuntu Installation**: Deploy Ubuntu to bare-metal systems
+  automatically via PXE boot
+- **Customizable Templates**: Create and manage templates for different
+  installation scenarios
+- **Web-Based Management**: Easy-to-use web interface for managing systems and
+  configurations
+- **Real-Time Monitoring**: Track installation progress and view logs in real
+  time
+- **Automatic System Discovery**: Detect new systems on the network through DHCP
+  requests
+- **Secure Communication**: Built-in certificate authority for secure
+  client-server communication
+- **API Access**: Comprehensive API for automation and integration with other
+  systems
+- **Role-Based Access Control**: Granular permissions for multi-user
+  environments
 
 ### 1.3. System Requirements
 
@@ -90,7 +103,8 @@ Whether you're managing a small lab environment or a large-scale data center, th
 
 - Modern web browser (Chrome, Firefox, Safari, Edge)
 - JavaScript enabled
-- Minimum screen resolution of 1024x768 (responsive design supports mobile devices)
+- Minimum screen resolution of 1024x768 (responsive design supports mobile
+  devices)
 
 **For Target Installation Systems**:
 
@@ -106,17 +120,21 @@ Whether you're managing a small lab environment or a large-scale data center, th
 
 ### 2.1. Accessing the Web Interface
 
-1. Open your web browser and navigate to the URL where Ubuntu Autoinstall Webhook is hosted: `https://server-address:8443`
+1. Open your web browser and navigate to the URL where Ubuntu Autoinstall
+   Webhook is hosted: `https://server-address:8443`
 
 2. You'll be presented with a login screen. Enter your username and password.
 
-3. If this is your first time accessing the system, use the default administrative credentials provided by your system administrator. You'll be prompted to change the default password on first login.
+3. If this is your first time accessing the system, use the default
+   administrative credentials provided by your system administrator. You'll be
+   prompted to change the default password on first login.
 
 4. After successful authentication, you'll be redirected to the Dashboard.
 
 ### 2.2. Dashboard Overview
 
-The Dashboard provides an at-a-glance view of your installation environment with several key sections:
+The Dashboard provides an at-a-glance view of your installation environment with
+several key sections:
 
 1. **System Status**: Shows the current count of systems in different states
 
@@ -153,7 +171,8 @@ The Dashboard provides an at-a-glance view of your installation environment with
 
 ### 2.3. First-Time Setup
 
-When using the system for the first time, we recommend completing these initial setup steps:
+When using the system for the first time, we recommend completing these initial
+setup steps:
 
 1. **Change Default Password**:
 
@@ -181,14 +200,16 @@ When using the system for the first time, we recommend completing these initial 
 
 4. **Verify Network Settings**:
 
-- Ensure that DNSMasq is correctly configured to forward PXE boot requests to your server
+- Ensure that DNSMasq is correctly configured to forward PXE boot requests to
+  your server
 - Verify that the network allows PXE boot traffic
 
 ## 3. Managing Systems
 
 ### 3.1. Viewing Available Systems
 
-The "Systems" page displays all systems known to the Ubuntu Autoinstall Webhook system:
+The "Systems" page displays all systems known to the Ubuntu Autoinstall Webhook
+system:
 
 1. Navigate to "Systems" in the main menu
 2. The systems list shows:
@@ -218,7 +239,8 @@ The "Systems" page displays all systems known to the Ubuntu Autoinstall Webhook 
 
 ### 3.2. Adding Systems Manually
 
-While the system can automatically discover systems via DHCP requests, you can also add systems manually:
+While the system can automatically discover systems via DHCP requests, you can
+also add systems manually:
 
 1. Navigate to "Systems" in the main menu
 2. Click the "Add System" button
@@ -281,7 +303,8 @@ For bulk operations, you can:
 
 ### 4.1. Default Templates
 
-The system comes with several default templates for common installation scenarios:
+The system comes with several default templates for common installation
+scenarios:
 
 - **Minimal Server**: Basic server installation with minimal packages
 - **Web Server**: Server optimized for web hosting with Apache/NGINX
@@ -360,7 +383,8 @@ Variables can be used in most template sections, including:
 - Network configuration
 - Storage configuration
 
-Example hostname pattern: `server-${mac:4:8}` (creates hostnames like "server-DDEEFF12")
+Example hostname pattern: `server-${mac:4:8}` (creates hostnames like
+"server-DDEEFF12")
 
 ### 4.4. Template Inheritance
 
@@ -375,8 +399,10 @@ Templates can inherit from other templates to reduce duplication:
 For example:
 
 - Create a base "Standard Server" template with common settings
-- Create "Web Server" template that inherits from "Standard Server" but adds web packages
-- Create "Database Server" template that inherits from "Standard Server" but adds database packages
+- Create "Web Server" template that inherits from "Standard Server" but adds web
+  packages
+- Create "Database Server" template that inherits from "Standard Server" but
+  adds database packages
 
 ### 4.5. Managing Templates
 
@@ -427,7 +453,8 @@ To install Ubuntu on a system:
 5. Review the installation settings
 6. Click "Start Installation" to begin
 
-The system will now be configured for PXE boot with the selected template. The next time the system boots, it will:
+The system will now be configured for PXE boot with the selected template. The
+next time the system boots, it will:
 
 1. Boot via PXE
 2. Load the iPXE script from the server
@@ -497,19 +524,23 @@ If an installation fails or encounters issues:
 - Template issues: Validate the template configuration
 - Disk space issues: Ensure the system meets minimum requirements
 
-6. Click "Retry Installation" to attempt the installation again after resolving issues
+6. Click "Retry Installation" to attempt the installation again after resolving
+   issues
 
 ## 6. Cloud-Init Configurations
 
 ### 6.1. Understanding Cloud-Init
 
-Cloud-init is the industry standard for early initialization of cloud instances. The Ubuntu Autoinstall Webhook system uses cloud-init to automate Ubuntu installations with these key files:
+Cloud-init is the industry standard for early initialization of cloud instances.
+The Ubuntu Autoinstall Webhook system uses cloud-init to automate Ubuntu
+installations with these key files:
 
 - **user-data**: Contains most of the installation instructions
 - **meta-data**: Provides instance metadata like hostname
 - **network-config**: Defines network configuration
 
-The templates in the system provide an interface to generate these cloud-init files without needing to understand their raw format.
+The templates in the system provide an interface to generate these cloud-init
+files without needing to understand their raw format.
 
 ### 6.2. Basic Configuration
 
@@ -521,7 +552,8 @@ The basic cloud-init configuration includes:
 - **Host Information**: Hostname and domain name
 - **User Accounts**: Initial user creation and authentication
 
-These settings can be configured in the "Basic Settings" section when creating or editing a template.
+These settings can be configured in the "Basic Settings" section when creating
+or editing a template.
 
 ### 6.3. Network Configuration
 
@@ -583,7 +615,9 @@ Configure these settings in the "Post-Install" section of the template editor.
 
 ### 7.1. Certificate Overview
 
-The Ubuntu Autoinstall Webhook system uses a built-in certificate authority (CA) to secure communications between components and with client systems. Certificates are used for:
+The Ubuntu Autoinstall Webhook system uses a built-in certificate authority (CA)
+to secure communications between components and with client systems.
+Certificates are used for:
 
 - Securing the web interface with HTTPS
 - Authenticating client systems during installation
@@ -746,7 +780,8 @@ To manage API keys for automated access:
 
 ### 9.2. Basic API Usage
 
-The API allows programmatic access to all system functions. Example API endpoints include:
+The API allows programmatic access to all system functions. Example API
+endpoints include:
 
 - `GET /api/v1/systems`: List all systems
 - `POST /api/v1/systems`: Create a new system
@@ -773,7 +808,8 @@ curl -X POST "https://server-address/api/v1/systems" \
   }'
 ```
 
-For complete API documentation, visit the API Reference section in the application.
+For complete API documentation, visit the API Reference section in the
+application.
 
 ### 9.3. Webhooks
 
@@ -833,7 +869,8 @@ To test a webhook:
 
 **Certificate Errors**:
 
-1. Verify that the system time is correct (certificates may appear invalid if time is wrong)
+1. Verify that the system time is correct (certificates may appear invalid if
+   time is wrong)
 2. Check if certificates have expired and need renewal
 3. Ensure that the CA certificate is trusted by all components
 
@@ -841,11 +878,15 @@ To test a webhook:
 
 Common error messages and their resolutions:
 
-- **"Template validation failed"**: Check the template syntax for errors or missing required fields
+- **"Template validation failed"**: Check the template syntax for errors or
+  missing required fields
 - **"System not found"**: Verify the MAC address is entered correctly
-- **"Database connection failed"**: Check database service is running and accessible
-- **"Failed to write configuration files"**: Verify file permissions and disk space
-- **"Certificate verification failed"**: Check if certificates are valid and not expired
+- **"Database connection failed"**: Check database service is running and
+  accessible
+- **"Failed to write configuration files"**: Verify file permissions and disk
+  space
+- **"Certificate verification failed"**: Check if certificates are valid and not
+  expired
 
 ### 10.3. Diagnostic Tools
 
@@ -943,19 +984,27 @@ runcmd:
   - echo "Installation completed at $(date)" >> /var/log/install_complete
 ```
 
-For a complete reference, see the cloud-init documentation in the Additional Resources section.
+For a complete reference, see the cloud-init documentation in the Additional
+Resources section.
 
 ### 11.3. Glossary
 
-- **PXE**: Preboot Execution Environment, a standard for booting computers using a network interface
+- **PXE**: Preboot Execution Environment, a standard for booting computers using
+  a network interface
 - **iPXE**: Enhanced implementation of the PXE client
-- **cloud-init**: The Ubuntu system initialization tool used to configure instances during boot
-- **DHCP**: Dynamic Host Configuration Protocol, provides network configuration to clients
-- **MAC Address**: Media Access Control address, a unique identifier for network interfaces
+- **cloud-init**: The Ubuntu system initialization tool used to configure
+  instances during boot
+- **DHCP**: Dynamic Host Configuration Protocol, provides network configuration
+  to clients
+- **MAC Address**: Media Access Control address, a unique identifier for network
+  interfaces
 - **Template**: A configuration blueprint for system installation
-- **CA**: Certificate Authority, issues digital certificates for secure communication
-- **mTLS**: Mutual Transport Layer Security, both client and server authenticate each other
-- **CSR**: Certificate Signing Request, a message sent to request a digital certificate
+- **CA**: Certificate Authority, issues digital certificates for secure
+  communication
+- **mTLS**: Mutual Transport Layer Security, both client and server authenticate
+  each other
+- **CSR**: Certificate Signing Request, a message sent to request a digital
+  certificate
 - **LVM**: Logical Volume Manager, a flexible disk management system
 
 ### 11.4. Additional Resources

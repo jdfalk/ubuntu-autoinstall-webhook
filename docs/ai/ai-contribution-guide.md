@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [AI Contribution Guide](#ai-contribution-guide)
   - [How to Approach the Project](#how-to-approach-the-project)
@@ -22,7 +21,10 @@
 
 # AI Contribution Guide
 
-This guide provides recommendations and best practices for AI assistants contributing to the Ubuntu Autoinstall Webhook project. It outlines how to interpret existing documentation, implement components according to project standards, and ensure code quality.
+This guide provides recommendations and best practices for AI assistants
+contributing to the Ubuntu Autoinstall Webhook project. It outlines how to
+interpret existing documentation, implement components according to project
+standards, and ensure code quality.
 
 ## How to Approach the Project
 
@@ -53,7 +55,8 @@ The project follows Go best practices and conventions:
    - Maintain clear separation between components
 
 2. **Code Style**
-   - Follow the [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+   - Follow the
+     [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
    - Use `gofmt` for consistent formatting
    - Prefer clarity over cleverness
 
@@ -62,7 +65,8 @@ The project follows Go best practices and conventions:
    - Follow Go naming conventions:
      - CamelCase for exported names
      - lowerCamelCase for non-exported names
-     - Acronyms should be consistently cased (e.g., `httpServer` or `HTTPServer`)
+     - Acronyms should be consistently cased (e.g., `httpServer` or
+       `HTTPServer`)
 
 4. **Error Handling**
    - Check all errors and handle them appropriately
@@ -298,7 +302,8 @@ When suggesting implementation for a component:
 
 ## Working with Existing Documentation
 
-The project has comprehensive documentation that should be treated as the source of truth:
+The project has comprehensive documentation that should be treated as the source
+of truth:
 
 1. **Architecture Documents**
    - Define the overall system design and component interactions

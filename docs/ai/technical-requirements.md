@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Technical Requirements](#technical-requirements)
   - [Technology Stack](#technology-stack)
@@ -53,7 +52,10 @@
 
 # Technical Requirements
 
-This document outlines the technical requirements, constraints, and standards that must be followed when implementing the Ubuntu Autoinstall Webhook system. It serves as a reference for AI assistants to understand the technical parameters within which they should operate.
+This document outlines the technical requirements, constraints, and standards
+that must be followed when implementing the Ubuntu Autoinstall Webhook system.
+It serves as a reference for AI assistants to understand the technical
+parameters within which they should operate.
 
 ## Technology Stack
 
@@ -68,6 +70,7 @@ This document outlines the technical requirements, constraints, and standards th
 ### Frameworks and Libraries
 
 #### Go Libraries
+
 - **net/http**: Standard library for HTTP server
 - **gorilla/mux**: For HTTP routing
 - **gorm**: For database ORM (optional)
@@ -78,6 +81,7 @@ This document outlines the technical requirements, constraints, and standards th
 - **testify**: For testing
 
 #### Web Frontend
+
 - **Bootstrap**: CSS framework for responsive design
 - **Alpine.js**: Minimalist JavaScript framework
 
@@ -125,7 +129,8 @@ This document outlines the technical requirements, constraints, and standards th
 
 - **Concurrent Installations**: Support at least 25 concurrent installations
 - **System Management**: Handle at least 1,000 managed systems
-- **API Performance**: API endpoints should respond within 500ms for typical operations
+- **API Performance**: API endpoints should respond within 500ms for typical
+  operations
 - **Template Rendering**: Template generation should complete within 1 second
 
 ### Reliability

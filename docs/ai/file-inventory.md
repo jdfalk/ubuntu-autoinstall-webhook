@@ -1,6 +1,5 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [File Inventory](#file-inventory)
   - [Entry Points](#entry-points)
@@ -25,7 +24,10 @@
 
 # File Inventory
 
-This document provides a comprehensive catalog of key files in the Ubuntu Autoinstall Webhook project with descriptions of their purpose and relationships. This information is specifically organized to help AI assistants understand the codebase structure and functionality.
+This document provides a comprehensive catalog of key files in the Ubuntu
+Autoinstall Webhook project with descriptions of their purpose and
+relationships. This information is specifically organized to help AI assistants
+understand the codebase structure and functionality.
 
 ## Entry Points
 
@@ -239,4 +241,7 @@ template/service.go
 └── storage/file_editor.go
 ```
 
-This file inventory provides a foundation for understanding the key components of the project. Each file serves a specific purpose within the overall architecture, and understanding these relationships is crucial for navigating and modifying the codebase.
+This file inventory provides a foundation for understanding the key components
+of the project. Each file serves a specific purpose within the overall
+architecture, and understanding these relationships is crucial for navigating
+and modifying the codebase.
