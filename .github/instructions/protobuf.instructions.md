@@ -54,7 +54,7 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 <!-- file: .github/instructions/protobuf.instructions.md -->
-<!-- version: 2.2.0 -->
+<!-- version: 2.2.1 -->
 <!-- guid: 7d6c5b4a-3c2d-1e0f-9a8b-7c6d5e4f3a2b -->
 <!-- DO NOT EDIT: This file is managed centrally in ghcommon repository -->
 <!-- To update: Create an issue/PR in jdfalk/ghcommon -->

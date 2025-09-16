@@ -18,11 +18,13 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 <!-- file: .github/instructions/test-generation.instructions.md -->
-<!-- version: 1.2.0 -->
+<!-- version: 1.2.1 -->
 <!-- guid: test1234-e89b-12d3-a456-426614174000 -->
 <!-- DO NOT EDIT: This file is managed centrally in ghcommon repository -->
 <!-- To update: Create an issue/PR in jdfalk/ghcommon -->
 
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
 ---
 
 applyTo: "**/\*\_test.{go,js,ts,py} **/_test_.{go,js,ts,py} **/tests/**"
@@ -30,6 +32,8 @@ description: |
 Test generation and structure rules for all Copilot/AI agents and VS Code Copilot customization. These rules apply to all test files and follow the project's testing standards. For details, see the main documentation in `.github/copilot-instructions.md`.
 
 ---
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
 
 # Test Generation Instructions
 
