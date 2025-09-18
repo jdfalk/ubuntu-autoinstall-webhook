@@ -5,16 +5,12 @@
 - [General Coding Instructions](#general-coding-instructions)
   - [Required File Header (File Identification)](#required-file-header-file-identification)
   - [Version Update Requirements](#version-update-requirements)
-  - [Documentation Update System](#documentation-update-system)
-    - [Creating Documentation Updates](#creating-documentation-updates)
-    - [Examples](#examples)
-    - [Processing Updates](#processing-updates)
-    - [Benefits](#benefits)
+  - [Documentation Updates (Direct-Edit Protocol)](#documentation-updates-direct-edit-protocol)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 <!-- file: .github/instructions/general-coding.instructions.md -->
-<!-- version: 1.2.1 -->
+<!-- version: 1.3.0 -->
 <!-- guid: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d -->
 <!-- DO NOT EDIT: This file is managed centrally in ghcommon repository -->
 <!-- To update: Create an issue/PR in jdfalk/ghcommon -->
@@ -153,53 +149,12 @@ number:**
 **This applies to all files with version headers including documentation,
 templates, and configuration files.**
 
-## Documentation Update System
+## Documentation Updates (Direct-Edit Protocol)
 
-When making documentation updates to `README.md`, `CHANGELOG.md`, `TODO.md`, or
-other documentation files, use the automated documentation update system instead
-of direct edits:
+This repository uses a direct-edit workflow for documentation updates. The legacy
+doc-update scripts and workflows are retired.
 
-### Creating Documentation Updates
-
-1. **Use the script**: Always use `scripts/create-doc-update.sh` to create
-   documentation updates
-2. **Available modes**:
-   - `append` - Add content to end of file
-   - `prepend` - Add content to beginning of file
-   - `replace-section` - Replace specific section
-   - `changelog-entry` - Add properly formatted changelog entry
-   - `task-add` - Add task to TODO list
-   - `task-complete` - Mark task as complete
-
-### Examples
-
-```bash
-# Add a new changelog entry
-./scripts/create-doc-update.sh --template changelog-feature "Added user authentication system"
-
-# Add a TODO task with high priority
-./scripts/create-doc-update.sh TODO.md "Implement OAuth2 integration" task-add --priority HIGH
-
-# Update a specific section
-./scripts/create-doc-update.sh README.md "Updated installation instructions" replace-section --section "Installation"
-
-# Interactive mode for complex updates
-./scripts/create-doc-update.sh --interactive
-```
-
-### Processing Updates
-
-- Updates are stored as JSON files in `.github/doc-updates/`
-- The workflow `docs-update.yml` automatically processes these files
-- Processed files are moved to `.github/doc-updates/processed/`
-- Changes can be made via direct commit or pull request
-
-### Benefits
-
-- **Consistency**: Standardized formatting across all documentation
-- **Traceability**: Each update has a GUID and timestamp
-- **Automation**: Reduces manual errors and ensures proper formatting
-- **Conflict Resolution**: Multiple agents can create updates simultaneously
-
-**Always use this system for documentation updates instead of direct file
-edits.**
+- Edit documentation directly in the files you want to change.
+- Keep the required header (file path, version, guid) and bump the version on any change.
+- Do not use create-doc-update.sh, doc_update_manager.py, or .github/doc-updates/.
+- Prefer VS Code tasks for git operations (Git Add All, Git Commit, Git Push).
