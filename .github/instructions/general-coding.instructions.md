@@ -2,15 +2,28 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+  - [applyTo: "**"
+description: |
+  General coding, documentation, and workflow rules for all Copilot/AI agents and VS Code Copilot customization. These rules apply to all files and languages unless overridden by a more specific instructions file. For details, see the main documentation in `.github/copilot-instructions.md`.](#applyto-%0Adescription-%0A--general-coding-documentation-and-workflow-rules-for-all-copilotai-agents-and-vs-code-copilot-customization-these-rules-apply-to-all-files-and-languages-unless-overridden-by-a-more-specific-instructions-file-for-details-see-the-main-documentation-in-githubcopilot-instructionsmd)
 - [General Coding Instructions](#general-coding-instructions)
+  - [Copilot Agent Utility](#copilot-agent-utility)
+  - [🚨 CRITICAL: Use VS Code Tasks First](#-critical-use-vs-code-tasks-first)
+    - [Common Operations and Their Tasks](#common-operations-and-their-tasks)
+    - [Task Usage Examples](#task-usage-examples)
+    - [Benefits of Using Tasks](#benefits-of-using-tasks)
+  - [Script Language Preference](#script-language-preference)
+    - [Examples](#examples)
   - [Required File Header (File Identification)](#required-file-header-file-identification)
   - [Version Update Requirements](#version-update-requirements)
-  - [Documentation Updates (Direct-Edit Protocol)](#documentation-updates-direct-edit-protocol)
+  - [VS Code Tasks Implementation Details](#vs-code-tasks-implementation-details)
+    - [Task Categories](#task-categories)
+    - [Task Output and Logging](#task-output-and-logging)
+    - [Task Execution Workflow](#task-execution-workflow)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 <!-- file: .github/instructions/general-coding.instructions.md -->
-<!-- version: 1.3.0 -->
+<!-- version: 2.1.0 -->
 <!-- guid: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d -->
 <!-- DO NOT EDIT: This file is managed centrally in ghcommon repository -->
 <!-- To update: Create an issue/PR in jdfalk/ghcommon -->
@@ -18,16 +31,12 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 ---
-
-applyTo: "\*\*"
+applyTo: "**"
 description: |
-General coding, documentation, and workflow rules for all Copilot/AI agents and VS Code Copilot customization. These rules apply to all files and languages unless overridden by a more specific instructions file. For details, see the main documentation in `.github/copilot-instructions.md`.
-
+  General coding, documentation, and workflow rules for all Copilot/AI agents and VS Code Copilot customization. These rules apply to all files and languages unless overridden by a more specific instructions file. For details, see the main documentation in `.github/copilot-instructions.md`.
 ---
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
-
----
 
 # General Coding Instructions
 
@@ -36,24 +45,125 @@ documentation, and workflow rules in this repository. They are referenced by
 language- and task-specific instructions, and are always included by default in
 Copilot customization.
 
-- Follow the [commit message standards](../commit-messages.md) and
-  [pull request description guidelines](../pull-request-descriptions.md).
+- Follow conventional commit message standards and pull request guidelines.
 - All language/framework-specific style and workflow rules are now found in
   `.github/instructions/*.instructions.md` files. These are the only canonical
   source for code style, documentation, and workflow rules for each language or
   framework.
 - Document all code, classes, functions, and tests extensively, using the
   appropriate style for the language.
-- Use the Arrange-Act-Assert pattern for tests, and follow the
-  [test generation guidelines](../test-generation.md).
-- For agent/AI-specific instructions, see [AGENTS.md](../AGENTS.md) and related
-  files.
+- Use the Arrange-Act-Assert pattern for tests.
 - Do not duplicate rules; reference this file from more specific instructions.
 - For VS Code Copilot customization, this file is included via symlink in
   `.vscode/copilot/`.
+- **ALWAYS check before doing:** Before creating files, running operations, or executing scripts, always check current state first. Make all scripts and operations idempotent by checking if the desired state already exists before making changes.
+- **USE VS CODE TASKS FIRST:** ALWAYS use VS Code tasks when available instead of manual terminal commands. Tasks provide consistent logging, error handling, and automation. Only fall back to manual commands when no appropriate task exists.
+- **🚨 CRITICAL: Always increment file header versions when modifying any file.** When you change any file with a version header, you MUST update the version number according to semantic versioning rules (patch for fixes/typos, minor for features/additions, major for breaking changes). This is mandatory for all files including documentation, templates, workflows, and configuration files.
 
 For more details and the full system, see
 [copilot-instructions.md](../copilot-instructions.md).
+
+## Copilot Agent Utility
+
+The repositories use the `copilot-agent-util` command-line tool for enhanced logging, error handling, and automation in VS Code tasks. This Rust-based utility provides consistent output formatting and task management across all repositories.
+
+**If the `copilot-agent-util` tool is not available in your environment:**
+- Install it from the source repository: https://github.com/jdfalk/copilot-agent-util-rust
+- Follow the installation instructions in that repository's README
+- The tool is required for proper VS Code task execution and logging
+
+## 🚨 CRITICAL: Use VS Code Tasks First
+
+**MANDATORY RULE: Always attempt to use VS Code tasks before manual commands.**
+
+When performing ANY operation (git, build, test, etc.), follow this priority:
+
+1. **FIRST**: Check if a VS Code task exists for the operation
+2. **SECOND**: Use the task via `run_task` tool with appropriate workspace folder
+3. **THIRD**: Check task logs in `logs/` folder for results
+4. **LAST RESORT**: Use manual terminal commands only if no task exists
+
+### Common Operations and Their Tasks
+
+| Operation | Task Name | Manual Fallback |
+|-----------|-----------|-----------------|
+| Git add all files | `Git Add All` | `git add .` |
+| Git add specific files | `Git Add Selective` | `git add <pattern>` |
+| Git commit | `Git Commit` | `git commit -m "message"` |
+| Git push | `Git Push` | `git push` |
+| Git status | `Git Status` | `git status` |
+| Build Go project | `Go Build` | `go build` |
+| Run Go tests | `Go Test` | `go test ./...` |
+| Protocol buffer generation | `Buf Generate with Output` | `buf generate` |
+| Python tests | `Python Test` | `python -m pytest` |
+| Rust build | `Rust Build` | `cargo build` |
+| Rust tests | `Rust Test` | `cargo test` |
+
+### Task Usage Examples
+
+```bash
+# ✅ CORRECT: Use tasks first
+run_task("Git Add All", "/path/to/workspace")
+run_task("Git Commit", "/path/to/workspace")  # Will prompt for message
+run_task("Git Push", "/path/to/workspace")
+
+# ❌ INCORRECT: Manual commands without checking for tasks
+git add . && git commit -m "message" && git push
+```
+
+### Benefits of Using Tasks
+
+- **Consistent Logging**: All output logged to `logs/` folder with timestamps
+- **Error Handling**: Standardized error reporting and debugging information
+- **Workspace Awareness**: Tasks run in correct directory with proper context
+- **Automation**: Tasks can chain together and include pre/post operations
+- **Debugging**: Log files provide complete audit trail for troubleshooting
+
+## Script Language Preference
+
+**MANDATORY RULE: Prefer Python for scripts unless they are incredibly simple.**
+
+When creating automation scripts, configuration tools, or data processing utilities:
+
+1. **FIRST CHOICE**: Python for any script with:
+   - API interactions (GitHub, REST APIs, etc.)
+   - JSON/YAML processing
+   - File manipulation beyond simple copying
+   - Error handling and logging
+   - Data parsing or transformation
+   - More than 20-30 lines of logic
+
+2. **SECOND CHOICE**: Shell scripts (bash/sh) only for:
+   - Simple file operations (copy, move, basic checks)
+   - Basic git commands
+   - Simple environment setup
+   - Scripts under 20 lines with minimal logic
+
+3. **CONVERSION REQUIRED**: When existing shell scripts become complex:
+   - Convert to Python when adding features
+   - Rewrite in Python if error handling is insufficient
+   - Migrate when API calls or JSON processing is needed
+
+### Examples
+
+**✅ CORRECT - Use Python for:**
+- GitHub API interactions
+- Configuration file processing
+- Multi-step automation workflows
+- Scripts with error handling requirements
+- Data validation and transformation
+
+**❌ INCORRECT - Don't use shell for:**
+- Complex JSON parsing
+- API authentication and error handling
+- Multi-repository operations
+- Scripts requiring robust error recovery
+
+**✅ ACCEPTABLE - Shell scripts for:**
+- Simple `cp`, `mv`, `mkdir` operations
+- Basic git commands with minimal logic
+- Environment variable setup
+- Simple file existence checks
 
 ## Required File Header (File Identification)
 
@@ -149,12 +259,28 @@ number:**
 **This applies to all files with version headers including documentation,
 templates, and configuration files.**
 
-## Documentation Updates (Direct-Edit Protocol)
+## VS Code Tasks Implementation Details
 
-This repository uses a direct-edit workflow for documentation updates. The legacy
-doc-update scripts and workflows are retired.
+All repositories are configured with standardized VS Code tasks following the priority system outlined above.
 
-- Edit documentation directly in the files you want to change.
-- Keep the required header (file path, version, guid) and bump the version on any change.
-- Do not use create-doc-update.sh, doc_update_manager.py, or .github/doc-updates/.
-- Prefer VS Code tasks for git operations (Git Add All, Git Commit, Git Push).
+### Task Categories
+
+- **Git Operations**: `Git Add All`, `Git Add Selective`, `Git Commit`, `Git Push`, `Git Status`
+- **Build Operations**: Repository-specific tasks (e.g., `Go Build`, `Buf Generate`, `Python Test`)
+- **Project Operations**: Language/framework-specific tasks
+
+### Task Output and Logging
+
+- **All task output is logged to the `logs/` folder** (gitignored)
+- **Always check log files after running tasks** to verify success or diagnose issues
+- Log files are named descriptively: `git_commit.log`, `go_build.log`, etc.
+- Tasks include success/failure messages at the end of each log
+
+### Task Execution Workflow
+
+1. **Execute**: Use `run_task` tool with task name and workspace folder
+2. **Verify**: Check the corresponding log file in `logs/` folder
+3. **Debug**: Review log contents if task fails
+4. **Retry**: Fix issues and re-run task if needed
+
+This approach provides consistent logging, error handling, and automation across all repositories.
