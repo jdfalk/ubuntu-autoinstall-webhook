@@ -66,7 +66,7 @@ jobs:
     uses: jdfalk/ghcommon/.github/workflows/reusable-intelligent-issue-labeling.yml@main
     with:
       dry_run: false
-      python_version: "3.11"
+      python_version: "3.13"
     secrets: inherit
 
   # Standard labeler based on file patterns
