@@ -1,6 +1,6 @@
 module github.com/jdfalk/ubuntu-autoinstall-webhook
 
-go 1.24.0
+go 1.24
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
