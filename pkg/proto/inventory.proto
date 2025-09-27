@@ -8,7 +8,7 @@
 // The HardwareInfo message contains details about the server's hardware,
 // including CPU, memory, storage, and network interfaces. The syntax is
 // proto3, and the package is defined as "proto".
-syntax = "proto3";
+edition = "2023";
 
 package proto;
 
