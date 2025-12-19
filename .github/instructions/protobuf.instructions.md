@@ -1,71 +1,18 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [Protobuf Coding Instructions](#protobuf-coding-instructions)
-  - [Core Principles](#core-principles)
-  - [Required File Header](#required-file-header)
-  - [Edition 2023 Requirements](#edition-2023-requirements)
-  - [1-1-1 Design Pattern (MANDATORY)](#1-1-1-design-pattern-mandatory)
-    - [Benefits](#benefits)
-    - [File Organization Structure](#file-organization-structure)
-  - [Naming Conventions](#naming-conventions)
-    - [Files](#files)
-    - [Packages](#packages)
-    - [Messages](#messages)
-    - [Fields](#fields)
-    - [Enums](#enums)
-    - [Services](#services)
-  - [Import Guidelines](#import-guidelines)
-    - [Import Order (MANDATORY)](#import-order-mandatory)
-  - [Message Design Patterns](#message-design-patterns)
-    - [Standard Field Number Allocation](#standard-field-number-allocation)
-    - [Request/Response Pattern](#requestresponse-pattern)
-    - [Service Definition Pattern](#service-definition-pattern)
-  - [Types Package Strategy](#types-package-strategy)
-    - [Purpose](#purpose)
-    - [Implementation Pattern](#implementation-pattern)
-  - [Edition 2023 Features](#edition-2023-features)
-    - [Enhanced Default Values](#enhanced-default-values)
-    - [Improved Field Presence](#improved-field-presence)
-    - [Better Validation](#better-validation)
-  - [Documentation Requirements](#documentation-requirements)
-    - [File-Level Documentation](#file-level-documentation)
-    - [Message Documentation](#message-documentation)
-    - [Enum Documentation](#enum-documentation)
-    - [Service Documentation](#service-documentation)
-  - [Common Patterns and Best Practices](#common-patterns-and-best-practices)
-    - [Error Handling](#error-handling)
-    - [Pagination](#pagination)
-    - [Versioning Strategy](#versioning-strategy)
-  - [Build Integration](#build-integration)
-    - [buf.yaml Configuration](#bufyaml-configuration)
-    - [buf.gen.yaml Configuration](#bufgenyaml-configuration)
-  - [Validation Commands](#validation-commands)
-    - [Local Testing](#local-testing)
-    - [Integration Testing](#integration-testing)
-  - [Migration Guidelines](#migration-guidelines)
-    - [From Proto2/Proto3 to Edition 2023](#from-proto2proto3-to-edition-2023)
-    - [Breaking Change Checklist](#breaking-change-checklist)
-  - [Security Considerations](#security-considerations)
-    - [Sensitive Data Handling](#sensitive-data-handling)
-    - [Access Control](#access-control)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 <!-- file: .github/instructions/protobuf.instructions.md -->
-<!-- version: 2.2.1 -->
+<!-- version: 3.0.1 -->
 <!-- guid: 7d6c5b4a-3c2d-1e0f-9a8b-7c6d5e4f3a2b -->
 <!-- DO NOT EDIT: This file is managed centrally in ghcommon repository -->
 <!-- To update: Create an issue/PR in jdfalk/ghcommon -->
 
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
 ---
-
-applyTo: "\*_/_.proto"
+applyTo: "**/*.proto"
 description: |
-Protocol Buffers (protobuf) style and documentation rules for Copilot/AI agents and VS Code Copilot customization. These rules extend the general instructions in `general-coding.instructions.md` and implement comprehensive protobuf best practices including the 1-1-1 design pattern, Edition 2023 features, and Google's style guide.
-
+  Protocol Buffers (protobuf) style and documentation rules for Copilot/AI agents and VS Code Copilot customization. These rules extend the general instructions in `general-coding.instructions.md` and implement comprehensive protobuf best practices including the 1-1-1 design pattern, Edition 2023 features, and Google's style guide.
 ---
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
 
 # Protobuf Coding Instructions
 
@@ -149,13 +96,52 @@ pkg/module/proto/
 
 ## Naming Conventions
 
+### CRITICAL: Module Prefix Strategy for Avoiding Conflicts
+
+**Problem**: Multiple packages can have similar message names, causing import conflicts and confusion.
+
+**Solution**: Use consistent module prefixes for all message types to ensure uniqueness across the entire project.
+
+### Module Prefix Rules (MANDATORY)
+
+1. **All messages MUST include module prefix**: `{Module}{MessageName}`
+2. **Consistent prefixing**: Either ALL messages in a module have prefixes OR NONE do
+3. **Module prefix examples**:
+   - Auth module: `AuthUserInfo`, `AuthSessionData`, `AuthLoginRequest`
+   - Subtitle module: `SubtitleRecord`, `SubtitleMetadata`, `SubtitleSearchRequest`
+   - Metrics module: `MetricsHealthStatus`, `MetricsBatchOptions`, `MetricsTimeRange`
+   - Common module: `CommonError`, `CommonPagination`, `CommonFilterOptions`
+
+### Module Prefix Mapping
+
+| Module | Prefix | Examples |
+|--------|--------|----------|
+| `auth` | `Auth` | `AuthUserInfo`, `AuthSessionData`, `AuthLoginRequest` |
+| `subtitle` | `Subtitle` | `SubtitleRecord`, `SubtitleMetadata`, `SubtitleProcessingJob` |
+| `metrics` | `Metrics` | `MetricsHealthStatus`, `MetricsBatchOptions`, `MetricsCollectionData` |
+| `common` | `Common` | `CommonError`, `CommonPagination`, `CommonFilterOptions` |
+| `health` | `Health` | `HealthCheckResult`, `HealthServiceStatus`, `HealthMonitorConfig` |
+| `queue` | `Queue` | `QueueSubscriptionInfo`, `QueueMessage`, `QueueConfiguration` |
+| `database` | `Database` | `DatabaseHealthStatus`, `DatabaseConnection`, `DatabaseMigration` |
+| `web` | `Web` | `WebHealthResponse`, `WebConfiguration`, `WebRouteInfo` |
+
 ### Files
 
 - Use `lower_snake_case.proto` for filenames
 - **Services**: `{service_name}_service.proto`
-- **Messages**: `{message_name}.proto` (snake_case)
+- **Messages**: `{message_name}.proto` (snake_case, WITHOUT module prefix in filename)
 - **Enums**: `{enum_name}.proto` (snake_case)
 - **Types**: `{type_category}.proto` for shared types
+
+**Examples**:
+
+```
+pkg/auth/proto/
+├── user_info.proto          # Contains: message AuthUserInfo
+├── session_data.proto       # Contains: message AuthSessionData
+├── login_request.proto      # Contains: message AuthLoginRequest
+└── auth_service.proto       # Contains: service AuthService
+```
 
 ### Packages
 
@@ -163,10 +149,21 @@ pkg/module/proto/
 - Format: `{project}.{version}.{module}`
 - Example: `gcommon.v1.subtitle`, `myproject.v2.storage`
 
-### Messages
+### Messages (UPDATED FOR CONFLICT PREVENTION)
 
 - Use `TitleCase` for message names
-- Example: `UserInfo`, `ConfigData`, `CreateUserRequest`
+- **MANDATORY**: Include module prefix: `{Module}{MessageName}`
+- **Examples**:
+  - ✅ `AuthUserInfo`, `AuthSessionData`, `AuthLoginRequest`
+  - ✅ `SubtitleRecord`, `SubtitleMetadata`, `SubtitleSearchRequest`
+  - ✅ `MetricsHealthStatus`, `MetricsBatchOptions`, `MetricsTimeRange`
+  - ❌ `UserInfo`, `SessionData`, `LoginRequest` (missing prefix)
+
+### Exception: Service Names and Simple Enums
+
+- **Services**: Use module name only: `AuthService`, `SubtitleService`, `MetricsService`
+- **Simple Enums**: May omit prefix if context is clear and no conflicts exist
+- **Complex Enums**: Use prefix for clarity: `AuthUserStatus`, `SubtitleProcessingStatus`
 
 ### Fields
 
@@ -176,23 +173,33 @@ pkg/module/proto/
 
 ### Enums
 
-- Use `TitleCase` for enum type names
+- Use `TitleCase` for enum type names (with module prefix if needed)
 - Use `UPPER_SNAKE_CASE` for enum values
 - **MANDATORY**: First value must be `{ENUM_NAME}_UNSPECIFIED = 0`
 
 ```protobuf
+// Simple enum (no conflicts expected)
 enum UserStatus {
   USER_STATUS_UNSPECIFIED = 0;
   USER_STATUS_ACTIVE = 1;
   USER_STATUS_INACTIVE = 2;
   USER_STATUS_SUSPENDED = 3;
 }
+
+// Complex enum (potential conflicts, use prefix)
+enum AuthProviderType {
+  AUTH_PROVIDER_TYPE_UNSPECIFIED = 0;
+  AUTH_PROVIDER_TYPE_LOCAL = 1;
+  AUTH_PROVIDER_TYPE_OAUTH2 = 2;
+  AUTH_PROVIDER_TYPE_SAML = 3;
+}
 ```
 
 ### Services
 
 - Use `TitleCase` for service and method names
-- Example: `AuthService`, `GetUserInfo`, `CreateUser`
+- Service names: `{Module}Service` - Example: `AuthService`, `SubtitleService`
+- Method names: Standard verbs without module prefix - Example: `GetUser`, `CreateSession`, `DeleteRecord`
 
 ## Import Guidelines
 
@@ -214,6 +221,7 @@ enum UserStatus {
    ```
 
 3. **Other module imports third**:
+
    ```protobuf
    import "pkg/auth/proto/messages/user_info.proto";
    import "pkg/config/proto/messages/config_data.proto";
@@ -472,11 +480,67 @@ service AuthService {
 
 ## Common Patterns and Best Practices
 
+### Avoiding Common Naming Conflicts
+
+#### High-Conflict Type Names (Always Use Prefixes)
+
+- `HealthStatus` → `{Module}HealthStatus` (auth, database, metrics, web, etc.)
+- `Configuration` → `{Module}Configuration`
+- `Metadata` → `{Module}Metadata`
+- `Status` → `{Module}Status`
+- `Info` → `{Module}Info`
+- `Request`/`Response` → `{Module}{Action}Request`/`{Module}{Action}Response`
+- `Error` → `{Module}Error` or use `CommonError`
+
+#### Low-Conflict Type Names (Prefixes Recommended)
+
+- Domain-specific terms: `SubtitleRecord`, `AuthToken`, `MetricValue`
+- Action-specific: `LoginAttempt`, `ProcessingJob`, `SearchQuery`
+
+#### Safe Type Names (Prefixes Optional)
+
+- Very specific domain terms: `TranscriptionSegment`, `OAuth2Configuration`
+- Highly technical terms: `WebRTCConfiguration`, `DatabaseMigration`
+
+### Cross-Module Dependencies
+
+#### Using Common Types
+
+```protobuf
+// In auth module - import common types
+import "pkg/common/proto/error.proto";
+import "pkg/common/proto/pagination.proto";
+
+message AuthUserListResponse {
+  repeated AuthUserInfo users = 1;
+  CommonPagination pagination = 2;    // Use common type
+  CommonError error = 3;              // Use common type
+}
+```
+
+#### Avoiding Circular Dependencies
+
+```protobuf
+// ❌ WRONG: auth imports subtitle, subtitle imports auth
+// pkg/auth/proto/user_info.proto
+import "pkg/subtitle/proto/subtitle_record.proto";  // Creates cycle
+
+// ✅ CORRECT: Use common types for shared concepts
+// pkg/common/proto/user_reference.proto
+message CommonUserReference {
+  string user_id = 1;
+  string display_name = 2;
+}
+
+// Both modules can import the common type
+import "pkg/common/proto/user_reference.proto";
+```
+
 ### Error Handling
 
 ```protobuf
-// Standard error message structure
-message Error {
+// Standard error message structure (in common module)
+message CommonError {
   // Error code following gRPC status codes
   int32 code = 1;
 
@@ -488,6 +552,13 @@ message Error {
 
   // Error occurrence timestamp
   google.protobuf.Timestamp timestamp = 4;
+}
+
+// Module-specific error details
+message AuthErrorDetails {
+  AuthErrorCode auth_code = 1;
+  int32 remaining_attempts = 2;
+  google.protobuf.Duration lockout_duration = 3;
 }
 ```
 
@@ -599,20 +670,83 @@ go mod graph | grep -E ".*->.*->.*"
 
 ## Migration Guidelines
 
+### Addressing Existing Naming Inconsistencies
+
+**Current Issue**: The codebase has inconsistent naming where some types use module prefixes (`AuthSessionTimei`, `MetricsHealthStatus`) while others don't (`SessionSummary`, `UserInfo`).
+
+**Migration Strategy**:
+
+1. **Audit Phase**: Identify all messages without module prefixes
+2. **Gradual Migration**: Add prefixes to new messages immediately, migrate existing ones over time
+3. **Deprecation Path**: Use field deprecation to maintain backwards compatibility
+
+### Migration Priority Order
+
+#### Phase 1: High-Risk Conflicts (Immediate)
+
+- Messages that exist in multiple modules with same name
+- Core types used across many services
+- Public API message types
+
+```protobuf
+// Before: Potential conflict
+message HealthStatus { ... }  // In multiple modules
+
+// After: Clear ownership
+message AuthHealthStatus { ... }     // In auth module
+message MetricsHealthStatus { ... }  // In metrics module
+message DatabaseHealthStatus { ... } // In database module
+```
+
+#### Phase 2: Internal Types (Medium Priority)
+
+- Request/Response messages
+- Configuration types
+- Internal data structures
+
+#### Phase 3: Simple Types (Low Priority)
+
+- Basic enums with clear context
+- Module-specific types with no conflict potential
+
+### Compatibility Preservation
+
+```protobuf
+// Option 1: Field aliasing (backwards compatible)
+message AuthUserInfo {
+  string user_id = 1;
+  string name = 2;
+
+  // Deprecated: Use the fields above instead
+  string old_user_id = 10 [deprecated = true];
+  string old_name = 11 [deprecated = true];
+}
+
+// Option 2: Message aliasing (for major changes)
+// Keep old message as alias during transition
+message UserInfo {
+  option deprecated = true;
+  // Redirect to new message in documentation
+  // "Use AuthUserInfo instead"
+}
+```
+
 ### From Proto2/Proto3 to Edition 2023
 
 1. Change `syntax = "proto3";` to `edition = "2023";`
 2. Update package structure to follow 1-1-1 pattern
 3. Move shared types to `types/` directory
-4. Add proper file headers and documentation
-5. Update import statements
-6. Test generated code compatibility
+4. **Apply module prefixes to all messages**
+5. Add proper file headers and documentation
+6. Update import statements
+7. Test generated code compatibility
 
 ### Breaking Change Checklist
 
 - [ ] Field number changes (NEVER do this)
 - [ ] Field type changes (carefully evaluate)
 - [ ] Message/enum renames (use deprecation first)
+- [ ] **Module prefix addition (plan migration path)**
 - [ ] Package name changes (create new version)
 - [ ] Service method signature changes (add new methods)
 

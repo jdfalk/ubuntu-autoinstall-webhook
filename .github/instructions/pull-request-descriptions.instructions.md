@@ -1,23 +1,5 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [Pull Request Description Instructions](#pull-request-description-instructions)
-  - [Template Structure](#template-structure)
-  - [Guidelines](#guidelines)
-    - [Summary Section](#summary-section)
-    - [Issues Addressed Section](#issues-addressed-section)
-    - [Conventional Commit Types](#conventional-commit-types)
-    - [File Links Format](#file-links-format)
-    - [Testing Section](#testing-section)
-    - [Related Issues](#related-issues)
-  - [Example](#example)
-  - [Best Practices](#best-practices)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 <!-- file: .github/instructions/pull-request-descriptions.instructions.md -->
-<!-- version: 1.2.1 -->
+<!-- version: 1.3.1 -->
 <!-- guid: pr2d3567-e89b-12d3-a456-426614174000 -->
 <!-- DO NOT EDIT: This file is managed centrally in ghcommon repository -->
 <!-- To update: Create an issue/PR in jdfalk/ghcommon -->
@@ -25,11 +7,9 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 ---
-
-applyTo: "\*\*"
+applyTo: "**"
 description: |
-Pull request description format rules for all Copilot/AI agents and VS Code Copilot customization. These rules apply to all pull request descriptions and follow the project's documentation standards. For details, see the main documentation in `.github/copilot-instructions.md`.
-
+  Pull request description format rules for all Copilot/AI agents and VS Code Copilot customization. These rules apply to all pull request descriptions and follow the project's documentation standards. For details, see the main documentation in `.github/copilot-instructions.md`.
 ---
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
@@ -60,11 +40,15 @@ Use this template for your pull request descriptions:
 
 Brief overview of the entire PR and its purpose
 
-## Issues Addressed
+## Summary
+
+Brief overview of the entire PR and its purpose
+
+## Changes Made
 
 ### type(scope): description (#issue-number)
 
-**Description:** Detailed explanation of what was done for this specific issue
+**Description:** Detailed explanation of what was done for this specific change
 
 **Files Modified:**
 
@@ -77,7 +61,7 @@ Brief overview of the entire PR and its purpose
 
 ### type(scope): description (#issue-number)
 
-**Description:** Detailed explanation of what was done for this specific issue
+**Description:** Detailed explanation of what was done for this specific change
 
 **Files Modified:**
 
@@ -85,8 +69,7 @@ Brief overview of the entire PR and its purpose
   [[diff]](../../pull/PR_NUMBER/files#diff-hash)
   [[repo]](../../blob/main/path/to/file3.ext)
 
-_Note: Omit issue numbers from section headers if not working on specific
-issues. Use `type(scope): description` format instead._
+_Note: Each distinct functional change (feat, fix, refactor, docs, etc.) gets its own subsection with a conventional commit header. Omit issue numbers from section headers if not working on specific issues. Use `type(scope): description` format instead._
 
 ## Testing
 
@@ -113,13 +96,13 @@ Closes #123, #456, #789
 - Explain the overall purpose and impact of the PR
 - Use present tense ("add feature" not "added feature")
 
-### Issues Addressed Section
+### Changes Made Section
 
-- **Group changes by issue/feature**, not by file
+- **Group changes by type/function**, not by file or issue
 - Use conventional commit format: `type(scope): description (#issue-number)`
   when working on specific issues
 - Use `type(scope): description` format when not working on specific issues
-- Each issue gets its own subsection with:
+- **CRITICAL**: Each distinct functional change (feat, fix, refactor, docs, test, etc.) gets its own subsection with:
   - Conventional commit header
   - Detailed description of what was implemented
   - List of all files modified for that specific issue
@@ -168,7 +151,7 @@ Each file entry should include:
 This PR implements user authentication, adds profile management, and updates
 documentation to support the new auth system.
 
-## Issues Addressed
+## Changes Made
 
 ### feat(auth): implement JWT token validation (#123)
 

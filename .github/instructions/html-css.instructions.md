@@ -1,15 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [HTML/CSS Coding Instructions](#htmlcss-coding-instructions)
-  - [Core Principles](#core-principles)
-  - [HTML Guidelines](#html-guidelines)
-  - [CSS Guidelines](#css-guidelines)
-  - [Required File Header](#required-file-header)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 <!-- file: .github/instructions/html-css.instructions.md -->
 <!-- version: 1.2.1 -->
 <!-- guid: 2d1e0f9a-8b7c-6d5e-4f3a-2b1c0d9e8f7a -->
@@ -19,11 +7,9 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 ---
-
-applyTo: "\*_/_.{html,css}"
+applyTo: "**/*.{html,css}"
 description: |
-Coding, documentation, and workflow rules for HTML and CSS files, following Google HTML/CSS style guide and general project rules. Reference this for all HTML and CSS code, documentation, and formatting in this repository. All unique content from the Google HTML/CSS Style Guide is merged here.
-
+  Coding, documentation, and workflow rules for HTML and CSS files, following Google HTML/CSS style guide and general project rules. Reference this for all HTML and CSS code, documentation, and formatting in this repository. All unique content from the Google HTML/CSS Style Guide is merged here.
 ---
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->

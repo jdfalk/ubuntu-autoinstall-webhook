@@ -1,29 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [GitHub Actions Workflow Coding Instructions](#github-actions-workflow-coding-instructions)
-  - [Workflow File Structure](#workflow-file-structure)
-  - [YAML Formatting](#yaml-formatting)
-  - [Workflow Configuration](#workflow-configuration)
-    - [Naming](#naming)
-    - [Triggers](#triggers)
-    - [Job Structure](#job-structure)
-  - [Steps Best Practices](#steps-best-practices)
-    - [Step Naming](#step-naming)
-    - [Actions References](#actions-references)
-    - [Commands and Scripts](#commands-and-scripts)
-  - [Variables and Secrets](#variables-and-secrets)
-  - [Reusability and DRY Principles](#reusability-and-dry-principles)
-  - [Conditional Execution](#conditional-execution)
-  - [Error Handling](#error-handling)
-  - [Performance Optimization](#performance-optimization)
-  - [Security Best Practices](#security-best-practices)
-  - [Documentation](#documentation)
-  - [Required File Header](#required-file-header)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 <!-- file: .github/instructions/github-actions.instructions.md -->
 <!-- version: 1.2.1 -->
 <!-- guid: 9f8e7d6c-5b4a-3c2d-1e0f-9a8b7c6d5e4f -->
@@ -33,11 +7,9 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 ---
-
-applyTo: ".github/workflows/\*.{yml,yaml}"
+applyTo: ".github/workflows/*.{yml,yaml}"
 description: |
-Coding, documentation, and workflow rules for GitHub Actions workflow files, following Google and project-specific style guides. Reference the general instructions for all Copilot/AI agents and VS Code Copilot customization. For details, see the main documentation in `.github/copilot-instructions.md`.
-
+  Coding, documentation, and workflow rules for GitHub Actions workflow files, following Google and project-specific style guides. Reference the general instructions for all Copilot/AI agents and VS Code Copilot customization. For details, see the main documentation in `.github/copilot-instructions.md`.
 ---
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->

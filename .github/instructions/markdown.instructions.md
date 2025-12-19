@@ -1,24 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [Markdown Coding Instructions](#markdown-coding-instructions)
-  - [File Structure and Organization](#file-structure-and-organization)
-  - [Heading Guidelines](#heading-guidelines)
-  - [Text Formatting](#text-formatting)
-  - [Links and References](#links-and-references)
-  - [Lists and Structure](#lists-and-structure)
-  - [Tables](#tables)
-  - [Code Documentation](#code-documentation)
-  - [Images and Media](#images-and-media)
-  - [Line Length and Whitespace](#line-length-and-whitespace)
-  - [Special Elements](#special-elements)
-  - [Accessibility Guidelines](#accessibility-guidelines)
-  - [Validation and Quality](#validation-and-quality)
-  - [Required File Header](#required-file-header)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 <!-- file: .github/instructions/markdown.instructions.md -->
 <!-- version: 1.2.1 -->
 <!-- guid: e2f8a5b1-9c4d-4e2f-8a5b-4d9c8a5b1e2f -->
@@ -28,11 +7,9 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 ---
-
-applyTo: "\*_/_.md"
+applyTo: "**/*.md"
 description: |
-Markdown formatting, documentation, and style rules for Copilot/AI agents and VS Code Copilot customization. These rules extend the general instructions in `general-coding.instructions.md` and merge all unique content from the Google Markdown Style Guide.
-
+  Markdown formatting, documentation, and style rules for Copilot/AI agents and VS Code Copilot customization. These rules extend the general instructions in `general-coding.instructions.md` and merge all unique content from the Google Markdown Style Guide.
 ---
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
@@ -134,6 +111,4 @@ Markdown:
 <!-- file: path/to/file.md -->
 <!-- version: 1.0.0 -->
 <!-- guid: 123e4567-e89b-12d3-a456-426614174000 -->
-<!-- DO NOT EDIT: This file is managed centrally in ghcommon repository -->
-<!-- To update: Create an issue/PR in jdfalk/ghcommon -->
 ```
