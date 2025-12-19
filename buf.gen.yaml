@@ -1,0 +1,16 @@
+# file: buf.gen.yaml
+# version: 1.0.0
+# guid: b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e
+
+version: v1
+plugins:
+  - plugin: buf.build/protocolbuffers/go
+    out: .
+    opt:
+      - paths=source_relative
+      - module=github.com/jdfalk/ubuntu-autoinstall-webhook
+  - plugin: buf.build/grpc/go
+    out: .
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false
