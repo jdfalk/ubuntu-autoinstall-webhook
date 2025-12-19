@@ -1,14 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [JSON Coding Instructions](#json-coding-instructions)
-  - [Core Principles](#core-principles)
-  - [General Guidelines](#general-guidelines)
-  - [Required File Header](#required-file-header)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 <!-- file: .github/instructions/json.instructions.md -->
 <!-- version: 1.2.1 -->
 <!-- guid: 3c2d1e0f-9a8b-7c6d-5e4f-3a2b1c0d9e8f -->
@@ -18,11 +7,9 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 ---
-
-applyTo: "\*_/_.json"
+applyTo: "**/*.json"
 description: |
-Coding, documentation, and workflow rules for JSON files, following Google JSON style guide and general project rules. Reference this for all JSON code, documentation, and formatting in this repository. All unique content from the Google JSON Style Guide is merged here.
-
+  Coding, documentation, and workflow rules for JSON files, following Google JSON style guide and general project rules. Reference this for all JSON code, documentation, and formatting in this repository. All unique content from the Google JSON Style Guide is merged here.
 ---
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->

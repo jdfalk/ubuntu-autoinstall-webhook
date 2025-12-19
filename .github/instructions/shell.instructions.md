@@ -1,16 +1,5 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [Shell Script Coding Instructions](#shell-script-coding-instructions)
-  - [Core Principles](#core-principles)
-  - [Script Structure](#script-structure)
-  - [Required File Header](#required-file-header)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 <!-- file: .github/instructions/shell.instructions.md -->
-<!-- version: 1.2.1 -->
+<!-- version: 1.4.0 -->
 <!-- guid: 5b4a3c2d-1e0f-9a8b-7c6d-5e4f3a2b1c0d -->
 <!-- DO NOT EDIT: This file is managed centrally in ghcommon repository -->
 <!-- To update: Create an issue/PR in jdfalk/ghcommon -->
@@ -18,11 +7,9 @@
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 ---
-
-applyTo: "\*_/_.{sh,bash}"
+applyTo: "**/*.{sh,bash}"
 description: |
-Coding, documentation, and workflow rules for shell scripts, following Google Shell style guide and general project rules. Reference this for all shell scripts, documentation, and formatting in this repository. All unique content from the Google Shell Style Guide is merged here.
-
+  Coding, documentation, and workflow rules for shell scripts, following Google Shell style guide and general project rules. Reference this for all shell scripts, documentation, and formatting in this repository. All unique content from the Google Shell Style Guide is merged here.
 ---
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
@@ -69,3 +56,54 @@ Shell:
 # version: 1.0.0
 # guid: 123e4567-e89b-12d3-a456-426614174000
 ```
+
+## HEREDOC (Here Document) - LAST RESORT ONLY
+
+**ABSOLUTELY CRITICAL**: HEREDOC should ONLY be used as a final last resort after exhausting every other option.
+
+**Priority Order (MUST follow this order):**
+
+1. **FIRST**: Use built-in shell constructs
+   ```bash
+   # Use echo
+   echo "content" > file.txt
+
+   # Use printf
+   printf "line1\nline2\n" > file.txt
+   ```
+
+2. **SECOND**: Use standard Unix tools
+   ```bash
+   # Use tee
+   echo "content" | tee file.txt
+
+   # Use sed/awk
+   sed 's/old/new/' input.txt > output.txt
+   ```
+
+3. **THIRD**: Use scripting languages (Python, etc.)
+   ```bash
+   # Python for complex operations
+   python3 -c "open('file.txt', 'w').write('content')"
+   ```
+
+4. **FOURTH**: Use MCP tools or specialized utilities
+   ```bash
+   # Use MCP GitHub tools for file creation
+   mcp_github_create_or_update_file
+   ```
+
+5. **ONLY IF ABSOLUTELY NOTHING ELSE WORKS**: HEREDOC
+   ```bash
+   cat > file.txt << 'EOF'
+   multi-line content
+   that cannot be done any other way
+   EOF
+   ```
+
+**If you find yourself using HEREDOC, you have failed to exhaust all other options first.**
+
+**Delimiter Rules (if you MUST use HEREDOC as absolute last resort):**
+- Ending delimiter MUST match opening delimiter EXACTLY
+- Must be on its own line with no indentation (unless using `<<-`)
+- Example: `<< 'EOF'` requires ending with `EOF` on its own line, nothing else
