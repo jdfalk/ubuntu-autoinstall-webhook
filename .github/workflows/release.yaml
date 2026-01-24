@@ -26,10 +26,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v4.2.0
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: "lts/*"
           check-latest: true
@@ -42,7 +42,7 @@ jobs:
       - run: npm run build --prefix viewer-app
 
       - name: Set up Go
-        uses: actions/setup-go@v5.3.0
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
         with:
           go-version: ">=1.24"
           cache: true
@@ -74,7 +74,7 @@ jobs:
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.arch }} go build -o dist/webhook-${{ matrix.goos }}-${{ matrix.arch }}-${{ github.run_id }} .
 
       - name: Upload Binaries as Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: binaries-${{ matrix.goos }}-${{ matrix.arch }}-${{ github.run_id }}
           path: dist/
@@ -88,7 +88,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - uses: docker/login-action@v3.3.0
         with:
@@ -97,7 +97,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Built Binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: binaries-*
           merge-multiple: true
@@ -107,7 +107,7 @@ jobs:
         run: echo ${{ github.sha }} > Release.txt
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
         with:
           cosign-release: "v2.4.3"
 
@@ -123,7 +123,7 @@ jobs:
           done
 
       - name: Publish Release Binaries
-        uses: softprops/action-gh-release@v2.2.1
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           files: |
             dist/*
@@ -158,7 +158,7 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Attest Build Provenance
-        uses: actions/attest-build-provenance@v2.2.0
+        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
         with:
           subject-path: "dist/*"
 
@@ -174,7 +174,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - uses: docker/metadata-action@v5.6.1
         id: metadata
@@ -188,7 +188,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Built Binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: binaries-*
           merge-multiple: true
@@ -198,7 +198,7 @@ jobs:
 
       - name: Kaniko Build
         id: kaniko_build
-        uses: int128/kaniko-action@v1.49.0
+        uses: int128/kaniko-action@51bb83134884a45cd42b44964c4f7be46256ec79 # v1.49.0
         with:
           executor: "gcr.io/kaniko-project/executor:debug"
           push: true
@@ -245,7 +245,7 @@ jobs:
           docker manifest push $IMAGE_NAME:$TAG-${{ github.sha }}
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
 
       # - name: Generate Attestation for Release Docker Image
       #   run: |
@@ -266,7 +266,7 @@ jobs:
       #     COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Attest Container Build Provenance
-        uses: actions/attest-build-provenance@v2.2.0
+        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
         with:
           subject-name: "ghcr.io/${{ github.repository_owner }}/ubuntu-autoinstall-webhook"
           subject-digest: ${{ needs.docker.outputs.digest }} # Use the digest from the Kaniko build step

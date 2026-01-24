@@ -1,5 +1,5 @@
 # file: .github/workflows/unified-automation.yml
-# version: 2.2.0
+# version: 2.2.1
 # guid: a1b2c3d4-e5f6-7890-abcd-1234567890ab
 
 name: Unified Automation
@@ -82,7 +82,7 @@ on:
 
 jobs:
   automation:
-    uses: jdfalk/ghcommon/.github/workflows/reusable-unified-automation.yml@main
+    uses: jdfalk/ghcommon/.github/workflows/reusable-unified-automation.yml@bc6380dd1cfb1a3b8eb24c27d6cfe4a887562b5b # main
     with:
       operation: ${{ github.event.inputs.operation || 'all' }}
 
