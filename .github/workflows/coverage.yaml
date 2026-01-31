@@ -77,7 +77,7 @@ jobs:
       actions: read # to download code coverage results from "test" job
       pull-requests: write # write permission needed to comment on PR
     steps:
-      - uses: fgrosse/go-coverage-report@v1.1.1 # Consider using a Git revision for maximum security
+      - uses: fgrosse/go-coverage-report@ba3f798d6f32b9b16faea37cc7192261bb25b192 # Consider using a Git revision for maximum security
         with:
           coverage-artifact-name: "code-coverage" # can be omitted if you used this default value
           coverage-file-name: "coverage.txt" # can be omitted if you used this default value
